@@ -9,7 +9,7 @@ Very early project status
 ### Authorisation Challenge
 
 ````go
-    package main
+package main
 
 import (
 	"fmt"
