@@ -7,27 +7,33 @@ import (
 	"go-ksef/ksef/util"
 )
 
+type Client interface {
+	PostXMLFromBytes(endpoint string, body []byte, result interface{}) error
+	GetJson(endpoint, token string)
+	PostJson(endpoint, token string, body interface{}) (*resty.Response, error)
+	PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error
+}
+
 type Environment string
 
 const (
 	Test Environment = "https://ksef-test.mf.gov.pl/api"
-	//Test Environment = "http://localhost:8080"
-	Demo = "https://ksef-demo.mf.gov.pl/api"
-	Prod = "https://ksef.mf.gov.pl/api"
+	Demo             = "https://ksef-demo.mf.gov.pl/api"
+	Prod             = "https://ksef.mf.gov.pl/api"
 )
 
-type Client struct {
-	client      *resty.Client
+type client struct {
+	rest        *resty.Client
 	environment Environment
 }
 
-func New(environment Environment) *Client {
-	client := resty.New()
-	return &Client{client: client, environment: environment}
+func New(environment Environment) Client {
+	restyClient := resty.New()
+	return &client{rest: restyClient, environment: environment}
 }
 
-func (c Client) PostXMLFromBytes(endpoint string, body []byte, result interface{}) error {
-	resp, err := c.client.R().
+func (c *client) PostXMLFromBytes(endpoint string, body []byte, result interface{}) error {
+	resp, err := c.rest.R().
 		EnableTrace().
 		SetBody(body).
 		SetResult(result).
@@ -38,13 +44,13 @@ func (c Client) PostXMLFromBytes(endpoint string, body []byte, result interface{
 	return checkError(resp, err)
 }
 
-func (c Client) GetJson(endpoint, token string) {
+func (c *client) GetJson(endpoint, token string) {
 
 }
 
-func (c Client) PostJson(endpoint, token string, body interface{}) (*resty.Response, error) {
+func (c *client) PostJson(endpoint, token string, body interface{}) (*resty.Response, error) {
 
-	r := c.client.R()
+	r := c.rest.R()
 	if util.DebugEnabled() {
 		r.EnableTrace()
 	}
@@ -56,9 +62,9 @@ func (c Client) PostJson(endpoint, token string, body interface{}) (*resty.Respo
 		Post(string(c.environment) + endpoint)
 }
 
-func (c Client) PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error {
+func (c *client) PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error {
 
-	r := c.client.R()
+	r := c.rest.R()
 	if util.DebugEnabled() {
 		r.EnableTrace()
 	}
@@ -91,7 +97,7 @@ func checkError(resp *resty.Response, err error) error {
 	return err
 }
 
-func printTraceInfo(endpoint string, c Client, err error, resp *resty.Response) {
+func printTraceInfo(endpoint string, c *client, err error, resp *resty.Response) {
 
 	if !util.DebugEnabled() {
 		return

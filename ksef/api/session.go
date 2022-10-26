@@ -16,14 +16,14 @@ type SessionService interface {
 }
 
 type Session struct {
-	client *Client
+	client Client
 }
 
-func NewSessionService(client *Client) SessionService {
-	return Session{client: client}
+func NewSessionService(client Client) SessionService {
+	return &Session{client: client}
 }
 
-func (s Session) AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error) {
+func (s *Session) AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error) {
 
 	logrus.Debug("Authorisation challenge")
 
@@ -43,7 +43,7 @@ func (s Session) AuthorisationChallenge(identifier string, identifierType model.
 	return res, nil
 }
 
-func (s Session) LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error) {
+func (s *Session) LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error) {
 
 	logrus.Debug("Login by token")
 
@@ -52,15 +52,18 @@ func (s Session) LoginByToken(identifier string, identifierType model.Identifier
 		return nil, err
 	}
 
-	sessionToken, err := encodeSessionToken(token, challenge.Timestamp, keyFileName)
+	authToken, err := encodeAuthToken(token, challenge.Timestamp, keyFileName)
 	if err != nil {
 		return nil, err
 	}
 
 	dto := model.TokenRequestDTO{
 		Identifier: identifier,
-		Token:      sessionToken,
+		Token:      authToken,
 		Challenge:  challenge.Challenge,
+		Encryption: model.EncryptionDTO{
+			Enabled: false,
+		},
 	}
 
 	request, err := util.MergeTemplate(&tpl.InitSessionTokenRequest, dto)
@@ -77,7 +80,7 @@ func (s Session) LoginByToken(identifier string, identifierType model.Identifier
 	return &response, nil
 }
 
-func encodeSessionToken(token string, challengeTimestamp time.Time, keyFileName string) ([]byte, error) {
+func encodeAuthToken(token string, challengeTimestamp time.Time, keyFileName string) ([]byte, error) {
 	message := fmt.Sprintf("%s|%d", token, challengeTimestamp.UnixMilli())
-	return cipher.RsaCipher([]byte(message), keyFileName)
+	return cipher.RsaEncrypt([]byte(message), keyFileName)
 }

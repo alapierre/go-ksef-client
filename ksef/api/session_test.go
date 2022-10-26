@@ -19,7 +19,7 @@ func TestMain(m *testing.M) {
 	teardown()
 }
 
-var client *Client
+var apiClient Client
 var session SessionService
 
 func setup() {
@@ -33,8 +33,8 @@ func setup() {
 		ForceColors:   true,
 	})
 
-	client = New(Test)
-	session = NewSessionService(client)
+	apiClient = New(Test)
+	session = NewSessionService(apiClient)
 }
 
 func teardown() {
@@ -58,7 +58,7 @@ func Test_encodeSessionToken(t *testing.T) {
 		t.Errorf("can't parse timestamp")
 	}
 
-	encrypted, err := encodeSessionToken(
+	encrypted, err := encodeAuthToken(
 		token,
 		challengeTimestamp,
 		"../../data/mfkeys/test/publicKey.pem")
@@ -70,7 +70,7 @@ func Test_encodeSessionToken(t *testing.T) {
 	fmt.Println(base64.StdEncoding.EncodeToString(encrypted))
 }
 
-func Test_Session_LoginByToken(t *testing.T) {
+func TestSessionLoginByToken(t *testing.T) {
 	token, err := session.LoginByToken(
 		identifier,
 		model.ONIP,

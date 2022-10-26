@@ -1,4 +1,4 @@
-# GO KSeF API Client Library
+# GO KSeF API client Library
 
 Inspired by `ksef-java-rest-client` project, based on Resty, KSeF API client for Go.
 
