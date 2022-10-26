@@ -23,7 +23,11 @@ func main() {
 	client := api.New(api.Test)
 	session := api.NewSessionService(client)
 
-	sessionToken, err := session.LoginByToken(util.GetEnvOrFailed("KSEF_NIP"), model.ONIP, util.GetEnvOrFailed("KSEF_TOKEN"), "data/mfkeys/test/publicKey.pem")
+	sessionToken, err := session.LoginByToken(
+		util.GetEnvOrFailed("KSEF_NIP"), 
+		model.ONIP, 
+		util.GetEnvOrFailed("KSEF_TOKEN"), 
+		"data/mfkeys/test/publicKey.pem")
 
 	if err != nil {
 		re, ok := err.(*api.RequestError)
