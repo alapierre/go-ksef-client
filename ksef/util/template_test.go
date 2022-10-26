@@ -13,7 +13,7 @@ var token = GetEnvOrFailed("KSEF_TOKEN")
 
 func TestMergeTemplate(t *testing.T) {
 
-	aes, err := cipher.NewAes(32)
+	aes, err := cipher.AesWithRandomKey(32)
 	if err != nil {
 		t.Errorf("Can't init AES cipher")
 	}

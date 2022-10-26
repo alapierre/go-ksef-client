@@ -20,19 +20,19 @@ func TestRsaCipher(t *testing.T) {
 
 func TestAesCipher_Encrypt(t *testing.T) {
 
-	aes, err := NewAes(32) // 256bits
+	encryptor, err := AesWithRandomKey(32) // 256bits
 	if err != nil {
 		t.Errorf("can't initialize AES Cipher %v", err)
 	}
 
-	encrypted, err := aes.Encrypt([]byte("Ala ma kota"))
+	encrypted, err := encryptor.Encrypt([]byte("Ala ma kota"))
 	if err != nil {
 		return
 	}
 
 	fmt.Println("encrypted: ", base64.StdEncoding.EncodeToString(encrypted))
 
-	decrypted, err := AesDecrypt(encrypted, aes.Key(), aes.Iv())
+	decrypted, err := encryptor.Decrypt(encrypted)
 	if err != nil {
 		return
 	}

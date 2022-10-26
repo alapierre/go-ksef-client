@@ -9,11 +9,13 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 type AesCipher interface {
 	Encrypt(plaintext []byte) ([]byte, error)
+	Decrypt(encrypted []byte) ([]byte, error)
 	Key() []byte
 	Iv() []byte
 }
@@ -22,15 +24,20 @@ type aesCipher struct {
 	key []byte
 	iv  []byte
 
-	c cipher.Block
+	block cipher.Block
 }
 
-func NewAes(keySize int) (AesCipher, error) {
+// AesWithRandomKey creates and initialize AES cipher with random key and iv.
+// The keySize argument should be either 16, 24, or 32 bytes
+// to select AES-128, AES-192, or AES-256
+func AesWithRandomKey(keySize int) (AesCipher, error) {
+
+	log.Debug("Creating AES Cipher with random key and iv")
 
 	c := &aesCipher{
-		key: make([]byte, keySize),
-		iv:  make([]byte, 16),
-		c:   nil,
+		key:   make([]byte, keySize),
+		iv:    make([]byte, aes.BlockSize),
+		block: nil,
 	}
 
 	if _, err := rand.Read(c.key); err != nil {
@@ -41,48 +48,72 @@ func NewAes(keySize int) (AesCipher, error) {
 	}
 
 	var err error
-	c.c, err = aes.NewCipher(c.key)
+	c.block, err = aes.NewCipher(c.key)
 	return c, err
 }
 
-func (aes *aesCipher) Encrypt(plaintext []byte) ([]byte, error) {
+// NewAes creates and initialize AES cipher.
+// The key argument should be the AES key, either 16, 24, or 32 bytes
+// to select AES-128, AES-192, or AES-256.
+// The length of iv must be the same as the Block's block size (16 bytes).
+func NewAes(key, iv []byte) (AesCipher, error) {
 
-	plaintext, err := PKCS7Padding(plaintext, aes.c.BlockSize())
+	log.Debug("Creating AES Cipher with given key and iv")
+
+	c := &aesCipher{
+		key:   key,
+		iv:    iv,
+		block: nil,
+	}
+
+	var err error
+	c.block, err = aes.NewCipher(c.key)
+	return c, err
+}
+
+// Encrypt given message using AES/CBC/PKCS7 encryption
+func (c *aesCipher) Encrypt(message []byte) ([]byte, error) {
+
+	message, err := PKCS7Padding(message, c.block.BlockSize())
 	if err != nil {
 		return nil, err
 	}
 
-	encrypted := make([]byte, len(plaintext))
+	encrypted := make([]byte, len(message))
 
-	encryptor := cipher.NewCBCEncrypter(aes.c, aes.iv)
-	encryptor.CryptBlocks(encrypted, plaintext)
+	encryptor := cipher.NewCBCEncrypter(c.block, c.iv)
+	encryptor.CryptBlocks(encrypted, message)
 
 	return encrypted, nil
 }
 
-func (aes *aesCipher) Key() []byte {
-	return aes.key
+// Key gets AES key
+func (c *aesCipher) Key() []byte {
+	return c.key
 }
 
-func (aes *aesCipher) Iv() []byte {
-	return aes.iv
+// Iv gets AES iv
+func (c *aesCipher) Iv() []byte {
+	return c.iv
 }
 
-func AesDecrypt(encrypted, key, iv []byte) ([]byte, error) {
+// Decrypt decrypt given AES/CBC/PKCS7 encrypted message
+func (c *aesCipher) Decrypt(encrypted []byte) ([]byte, error) {
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(c.key)
 	if err != nil {
 		return nil, err
 	}
 
 	plaintext := make([]byte, len(encrypted))
-	decrypt := cipher.NewCBCDecrypter(block, iv)
+	decrypt := cipher.NewCBCDecrypter(block, c.iv)
 	decrypt.CryptBlocks(plaintext, encrypted)
 
 	plaintext = PKCS7UnPadding(plaintext)
 	return plaintext, nil
 }
 
+// RsaEncrypt encrypt given message with RAS public key file
 func RsaEncrypt(message []byte, keyFileName string) ([]byte, error) {
 
 	key, err := os.ReadFile(keyFileName)
@@ -109,6 +140,7 @@ func RsaEncrypt(message []byte, keyFileName string) ([]byte, error) {
 	return encrypted, nil
 }
 
+// PKCS7Padding add the padding to the data before encrypting, to make the input a multiple of the AES block size.
 func PKCS7Padding(data []byte, blockSize int) ([]byte, error) {
 	if blockSize <= 0 {
 		return nil, fmt.Errorf("invalid blockSize")
@@ -121,6 +153,7 @@ func PKCS7Padding(data []byte, blockSize int) ([]byte, error) {
 	return append(data, padding...), nil
 }
 
+// PKCS7UnPadding remove padding before decrypting
 func PKCS7UnPadding(plantText []byte) []byte {
 	length := len(plantText)
 	unPadding := int(plantText[length-1])
