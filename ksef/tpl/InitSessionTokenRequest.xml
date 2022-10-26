@@ -2,11 +2,12 @@
 <ns3:InitSessionTokenRequest
 	xmlns="http://ksef.mf.gov.pl/schema/gtw/svc/online/types/2021/10/01/0001"
 	xmlns:ns2="http://ksef.mf.gov.pl/schema/gtw/svc/types/2021/10/01/0001"
-	xmlns:ns3="http://ksef.mf.gov.pl/schema/gtw/svc/online/auth/request/2021/10/01/0001">
+	xmlns:ns3="http://ksef.mf.gov.pl/schema/gtw/svc/online/auth/request/2021/10/01/0001"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://ksef.mf.gov.pl/schema/gtw/svc/online/auth/request/2021/10/01/0001 https://ksef.mf.gov.pl/schema/gtw/svc/online/auth/request/2021/10/01/0001/authRequest.xsd">
 	<ns3:Context>
-		<Challenge>20211001-CR-FFFFFFFFFF-FFFFFFFFFF-FF</Challenge>
+		<Challenge>{{ .Challenge }}</Challenge>
 		<Identifier xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns2:SubjectIdentifierByCompanyType">
-			<ns2:Identifier>{{ .Nip }}</ns2:Identifier>
+			<ns2:Identifier>{{ .Identifier }}</ns2:Identifier>
 		</Identifier>
 		<DocumentType>
 			<ns2:Service>KSeF</ns2:Service>
@@ -17,6 +18,6 @@
 				<ns2:Value>FA</ns2:Value>
 			</ns2:FormCode>
 		</DocumentType>
-		<Token>{{ .Token }}</Token>
+		<Token>{{ base64 .Token }}</Token>
 	</ns3:Context>
 </ns3:InitSessionTokenRequest>
