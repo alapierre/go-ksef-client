@@ -3,43 +3,10 @@ package api
 import (
 	"encoding/base64"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"go-ksef/ksef/model"
-	"go-ksef/ksef/util"
 	"testing"
 	"time"
 )
-
-var identifier = util.GetEnvOrFailed("KSEF_NIP")
-var token = util.GetEnvOrFailed("KSEF_TOKEN")
-
-func TestMain(m *testing.M) {
-	setup()
-	m.Run()
-	teardown()
-}
-
-var apiClient Client
-var session SessionService
-
-func setup() {
-
-	if util.DebugEnabled() {
-		log.SetLevel(log.DebugLevel)
-	}
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-		ForceColors:   true,
-	})
-
-	apiClient = New(Test)
-	session = NewSessionService(apiClient)
-}
-
-func teardown() {
-
-}
 
 func TestAuthorisationChallenge(t *testing.T) {
 

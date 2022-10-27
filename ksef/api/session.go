@@ -15,7 +15,7 @@ type SessionService interface {
 	LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error)
 }
 
-type Session struct {
+type Session struct { // TODO: zmienić na prywatną
 	client Client
 }
 

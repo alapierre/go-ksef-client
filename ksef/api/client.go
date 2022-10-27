@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	log "github.com/sirupsen/logrus"
 	"go-ksef/ksef/util"
 )
 
 type Client interface {
 	PostXMLFromBytes(endpoint string, body []byte, result interface{}) error
 	GetJson(endpoint, token string)
-	PostJson(endpoint, token string, body interface{}) (*resty.Response, error)
+	PostJson(endpoint, token string, body interface{}, result interface{}) error
 	PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error
+	PutJson(endpoint, token string, body interface{}, result interface{}) error
 }
 
 type Environment string
@@ -33,13 +35,17 @@ func New(environment Environment) Client {
 }
 
 func (c *client) PostXMLFromBytes(endpoint string, body []byte, result interface{}) error {
-	resp, err := c.rest.R().
+
+	log.Debugf("Posting XML, endpoint URL %s", endpoint)
+
+	resp, err := prepareRequest(c).
 		EnableTrace().
 		SetBody(body).
 		SetResult(result).
 		SetHeader("Content-Type", "application/octet-stream; charset=utf-8").
 		Post(string(c.environment) + endpoint)
 
+	log.Debugf("Response status %s", resp.Status())
 	printTraceInfo(endpoint, c, err, resp)
 	return checkError(resp, err)
 }
@@ -48,34 +54,56 @@ func (c *client) GetJson(endpoint, token string) {
 
 }
 
-func (c *client) PostJson(endpoint, token string, body interface{}) (*resty.Response, error) {
+func (c *client) PostJson(endpoint, token string, body interface{}, result interface{}) error {
 
-	r := c.rest.R()
-	if util.DebugEnabled() {
-		r.EnableTrace()
-	}
+	log.Debugf("Posting JSON, endpoint URL %s", endpoint)
 
-	return r.
-		EnableTrace().
+	resp, err := prepareRequest(c).
 		SetBody(body).
+		SetResult(result).
 		SetHeader("SessionToken", token).
 		Post(string(c.environment) + endpoint)
+
+	log.Debugf("Response status %s", resp.Status())
+	printTraceInfo(endpoint, c, err, resp)
+	return checkError(resp, err)
+}
+
+func (c *client) PutJson(endpoint, token string, body interface{}, result interface{}) error {
+
+	log.Debugf("Putting JSON, endpoint URL %s", endpoint)
+
+	resp, err := prepareRequest(c).
+		SetBody(body).
+		SetResult(result).
+		SetHeader("SessionToken", token).
+		Put(string(c.environment) + endpoint)
+
+	log.Debugf("Response status %s", resp.Status())
+	printTraceInfo(endpoint, c, err, resp)
+	return checkError(resp, err)
 }
 
 func (c *client) PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error {
 
-	r := c.rest.R()
-	if util.DebugEnabled() {
-		r.EnableTrace()
-	}
+	log.Debugf("Posting JSON (no auth), endpoint URL %s", endpoint)
 
-	resp, err := r.
+	resp, err := prepareRequest(c).
 		SetBody(body).
 		SetResult(result).
 		Post(string(c.environment) + endpoint)
 
+	log.Debugf("Response status %s", resp.Status())
 	printTraceInfo(endpoint, c, err, resp)
 	return checkError(resp, err)
+}
+
+func prepareRequest(c *client) *resty.Request {
+	r := c.rest.R()
+	if util.HttpTraceEnabled() {
+		r.EnableTrace()
+	}
+	return r
 }
 
 func checkError(resp *resty.Response, err error) error {
@@ -99,7 +127,7 @@ func checkError(resp *resty.Response, err error) error {
 
 func printTraceInfo(endpoint string, c *client, err error, resp *resty.Response) {
 
-	if !util.DebugEnabled() {
+	if !util.HttpTraceEnabled() {
 		return
 	}
 

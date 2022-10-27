@@ -7,7 +7,15 @@ import (
 )
 
 func DebugEnabled() bool {
-	v, ok := os.LookupEnv("KSEF_DEBUG")
+	return etb("KSEF_DEBUG")
+}
+
+func HttpTraceEnabled() bool {
+	return etb("KSEF_HTTP_TRACE")
+}
+
+func etb(envName string) bool {
+	v, ok := os.LookupEnv(envName)
 	if !ok {
 		return false
 	}
