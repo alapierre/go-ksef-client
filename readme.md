@@ -1,4 +1,4 @@
-# GOlang KSeF API client library
+# GO KSeF API client library
 
 Inspired by `ksef-java-rest-client` project, based on Resty, KSeF API client for Go.
 
@@ -165,8 +165,8 @@ func main() {
 
 ## Debug info
 
-To enable log debug just set `KSEF_DEBUG=true` environment variable
-To enable http trace ingo just set `SEF_HTTP_TRACE=true` environment variable
+To enable log debug just set `KSEF_DEBUG=true` environment variable. 
+To enable http trace info, just set `SEF_HTTP_TRACE=true` environment variable
 
 ## Tests
 
