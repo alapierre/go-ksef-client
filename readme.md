@@ -166,7 +166,7 @@ func main() {
 ## Debug info
 
 To enable log debug just set `KSEF_DEBUG=true` environment variable. 
-To enable http trace info, just set `SEF_HTTP_TRACE=true` environment variable
+To enable http trace info, just set `KSEF_HTTP_TRACE=true` environment variable
 
 ## Tests
 
