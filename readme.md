@@ -1,4 +1,4 @@
-# GO KSeF API client Library
+# GOlang KSeF API client library
 
 Inspired by `ksef-java-rest-client` project, based on Resty, KSeF API client for Go.
 
@@ -56,6 +56,88 @@ The only difference is to create session object with NewSessionServiceWithEncryp
 Important: When session is open with encryption, all invoices have to be sent encrypted, and all incoming invoices will 
 be encrypted with AES key given on init session call.
 
+### Send invoice with no encryption
+
+````go
+package main
+
+import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"go-ksef/ksef/api"
+	"go-ksef/ksef/model"
+	"go-ksef/ksef/util"
+	"os"
+)
+
+func main() {
+	content, err := os.ReadFile("../../data/testing/faktura1.xml")
+	if err != nil {
+		panic(err)
+	}
+
+	client := api.New(api.Test)
+	invoiceService := api.NewInvoiceService(client)
+
+	sendInvoiceResp, err := invoiceService.SendInvoice(content, "_sessionToken_")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Invoice responce: %#v", *sendInvoiceResp)
+}
+````
+
+### Send invoice with encryption
+
+````go
+package main
+
+import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"go-ksef/ksef/api"
+	"go-ksef/ksef/cipher"
+	"go-ksef/ksef/model"
+	"go-ksef/ksef/util"
+	"os"
+)
+
+func main() {
+	
+	content, err := os.ReadFile("../../data/testing/faktura1.xml")
+	if err != nil {
+	    panic(err)
+	}
+
+	aes, err := cipher.AesWithRandomKey(32)
+
+	client := api.New(api.Test)
+	invoiceService := api.NewInvoiceService(client)
+	
+	sessionEncrypted := api.NewSessionServiceWithEncryption(client, aes)
+
+	sessionToken, err := sessionEncrypted.LoginByToken(
+		util.GetEnvOrFailed("KSEF_NIP"), 
+		model.ONIP,
+		util.GetEnvOrFailed("KSEF_TOKEN"),
+		"../../data/mfkeys/test/publicKey.pem")
+
+	if err != nil {
+	    panic(err)	
+	}
+
+	fmt.Printf("session token: %s\n", sessionToken.SessionToken.Token)
+
+	sendInvoiceResp, err := invoiceService.EncryptAndSend(content, aes, sessionToken.SessionToken.Token)
+	if err != nil {
+	    panic(err)
+	}
+
+	fmt.Printf("Invoice responce: %#v", *sendInvoiceResp)
+}
+````
+
 ### Authorisation Challenge
 
 ````go
@@ -84,6 +166,7 @@ func main() {
 ## Debug info
 
 To enable log debug just set `KSEF_DEBUG=true` environment variable
+To enable http trace ingo just set `SEF_HTTP_TRACE=true` environment variable
 
 ## Tests
 
