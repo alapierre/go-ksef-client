@@ -16,11 +16,18 @@ type SessionService interface {
 }
 
 type Session struct { // TODO: zmienić na prywatną
-	client Client
+	client    Client
+	aesCipher cipher.AesCipher
 }
 
+// NewSessionService prepare session without any encryption
 func NewSessionService(client Client) SessionService {
 	return &Session{client: client}
+}
+
+// NewSessionServiceWithEncryption prepare session with AES encryption
+func NewSessionServiceWithEncryption(client Client, aesCipher cipher.AesCipher) SessionService {
+	return &Session{client: client, aesCipher: aesCipher}
 }
 
 func (s *Session) AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error) {
@@ -61,9 +68,7 @@ func (s *Session) LoginByToken(identifier string, identifierType model.Identifie
 		Identifier: identifier,
 		Token:      authToken,
 		Challenge:  challenge.Challenge,
-		Encryption: model.EncryptionDTO{
-			Enabled: false,
-		},
+		Encryption: s.prepareEncryption(keyFileName),
 	}
 
 	request, err := util.MergeTemplate(&tpl.InitSessionTokenRequest, dto)
@@ -78,6 +83,24 @@ func (s *Session) LoginByToken(identifier string, identifierType model.Identifie
 	}
 
 	return &response, nil
+}
+
+func (s *Session) prepareEncryption(keyFileName string) model.EncryptionDTO {
+	enc := model.EncryptionDTO{}
+	if s.aesCipher != nil {
+
+		key, err := cipher.RsaEncrypt(s.aesCipher.Key(), keyFileName)
+		if err != nil {
+			panic(err)
+		}
+
+		enc.Enabled = true
+		enc.Key = key
+		enc.IV = s.aesCipher.Iv()
+	} else {
+		enc.Enabled = false
+	}
+	return enc
 }
 
 func encodeAuthToken(token string, challengeTimestamp time.Time, keyFileName string) ([]byte, error) {

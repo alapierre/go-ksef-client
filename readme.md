@@ -6,7 +6,7 @@ Very early project status
 
 ## Sample
 
-### Login by authorisation token
+### Login by authorisation token with no additional encryption
 
 ````go
 package main
@@ -40,6 +40,21 @@ func main() {
 	fmt.Printf("session token: %s\n", sessionToken.SessionToken.Token)
 }
 ````
+
+### Login by authorisation token with additional AES encryption
+
+The only difference is to create session object with NewSessionServiceWithEncryption and pass initialized AES cipher
+
+````go
+        aes, err := cipher.AesWithRandomKey(32)
+	if err != nil {
+		panic("can't prepare AES Encryptor: " + err)
+	}
+	sessionEncrypted := NewSessionServiceWithEncryption(apiClient, aes)
+````
+
+Important: When session is open with encryption, all invoices have to be sent encrypted, and all incoming invoices will 
+be encrypted with AES key given on init session call.
 
 ### Authorisation Challenge
 

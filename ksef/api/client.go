@@ -14,6 +14,7 @@ type Client interface {
 	PostJson(endpoint, token string, body interface{}, result interface{}) error
 	PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error
 	PutJson(endpoint, token string, body interface{}, result interface{}) error
+	Env() Environment
 }
 
 type Environment string
@@ -32,6 +33,10 @@ type client struct {
 func New(environment Environment) Client {
 	restyClient := resty.New()
 	return &client{rest: restyClient, environment: environment}
+}
+
+func (c *client) Env() Environment {
+	return c.environment
 }
 
 func (c *client) PostXMLFromBytes(endpoint string, body []byte, result interface{}) error {

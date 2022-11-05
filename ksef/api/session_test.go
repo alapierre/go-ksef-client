@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/base64"
 	"fmt"
+	"go-ksef/ksef/cipher"
 	"go-ksef/ksef/model"
 	"testing"
 	"time"
@@ -38,7 +39,7 @@ func Test_encodeSessionToken(t *testing.T) {
 }
 
 func TestSessionLoginByToken(t *testing.T) {
-	token, err := session.LoginByToken(
+	sessionToken, err := session.LoginByToken(
 		identifier,
 		model.ONIP,
 		token,
@@ -48,5 +49,27 @@ func TestSessionLoginByToken(t *testing.T) {
 		t.Errorf("can't login %v", err)
 	}
 
-	fmt.Printf("%v", token)
+	fmt.Printf("%v", sessionToken)
+}
+
+func TestSessionLoginByTokenWithEnc(t *testing.T) {
+	aes, err := cipher.AesWithRandomKey(32)
+	if err != nil {
+		t.Errorf("can't prepare AES Encryptor: %v", err)
+	}
+
+	sessionEncrypted := NewSessionServiceWithEncryption(apiClient, aes)
+
+	sessionToken, err := sessionEncrypted.LoginByToken(
+		identifier,
+		model.ONIP,
+		token,
+		"../../data/mfkeys/test/publicKey.pem")
+
+	if err != nil {
+		t.Errorf("can't login %v", err)
+	}
+
+	fmt.Printf("%#v", sessionToken)
+
 }
