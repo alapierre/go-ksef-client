@@ -74,7 +74,7 @@ func TestSessionLoginByTokenWithEnc(t *testing.T) {
 
 }
 
-func TestSession_Status(t *testing.T) {
+func TestSessionStatus(t *testing.T) {
 	status, err := session.Status(100, 0, sessionToken.SessionToken.Token)
 	if err != nil {
 		t.Errorf("Can't get session status %v", err)
@@ -85,7 +85,7 @@ func TestSession_Status(t *testing.T) {
 
 //20221106-SE-D53174EA01-781962974B-1D
 
-func TestSession_StatusByReferenceNumber(t *testing.T) {
+func TestSessionStatusByReferenceNumber(t *testing.T) {
 	status, err := session.StatusByReferenceNumber(100, 0, "20221106-SE-D53174EA01-781962974B-1D", sessionToken.SessionToken.Token)
 	if err != nil {
 		t.Errorf("Can't get session status %v", err)

@@ -94,7 +94,7 @@ func Test_prepareEncryptedSendInvoiceRequest(t *testing.T) {
 	fmt.Println(string(b))
 }
 
-func Test_invoice_GetUpo(t *testing.T) {
+func TestInvoiceGetUpo(t *testing.T) {
 
 	upo, err := invoiceService.GetUpo("20221105-SE-841F12C904-BCAD0DC824-40")
 	if err != nil {
