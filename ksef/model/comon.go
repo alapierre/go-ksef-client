@@ -15,3 +15,30 @@ type ExceptionResponse struct {
 		} `json:"exceptionDetailList"`
 	} `json:"exception"`
 }
+
+// StatusResponse response for invoice processing status (with UPO)
+type StatusResponse struct {
+	ProcessingCode        int       `json:"processingCode"`
+	ProcessingDescription string    `json:"processingDescription"`
+	ReferenceNumber       string    `json:"referenceNumber"`
+	Timestamp             time.Time `json:"timestamp"`
+	Upo                   string    `json:"upo"`
+}
+
+// InvoiceRequestKSeF request for invoice without authentication
+type InvoiceRequestKSeF struct {
+	InvoiceDetails struct {
+		DueValue              string `json:"dueValue"`
+		InvoiceOriginalNumber string `json:"invoiceOryginalNumber"`
+		SubjectTo             struct {
+			IssuedToIdentifier struct {
+				Type string `json:"type"`
+			} `json:"issuedToIdentifier"`
+			IssuedToName struct {
+				TradeName string `json:"tradeName"`
+				Type      string `json:"type"`
+			} `json:"issuedToName"`
+		} `json:"subjectTo"`
+	} `json:"invoiceDetails"`
+	KsefReferenceNumber string `json:"ksefReferenceNumber"`
+}

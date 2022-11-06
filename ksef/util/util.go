@@ -22,7 +22,7 @@ func etb(envName string) bool {
 
 	bv, err := strconv.ParseBool(v)
 
-	return err == nil || bv
+	return err == nil && bv
 }
 
 func GetEnvOrFailed(key string) string {

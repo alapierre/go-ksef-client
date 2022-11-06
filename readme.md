@@ -138,6 +138,50 @@ func main() {
 }
 ````
 
+### Terminate current session and get UPO by session reference number
+
+````go
+package main
+
+import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"go-ksef/ksef/api"
+	"go-ksef/ksef/cipher"
+	"go-ksef/ksef/model"
+	"go-ksef/ksef/util"
+	"os"
+)
+
+func main() {
+
+	client := api.New(api.Test)
+	invoiceService := api.NewInvoiceService(client)
+	session := api.NewSessionService(client)
+
+	status, err := session.Terminate("__session_token__")
+	if err != nil {
+		panic(err) 
+	}
+	
+	fmt.Printf("%#v", *status)
+	
+	upo, err := invoiceService.GetUpo("__session_reference_number__")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("ReferenceNumber: %s, ProcessingCode: %d, ProcessingDescription: %s\n", upo.ReferenceNumber, upo.ProcessingCode, upo.ProcessingDescription)
+
+	err = os.WriteFile("../../upo.xml", upo.Upo, 0644)
+	if err != nil {
+		panic(err)
+	}
+	
+}
+
+````
+
 ### Authorisation Challenge
 
 ````go

@@ -10,7 +10,8 @@ import (
 
 type Client interface {
 	PostXMLFromBytes(endpoint string, body []byte, result interface{}) error
-	GetJson(endpoint, token string)
+	GetJson(endpoint, token string, result interface{}) error
+	GetJsonNoAuth(endpoint string, result interface{}) error
 	PostJson(endpoint, token string, body interface{}, result interface{}) error
 	PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error
 	PutJson(endpoint, token string, body interface{}, result interface{}) error
@@ -55,8 +56,29 @@ func (c *client) PostXMLFromBytes(endpoint string, body []byte, result interface
 	return checkError(resp, err)
 }
 
-func (c *client) GetJson(endpoint, token string) {
+func (c *client) GetJson(endpoint, token string, result interface{}) error {
+	log.Debugf("Send GET Request, endpoint URL %s", endpoint)
 
+	resp, err := prepareRequest(c).
+		SetResult(result).
+		SetHeader("SessionToken", token).
+		Get(string(c.environment) + endpoint)
+
+	log.Debugf("Response status %s", resp.Status())
+	printTraceInfo(endpoint, c, err, resp)
+	return checkError(resp, err)
+}
+
+func (c *client) GetJsonNoAuth(endpoint string, result interface{}) error {
+	log.Debugf("Send GET Request, endpoint URL %s", endpoint)
+
+	resp, err := prepareRequest(c).
+		SetResult(result).
+		Get(string(c.environment) + endpoint)
+
+	log.Debugf("Response status %s", resp.Status())
+	printTraceInfo(endpoint, c, err, resp)
+	return checkError(resp, err)
 }
 
 func (c *client) PostJson(endpoint, token string, body interface{}, result interface{}) error {

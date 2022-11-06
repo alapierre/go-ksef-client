@@ -93,3 +93,19 @@ func Test_prepareEncryptedSendInvoiceRequest(t *testing.T) {
 
 	fmt.Println(string(b))
 }
+
+func Test_invoice_GetUpo(t *testing.T) {
+
+	upo, err := invoiceService.GetUpo("20221105-SE-841F12C904-BCAD0DC824-40")
+	if err != nil {
+		t.Errorf("Can't get upo %v", err)
+	}
+
+	fmt.Printf("ReferenceNumber: %s, ProcessingCode: %d, ProcessingDescription: %s\n", upo.ReferenceNumber, upo.ProcessingCode, upo.ProcessingDescription)
+
+	err = os.WriteFile("../../upo.xml", upo.Upo, 0644)
+	if err != nil {
+		t.Errorf("Can't write upo %v\n", err)
+	}
+
+}

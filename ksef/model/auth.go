@@ -90,3 +90,28 @@ type RoleGrantorIdentifier struct {
 	Type       string `json:"type"`
 	Identifier string `json:"identifier"`
 }
+
+type SessionStatusResponse struct {
+	Timestamp             time.Time `json:"timestamp"`
+	ReferenceNumber       string    `json:"referenceNumber"`
+	NumberOfElements      int       `json:"numberOfElements"`
+	PageSize              int       `json:"pageSize"`
+	PageOffset            int       `json:"pageOffset"`
+	ProcessingCode        int       `json:"processingCode"`
+	ProcessingDescription string    `json:"processingDescription"`
+	InvoiceStatusList     []struct {
+		ProcessingCode         int       `json:"processingCode"`
+		ProcessingDescription  string    `json:"processingDescription"`
+		ElementReferenceNumber string    `json:"elementReferenceNumber"`
+		InvoiceNumber          string    `json:"invoiceNumber"`
+		KsefReferenceNumber    string    `json:"ksefReferenceNumber"`
+		AcquisitionTimestamp   time.Time `json:"acquisitionTimestamp"`
+	} `json:"invoiceStatusList"`
+}
+
+type TerminateSessionResponse struct {
+	Timestamp             time.Time `json:"timestamp"`
+	ReferenceNumber       string    `json:"referenceNumber"`
+	ProcessingCode        int       `json:"processingCode"`
+	ProcessingDescription string    `json:"processingDescription"`
+}

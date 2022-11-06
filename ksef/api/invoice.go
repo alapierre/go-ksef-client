@@ -3,6 +3,8 @@ package api
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"go-ksef/ksef/cipher"
 	"go-ksef/ksef/model"
 )
@@ -10,6 +12,7 @@ import (
 type InvoiceService interface {
 	SendInvoice(content []byte, token string) (*model.SendInvoiceResponse, error)
 	EncryptAndSend(content []byte, cipher cipher.AesCipher, token string) (*model.SendInvoiceResponse, error)
+	GetUpo(referenceNumber string) (*model.UpoDTO, error)
 }
 
 type invoice struct {
@@ -38,6 +41,28 @@ func (i *invoice) SendInvoice(content []byte, token string) (*model.SendInvoiceR
 	err := i.client.PutJson("/online/Invoice/Send", token, prepareSendInvoiceRequest(content), res)
 
 	return res, err
+}
+
+func (i *invoice) GetUpo(referenceNumber string) (*model.UpoDTO, error) {
+
+	log.Debugf("Getting UPO for referenceNumber: %s", referenceNumber)
+
+	res := &model.StatusResponse{}
+	endpoint := fmt.Sprintf("/common/Status/%s", referenceNumber)
+
+	err := i.client.GetJsonNoAuth(endpoint, res)
+
+	upo := &model.UpoDTO{
+		ReferenceNumber:       res.ReferenceNumber,
+		ProcessingCode:        res.ProcessingCode,
+		ProcessingDescription: res.ProcessingDescription,
+	}
+
+	if res.Upo != "" {
+		upo.Upo, err = base64.StdEncoding.DecodeString(res.Upo)
+	}
+
+	return upo, err
 }
 
 func prepareSendInvoiceRequest(content []byte) *model.SendInvoiceRequest {

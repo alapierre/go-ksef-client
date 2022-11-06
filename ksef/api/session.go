@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"go-ksef/ksef/cipher"
 	"go-ksef/ksef/model"
 	"go-ksef/ksef/tpl"
@@ -13,6 +13,9 @@ import (
 type SessionService interface {
 	AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error)
 	LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error)
+	Status(pageSize, offset int, token string) (*model.SessionStatusResponse, error)
+	StatusByReferenceNumber(pageSize, offset int, referenceNumber, token string) (*model.SessionStatusResponse, error)
+	Terminate(token string) (*model.TerminateSessionResponse, error)
 }
 
 type Session struct { // TODO: zmienić na prywatną
@@ -30,9 +33,10 @@ func NewSessionServiceWithEncryption(client Client, aesCipher cipher.AesCipher) 
 	return &Session{client: client, aesCipher: aesCipher}
 }
 
+// AuthorisationChallenge call KSeF for authorization challenge
 func (s *Session) AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error) {
 
-	logrus.Debug("Authorisation challenge")
+	log.Debug("Authorisation challenge")
 
 	res := &model.AuthorisationChallengeResponse{}
 
@@ -50,9 +54,10 @@ func (s *Session) AuthorisationChallenge(identifier string, identifierType model
 	return res, nil
 }
 
+// LoginByToken opens new interactive season with given authorisation token
 func (s *Session) LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error) {
 
-	logrus.Debug("Login by token")
+	log.Debug("Login by token")
 
 	challenge, err := s.AuthorisationChallenge(identifier, identifierType)
 	if err != nil {
@@ -76,13 +81,55 @@ func (s *Session) LoginByToken(identifier string, identifierType model.Identifie
 		return nil, err
 	}
 
-	var response = model.TokenResponse{}
-	err = s.client.PostXMLFromBytes("/online/Session/InitToken", request, &response)
+	var response = &model.TokenResponse{}
+	err = s.client.PostXMLFromBytes("/online/Session/InitToken", request, response)
 	if err != nil {
 		return nil, err
 	}
 
-	return &response, nil
+	return response, nil
+}
+
+// Status gets current session status with sent invoices list
+func (s *Session) Status(pageSize, offset int, token string) (*model.SessionStatusResponse, error) {
+
+	log.Debug("Current session status")
+
+	var response = &model.SessionStatusResponse{}
+	endpoint := fmt.Sprintf("/online/Session/Status?PageSize=%d&PageOffset=%d", pageSize, offset)
+	err := s.client.GetJson(endpoint, token, response)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// StatusByReferenceNumber gets session status for given session reference number
+func (s *Session) StatusByReferenceNumber(pageSize, offset int, referenceNumber, token string) (*model.SessionStatusResponse, error) {
+
+	log.Debugf("Session status by reference number: %s", referenceNumber)
+
+	var response = &model.SessionStatusResponse{}
+	endpoint := fmt.Sprintf("/online/Session/Status/%s?PageSize=%d&PageOffset=%d", referenceNumber, pageSize, offset)
+	err := s.client.GetJson(endpoint, token, response)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Terminate close current interactive session
+func (s *Session) Terminate(token string) (*model.TerminateSessionResponse, error) {
+	log.Debug("Terminate current session")
+
+	var response = &model.TerminateSessionResponse{}
+	endpoint := "/online/Session/Terminate"
+
+	err := s.client.GetJson(endpoint, token, response)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 func (s *Session) prepareEncryption(keyFileName string) model.EncryptionDTO {
