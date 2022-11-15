@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"go-ksef/ksef/cipher"
-	"go-ksef/ksef/model"
+	"github.com/alapierre/go-ksef-client/ksef/cipher"
+	"github.com/alapierre/go-ksef-client/ksef/model"
 	"os"
 	"testing"
 )

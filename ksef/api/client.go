@@ -3,9 +3,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/alapierre/go-ksef-client/ksef/util"
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
-	"go-ksef/ksef/util"
 )
 
 type Client interface {

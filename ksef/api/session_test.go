@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/base64"
 	"fmt"
-	"go-ksef/ksef/cipher"
-	"go-ksef/ksef/model"
+	"github.com/alapierre/go-ksef-client/ksef/cipher"
+	"github.com/alapierre/go-ksef-client/ksef/model"
 	"testing"
 	"time"
 )
@@ -82,8 +82,6 @@ func TestSessionStatus(t *testing.T) {
 
 	fmt.Printf("%#v\n", *status)
 }
-
-//20221106-SE-D53174EA01-781962974B-1D
 
 func TestSessionStatusByReferenceNumber(t *testing.T) {
 	status, err := session.StatusByReferenceNumber(100, 0, "20221106-SE-D53174EA01-781962974B-1D", sessionToken.SessionToken.Token)

@@ -4,9 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/alapierre/go-ksef-client/ksef/cipher"
+	"github.com/alapierre/go-ksef-client/ksef/model"
 	log "github.com/sirupsen/logrus"
-	"go-ksef/ksef/cipher"
-	"go-ksef/ksef/model"
 )
 
 type InvoiceService interface {

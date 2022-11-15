@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
+	"github.com/alapierre/go-ksef-client/ksef/model"
+	"github.com/alapierre/go-ksef-client/ksef/util"
 	log "github.com/sirupsen/logrus"
-	"go-ksef/ksef/model"
-	"go-ksef/ksef/util"
 	"testing"
 )
 

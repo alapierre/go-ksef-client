@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/alapierre/go-ksef-client/ksef/api"
+	"github.com/alapierre/go-ksef-client/ksef/model"
+	"github.com/alapierre/go-ksef-client/ksef/util"
 	log "github.com/sirupsen/logrus"
-	"go-ksef/ksef/api"
-	"go-ksef/ksef/model"
-	"go-ksef/ksef/util"
 )
 
 func main() {

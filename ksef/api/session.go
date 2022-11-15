@@ -2,11 +2,11 @@ package api
 
 import (
 	"fmt"
+	"github.com/alapierre/go-ksef-client/ksef/cipher"
+	"github.com/alapierre/go-ksef-client/ksef/model"
+	"github.com/alapierre/go-ksef-client/ksef/tpl"
+	"github.com/alapierre/go-ksef-client/ksef/util"
 	log "github.com/sirupsen/logrus"
-	"go-ksef/ksef/cipher"
-	"go-ksef/ksef/model"
-	"go-ksef/ksef/tpl"
-	"go-ksef/ksef/util"
 	"time"
 )
 
