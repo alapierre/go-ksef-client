@@ -11,7 +11,7 @@ import (
 
 func TestAuthorisationChallenge(t *testing.T) {
 
-	challenge, err := session.AuthorisationChallenge(identifier, model.ONIP)
+	challenge, err := sessionService.AuthorisationChallenge(identifier, model.ONIP)
 	if err != nil {
 		t.Errorf("błąd %v", err)
 	}
@@ -39,7 +39,7 @@ func Test_encodeSessionToken(t *testing.T) {
 }
 
 func TestSessionLoginByToken(t *testing.T) {
-	sessionToken, err := session.LoginByToken(
+	sessionToken, err := sessionService.LoginByToken(
 		identifier,
 		model.ONIP,
 		token,
@@ -75,7 +75,7 @@ func TestSessionLoginByTokenWithEnc(t *testing.T) {
 }
 
 func TestSessionStatus(t *testing.T) {
-	status, err := session.Status(100, 0, sessionToken.SessionToken.Token)
+	status, err := sessionService.Status(100, 0, sessionToken.SessionToken.Token)
 	if err != nil {
 		t.Errorf("Can't get session status %v", err)
 	}
@@ -84,7 +84,7 @@ func TestSessionStatus(t *testing.T) {
 }
 
 func TestSessionStatusByReferenceNumber(t *testing.T) {
-	status, err := session.StatusByReferenceNumber(100, 0, "20221106-SE-D53174EA01-781962974B-1D", sessionToken.SessionToken.Token)
+	status, err := sessionService.StatusByReferenceNumber(100, 0, "20221106-SE-D53174EA01-781962974B-1D", sessionToken.SessionToken.Token)
 	if err != nil {
 		t.Errorf("Can't get session status %v", err)
 	}

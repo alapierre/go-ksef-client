@@ -18,30 +18,30 @@ type SessionService interface {
 	Terminate(token string) (*model.TerminateSessionResponse, error)
 }
 
-type Session struct { // TODO: zmienić na prywatną
+type session struct {
 	client    Client
 	aesCipher cipher.AesCipher
 }
 
 // NewSessionService prepare session without any encryption
 func NewSessionService(client Client) SessionService {
-	return &Session{client: client}
+	return &session{client: client}
 }
 
 // NewSessionServiceWithEncryption prepare session with AES encryption
 func NewSessionServiceWithEncryption(client Client, aesCipher cipher.AesCipher) SessionService {
-	return &Session{client: client, aesCipher: aesCipher}
+	return &session{client: client, aesCipher: aesCipher}
 }
 
 // AuthorisationChallenge call KSeF for authorization challenge
-func (s *Session) AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error) {
+func (s *session) AuthorisationChallenge(identifier string, identifierType model.IdentifierType) (*model.AuthorisationChallengeResponse, error) {
 
 	log.Debug("Authorisation challenge")
 
 	res := &model.AuthorisationChallengeResponse{}
 
 	err := s.client.PostJsonNoAuth(
-		"/online/Session/AuthorisationChallenge",
+		"/online/session/AuthorisationChallenge",
 		model.AuthorisationChallengeRequest{
 			ContextIdentifier: model.ContextIdentifier{
 				Type:       identifierType,
@@ -55,7 +55,7 @@ func (s *Session) AuthorisationChallenge(identifier string, identifierType model
 }
 
 // LoginByToken opens new interactive season with given authorisation token
-func (s *Session) LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error) {
+func (s *session) LoginByToken(identifier string, identifierType model.IdentifierType, token, keyFileName string) (*model.TokenResponse, error) {
 
 	log.Debug("Login by token")
 
@@ -82,7 +82,7 @@ func (s *Session) LoginByToken(identifier string, identifierType model.Identifie
 	}
 
 	var response = &model.TokenResponse{}
-	err = s.client.PostXMLFromBytes("/online/Session/InitToken", request, response)
+	err = s.client.PostXMLFromBytes("/online/session/InitToken", request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +91,12 @@ func (s *Session) LoginByToken(identifier string, identifierType model.Identifie
 }
 
 // Status gets current session status with sent invoices list
-func (s *Session) Status(pageSize, offset int, token string) (*model.SessionStatusResponse, error) {
+func (s *session) Status(pageSize, offset int, token string) (*model.SessionStatusResponse, error) {
 
 	log.Debug("Current session status")
 
 	var response = &model.SessionStatusResponse{}
-	endpoint := fmt.Sprintf("/online/Session/Status?PageSize=%d&PageOffset=%d", pageSize, offset)
+	endpoint := fmt.Sprintf("/online/session/Status?PageSize=%d&PageOffset=%d", pageSize, offset)
 	err := s.client.GetJson(endpoint, token, response)
 	if err != nil {
 		return nil, err
@@ -105,12 +105,12 @@ func (s *Session) Status(pageSize, offset int, token string) (*model.SessionStat
 }
 
 // StatusByReferenceNumber gets session status for given session reference number
-func (s *Session) StatusByReferenceNumber(pageSize, offset int, referenceNumber, token string) (*model.SessionStatusResponse, error) {
+func (s *session) StatusByReferenceNumber(pageSize, offset int, referenceNumber, token string) (*model.SessionStatusResponse, error) {
 
-	log.Debugf("Session status by reference number: %s", referenceNumber)
+	log.Debugf("session status by reference number: %s", referenceNumber)
 
 	var response = &model.SessionStatusResponse{}
-	endpoint := fmt.Sprintf("/online/Session/Status/%s?PageSize=%d&PageOffset=%d", referenceNumber, pageSize, offset)
+	endpoint := fmt.Sprintf("/online/session/Status/%s?PageSize=%d&PageOffset=%d", referenceNumber, pageSize, offset)
 	err := s.client.GetJson(endpoint, token, response)
 	if err != nil {
 		return nil, err
@@ -119,11 +119,11 @@ func (s *Session) StatusByReferenceNumber(pageSize, offset int, referenceNumber,
 }
 
 // Terminate close current interactive session
-func (s *Session) Terminate(token string) (*model.TerminateSessionResponse, error) {
+func (s *session) Terminate(token string) (*model.TerminateSessionResponse, error) {
 	log.Debug("Terminate current session")
 
 	var response = &model.TerminateSessionResponse{}
-	endpoint := "/online/Session/Terminate"
+	endpoint := "/online/session/Terminate"
 
 	err := s.client.GetJson(endpoint, token, response)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *Session) Terminate(token string) (*model.TerminateSessionResponse, erro
 	return response, nil
 }
 
-func (s *Session) prepareEncryption(keyFileName string) model.EncryptionDTO {
+func (s *session) prepareEncryption(keyFileName string) model.EncryptionDTO {
 	enc := model.EncryptionDTO{}
 	if s.aesCipher != nil {
 

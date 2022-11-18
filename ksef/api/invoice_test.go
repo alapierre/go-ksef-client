@@ -109,3 +109,14 @@ func TestInvoiceGetUpo(t *testing.T) {
 	}
 
 }
+
+func Test_invoice_GetInvoice(t *testing.T) {
+
+	resp, err := invoiceService.GetInvoice("3896717236-20221105-CC6837-2E0114-2C", sessionToken.SessionToken.Token)
+	//resp, err := invoiceService.GetInvoice("3896717236-20221105-CC6837-2E0114-2C", "084f9eda0b39757ca3bc7363e7a82dd09843e0a586f2518c367486eb7217c263")
+	if err != nil {
+		t.Errorf("Can't write invoice %v\n", err)
+	}
+
+	fmt.Println(string(resp))
+}

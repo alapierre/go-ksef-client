@@ -11,7 +11,7 @@ import (
 var identifier = util.GetEnvOrFailed("KSEF_NIP")
 var token = util.GetEnvOrFailed("KSEF_TOKEN")
 
-var loginToKsef = true
+var loginToKsef = false
 
 func TestMain(m *testing.M) {
 
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 }
 
 var apiClient Client
-var session SessionService
+var sessionService SessionService
 var invoiceService InvoiceService
 var sessionToken *model.TokenResponse
 
@@ -41,14 +41,14 @@ func setup() {
 	})
 
 	apiClient = New(Test)
-	session = NewSessionService(apiClient)
+	sessionService = NewSessionService(apiClient)
 	invoiceService = NewInvoiceService(apiClient)
 
 	if loginToKsef {
 		log.Debug("logging into KSeF")
 
 		var err error
-		sessionToken, err = session.LoginByToken(
+		sessionToken, err = sessionService.LoginByToken(
 			identifier,
 			model.ONIP,
 			token,

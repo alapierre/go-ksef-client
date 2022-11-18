@@ -11,6 +11,7 @@ import (
 type Client interface {
 	PostXMLFromBytes(endpoint string, body []byte, result interface{}) error
 	GetJson(endpoint, token string, result interface{}) error
+	Get(endpoint, token string) ([]byte, error)
 	GetJsonNoAuth(endpoint string, result interface{}) error
 	PostJson(endpoint, token string, body interface{}, result interface{}) error
 	PostJsonNoAuth(endpoint string, body interface{}, result interface{}) error
@@ -79,6 +80,23 @@ func (c *client) GetJsonNoAuth(endpoint string, result interface{}) error {
 	log.Debugf("Response status %s", resp.Status())
 	printTraceInfo(endpoint, c, err, resp)
 	return checkError(resp, err)
+}
+
+func (c *client) Get(endpoint, token string) ([]byte, error) {
+
+	resp, err := prepareRequest(c).
+		SetHeader("SessionToken", token).
+		Get(string(c.environment) + endpoint)
+
+	log.Debugf("Response status %s", resp.Status())
+
+	printTraceInfo(endpoint, c, err, resp)
+
+	if !resp.IsError() && err == nil {
+		return resp.Body(), err
+	}
+
+	return nil, checkError(resp, err)
 }
 
 func (c *client) PostJson(endpoint, token string, body interface{}, result interface{}) error {

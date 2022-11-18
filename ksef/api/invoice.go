@@ -13,6 +13,7 @@ type InvoiceService interface {
 	SendInvoice(content []byte, token string) (*model.SendInvoiceResponse, error)
 	EncryptAndSend(content []byte, cipher cipher.AesCipher, token string) (*model.SendInvoiceResponse, error)
 	GetUpo(referenceNumber string) (*model.UpoDTO, error)
+	GetInvoice(invoiceId, token string) ([]byte, error)
 }
 
 type invoice struct {
@@ -43,6 +44,7 @@ func (i *invoice) SendInvoice(content []byte, token string) (*model.SendInvoiceR
 	return res, err
 }
 
+// GetUpo get official acknowledgment of sent invoices
 func (i *invoice) GetUpo(referenceNumber string) (*model.UpoDTO, error) {
 
 	log.Debugf("Getting UPO for referenceNumber: %s", referenceNumber)
@@ -63,6 +65,13 @@ func (i *invoice) GetUpo(referenceNumber string) (*model.UpoDTO, error) {
 	}
 
 	return upo, err
+}
+
+// GetInvoice load invoice by KSeF reference number
+func (i *invoice) GetInvoice(invoiceId, token string) ([]byte, error) {
+	log.Debugf("Getting invice by KSeF reference number: %s", invoiceId)
+	endpoint := fmt.Sprintf("/online/Invoice/Get/%s", invoiceId)
+	return i.client.Get(endpoint, token)
 }
 
 func prepareSendInvoiceRequest(content []byte) *model.SendInvoiceRequest {
