@@ -11,7 +11,7 @@ import (
 
 func Test_invoice_SendInvoice(t *testing.T) {
 
-	content, err := os.ReadFile("../../data/testing/faktura1.xml")
+	content, err := os.ReadFile("../../data/testing/FA2.xml")
 	if err != nil {
 		t.Errorf("Can't read invoice file")
 	}
@@ -26,7 +26,7 @@ func Test_invoice_SendInvoice(t *testing.T) {
 
 func Test_invoice_EncryptAndSend(t *testing.T) {
 
-	content, err := os.ReadFile("../../data/testing/faktura1.xml")
+	content, err := os.ReadFile("../../data/testing/FA2.xml")
 	if err != nil {
 		t.Errorf("Can't read invoice file")
 	}
@@ -57,7 +57,7 @@ func Test_invoice_EncryptAndSend(t *testing.T) {
 
 func Test_prepareSendInvoiceRequest(t *testing.T) {
 
-	content, err := os.ReadFile("../../data/testing/faktura1.xml")
+	content, err := os.ReadFile("../../data/testing/FA2.xml")
 	if err != nil {
 		t.Errorf("Can't read invoice file")
 	}
@@ -74,7 +74,7 @@ func Test_prepareSendInvoiceRequest(t *testing.T) {
 
 func Test_prepareEncryptedSendInvoiceRequest(t *testing.T) {
 
-	content, err := os.ReadFile("../../data/testing/faktura1.xml")
+	content, err := os.ReadFile("../../data/testing/FA2.xml")
 	if err != nil {
 		t.Errorf("Can't read invoice file %v", err)
 	}

@@ -40,14 +40,17 @@ func (s *session) AuthorisationChallenge(identifier string, identifierType model
 
 	res := &model.AuthorisationChallengeResponse{}
 
+	request := model.AuthorisationChallengeRequest{
+		ContextIdentifier: model.ContextIdentifier{
+			Type:       identifierType,
+			Identifier: identifier,
+		}}
+
 	err := s.client.PostJsonNoAuth(
-		"/online/session/AuthorisationChallenge",
-		model.AuthorisationChallengeRequest{
-			ContextIdentifier: model.ContextIdentifier{
-				Type:       identifierType,
-				Identifier: identifier,
-			}}, res)
+		"/online/Session/AuthorisationChallenge",
+		request, res)
 	if err != nil {
+		log.Error("Call authorisation challenge error")
 		return nil, err
 	}
 
@@ -82,7 +85,7 @@ func (s *session) LoginByToken(identifier string, identifierType model.Identifie
 	}
 
 	var response = &model.TokenResponse{}
-	err = s.client.PostXMLFromBytes("/online/session/InitToken", request, response)
+	err = s.client.PostXMLFromBytes("/online/Session/InitToken", request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +99,7 @@ func (s *session) Status(pageSize, offset int, token string) (*model.SessionStat
 	log.Debug("Current session status")
 
 	var response = &model.SessionStatusResponse{}
-	endpoint := fmt.Sprintf("/online/session/Status?PageSize=%d&PageOffset=%d", pageSize, offset)
+	endpoint := fmt.Sprintf("/online/Session/Status?PageSize=%d&PageOffset=%d", pageSize, offset)
 	err := s.client.GetJson(endpoint, token, response)
 	if err != nil {
 		return nil, err
@@ -110,7 +113,7 @@ func (s *session) StatusByReferenceNumber(pageSize, offset int, referenceNumber,
 	log.Debugf("session status by reference number: %s", referenceNumber)
 
 	var response = &model.SessionStatusResponse{}
-	endpoint := fmt.Sprintf("/online/session/Status/%s?PageSize=%d&PageOffset=%d", referenceNumber, pageSize, offset)
+	endpoint := fmt.Sprintf("/online/Session/Status/%s?PageSize=%d&PageOffset=%d", referenceNumber, pageSize, offset)
 	err := s.client.GetJson(endpoint, token, response)
 	if err != nil {
 		return nil, err
@@ -123,7 +126,7 @@ func (s *session) Terminate(token string) (*model.TerminateSessionResponse, erro
 	log.Debug("Terminate current session")
 
 	var response = &model.TerminateSessionResponse{}
-	endpoint := "/online/session/Terminate"
+	endpoint := "/online/Session/Terminate"
 
 	err := s.client.GetJson(endpoint, token, response)
 	if err != nil {

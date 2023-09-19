@@ -11,7 +11,7 @@ import (
 var identifier = util.GetEnvOrFailed("KSEF_NIP")
 var token = util.GetEnvOrFailed("KSEF_TOKEN")
 
-var loginToKsef = false
+var loginToKsef = true
 
 func TestMain(m *testing.M) {
 

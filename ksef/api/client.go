@@ -25,6 +25,7 @@ const (
 	Test Environment = "https://ksef-test.mf.gov.pl/api"
 	Demo             = "https://ksef-demo.mf.gov.pl/api"
 	Prod             = "https://ksef.mf.gov.pl/api"
+	Dev              = "http://localhost:8080/api"
 )
 
 type client struct {
@@ -202,4 +203,17 @@ func printTraceInfo(endpoint string, c *client, err error, resp *resty.Response)
 	fmt.Println("  ConnIdleTime  :", ti.ConnIdleTime)
 	fmt.Println("  RequestAttempt:", ti.RequestAttempt)
 	fmt.Println("  RemoteAddr    :", ti.RemoteAddr.String())
+}
+
+func printJson(src interface{}) {
+
+	if !util.HttpTraceEnabled() {
+		return
+	}
+
+	jsonData, err := json.Marshal(src)
+	if err != nil {
+		log.Errorf("Error marshalling the struct: %s", err)
+	}
+	fmt.Println(string(jsonData))
 }
