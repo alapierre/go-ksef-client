@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/go-resty/resty/v2 v2.8.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
