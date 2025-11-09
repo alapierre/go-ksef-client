@@ -1,26 +1,65 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/alapierre/go-ksef-client/ksef/api"
-	"github.com/alapierre/go-ksef-client/ksef/model"
+	"net/http"
+	"time"
+
+	"github.com/alapierre/go-ksef-client/ksef"
+	"github.com/alapierre/go-ksef-client/ksef/cipher"
 	"github.com/alapierre/go-ksef-client/ksef/util"
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	client := api.New(api.Test)
-	session := api.NewSessionService(client)
 
-	sessionToken, err := session.LoginByToken(util.GetEnvOrFailed("NIP"), model.ONIP, util.GetEnvOrFailed("TOKEN"), "data/mfkeys/test/publicKey.pem")
+	nip := util.GetEnvOrFailed("KSEF_NIP")
+	token := util.GetEnvOrFailed("KSEF_TOKEN")
+
+	httpClient := &http.Client{
+		Timeout: 15 * time.Second,
+	}
+
+	env := ksef.Test
+
+	client, err := ksef.NewDefaultKsefClient(env, httpClient, nil)
 
 	if err != nil {
-		re, ok := err.(*api.RequestError)
-		if ok {
-			log.Errorf("request error %d responce body %s", re.StatusCode, re.Body)
-		}
 		panic(err)
 	}
 
-	fmt.Printf("session token: %s\n", sessionToken.SessionToken.Token)
+	ctx := context.Background()
+	challenge, err := client.GetChallenge(ctx)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(challenge)
+
+	encryptor, err := cipher.NewEncryptionService(env, httpClient)
+	if err != nil {
+		panic(err)
+	}
+
+	encryptedToken, err := encryptor.EncryptKsefToken(ctx, token, challenge.Timestamp)
+	if err != nil {
+		panic(err)
+	}
+
+	initResp, err := client.AuthWithToken(ctx, challenge.Challenge, ksef.Nip(nip), encryptedToken)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	tokens, err := client.AuthWaitAndRedeem(ctx, initResp, 1*time.Second)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(tokens.AccessToken.Token)
+	fmt.Println(tokens.RefreshToken.Token)
+
 }

@@ -2,21 +2,11 @@ package cipher
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
-
-func TestRsaCipher(t *testing.T) {
-
-	cipher, err := RsaEncrypt([]byte("Ala ma kota"), "../../data/mfkeys/test/publicKey.pem")
-	if err != nil {
-		t.Errorf("problem with encrypt %v", err)
-	}
-
-	fmt.Println(hex.EncodeToString(cipher))
-}
 
 func TestAesCipher_Encrypt(t *testing.T) {
 
