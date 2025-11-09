@@ -10,26 +10,33 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DefaultKsefClient struct {
+type AuthFacade struct {
 	raw        *api.Client
 	env        Environment
 	httpClient *http.Client
 }
 
-// NewDefaultKsefClient Konstruktor fasady. Security może być nil (dla operacji bez autoryzacji).
-func NewDefaultKsefClient(env Environment, httpClient *http.Client, security api.SecuritySource) (*DefaultKsefClient, error) {
+// Prosty bearer do obsługi pośredniej autoryzacji
+type localStaticBearer struct{ Token string }
+
+func (b localStaticBearer) Bearer(ctx context.Context, _ api.OperationName) (api.Bearer, error) {
+	return api.Bearer{Token: b.Token}, nil
+}
+
+// NewAuthFacade Konstruktor fasady autoryzacyjnej.
+func NewAuthFacade(env Environment, httpClient *http.Client) (*AuthFacade, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
-		security,
+		nil,
 		api.WithClient(httpClient),
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &DefaultKsefClient{raw: cli, env: env, httpClient: httpClient}, nil
+	return &AuthFacade{raw: cli, env: env, httpClient: httpClient}, nil
 }
 
-func (c *DefaultKsefClient) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
+func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
 	res, err := c.raw.APIV2AuthChallengePost(ctx)
 	if err != nil {
 		return nil, err
@@ -48,7 +55,7 @@ func (c *DefaultKsefClient) GetChallenge(ctx context.Context) (*api.Authenticati
 	}
 }
 
-func (c *DefaultKsefClient) AuthWithToken(ctx context.Context, challenge api.Challenge, nip Nip, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
+func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge, nip Nip, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
 
 	req := api.InitTokenAuthenticationRequest{
 		Challenge: challenge,
@@ -77,15 +84,8 @@ func (c *DefaultKsefClient) AuthWithToken(ctx context.Context, challenge api.Cha
 	}
 }
 
-// prosty bearer do tego calla
-type localStaticBearer struct{ Token string }
-
-func (b localStaticBearer) Bearer(ctx context.Context, _ api.OperationName) (api.Bearer, error) {
-	return api.Bearer{Token: b.Token}, nil
-}
-
 // AuthWaitAndRedeem Polluje status aż do 200 lub do ctx.Done(). Interwał czekania kontrolowany parametrem pollEvery.
-func (c *DefaultKsefClient) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
+func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
 	if authResp == nil {
 		return nil, fmt.Errorf("authResponse is nil")
 	}
@@ -135,6 +135,39 @@ func (c *DefaultKsefClient) AuthWaitAndRedeem(ctx context.Context, authResp *api
 				return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
 			}
 		}
+	}
+}
+
+func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error) {
+
+	cli, err := api.NewClient(
+		c.env.BaseURL(),
+		localStaticBearer{Token: refreshToken},
+		api.WithClient(c.httpClient),
+	)
+	if err != nil {
+		return api.TokenInfo{}, err
+	}
+
+	res, err := cli.APIV2AuthTokenRefreshPost(ctx)
+	if err != nil {
+		return api.TokenInfo{}, fmt.Errorf("APIV2AuthTokenRefreshPost: %w", err)
+	}
+
+	switch v := res.(type) {
+	case *api.AuthenticationTokenRefreshResponse:
+		return v.GetAccessToken(), nil
+
+	// specyficzny wariant błędu bez treści (401)
+	case *api.APIV2AuthTokenRefreshPostUnauthorized:
+		return api.TokenInfo{}, fmt.Errorf("refresh: 401 Unauthorized")
+
+	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
+	case interface{ GetValue() *api.ExceptionResponse }:
+		return api.TokenInfo{}, handleAPIError(v)
+
+	default:
+		return api.TokenInfo{}, fmt.Errorf("nieoczekiwany wariant odpowiedzi (refresh): %T", v)
 	}
 }
 

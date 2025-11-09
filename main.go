@@ -22,7 +22,7 @@ func main() {
 
 	env := ksef.Test
 
-	client, err := ksef.NewDefaultKsefClient(env, httpClient, nil)
+	client, err := ksef.NewAuthFacade(env, httpClient)
 
 	if err != nil {
 		panic(err)
@@ -61,5 +61,13 @@ func main() {
 
 	fmt.Println(tokens.AccessToken.Token)
 	fmt.Println(tokens.RefreshToken.Token)
+
+	refreshToken, err := client.RefreshToken(ctx, tokens.RefreshToken.Token)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(refreshToken.GetToken())
+	fmt.Println("Refreshed")
 
 }
