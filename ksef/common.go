@@ -47,11 +47,9 @@ func HandelOtherApiError(res interface{}) error {
 }
 
 // HandleAPIError obsługuje generyczne błędy API (4xx/5xx)
-func HandleAPIError(response ExceptionValuer) error {
+func HandleAPIError(ex *api.ExceptionResponse) error {
 
-	ex := response.GetValue()
-
-	// Stwórz podstawowy komunikat błędu
+	// Stwórz podstawowy komunikat o błędzie
 	errorMsg := fmt.Sprintf("błąd API: %s", ex.GetException().Value)
 
 	var d []ErrorDetail
@@ -92,5 +90,3 @@ func HandleAPIError(response ExceptionValuer) error {
 		Message: errorMsg,
 	}
 }
-
-type ExceptionValuer interface{ GetValue() *api.ExceptionResponse }

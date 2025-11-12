@@ -48,7 +48,7 @@ func (c *Facade) GetChallenge(ctx context.Context) (*api.AuthenticationChallenge
 		return v, nil
 
 		// generyczna obsługa błędów (4xx/5xx):
-	case interface{ GetValue() *api.ExceptionResponse }:
+	case *api.ExceptionResponse:
 		return nil, ksef.HandleAPIError(v)
 
 	default:
@@ -78,7 +78,7 @@ func (c *Facade) AuthWithToken(ctx context.Context, challenge api.Challenge, nip
 	switch v := res.(type) {
 	case *api.AuthenticationInitResponse:
 		return v, nil
-	case interface{ GetValue() *api.ExceptionResponse }:
+	case *api.ExceptionResponse:
 		return nil, ksef.HandleAPIError(v)
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
@@ -129,7 +129,7 @@ func (c *Facade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authentica
 					return nil, fmt.Errorf("uwierzytelnianie zakończone kodem %d (%s)", code, desc)
 				}
 
-			case interface{ GetValue() *api.ExceptionResponse }:
+			case *api.ExceptionResponse:
 				return nil, ksef.HandleAPIError(v)
 
 			default:
@@ -164,8 +164,7 @@ func (c *Facade) RefreshToken(ctx context.Context, refreshToken string) (api.Tok
 		return api.TokenInfo{}, ksef.ErrUnauthorized
 
 	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
-	case interface{ GetValue() *api.ExceptionResponse }:
-
+	case *api.ExceptionResponse:
 		return api.TokenInfo{}, ksef.HandleAPIError(v)
 
 	default:
@@ -187,8 +186,7 @@ func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationToke
 	case *api.APIV2AuthTokenRedeemPostUnauthorized:
 		return nil, ksef.ErrUnauthorized
 
-	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
-	case ksef.ExceptionValuer:
+	case *api.ExceptionResponse:
 		return nil, ksef.HandleAPIError(v)
 
 	default:
