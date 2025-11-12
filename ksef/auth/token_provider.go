@@ -1,4 +1,4 @@
-package ksef
+package auth
 
 import (
 	"context"
@@ -11,7 +11,8 @@ import (
 
 // TokenProvider implementuje api.SecuritySource z automatycznym odświeżaniem access tokena.
 type TokenProvider struct {
-	auth *AuthFacade
+	auth          TokenRefresher
+	authenticator FullAuthenticator
 
 	// przechowywane tokeny
 	mu           sync.Mutex
@@ -23,21 +24,27 @@ type TokenProvider struct {
 	refreshSkew time.Duration
 }
 
-// NewTokenProvider tworzy źródło tokenów na bazie fasady AuthFacade
-// tokens — odpowiedź z redeem zawierająca parę access/refresh
-func NewTokenProvider(auth *AuthFacade, tokens *api.AuthenticationTokensResponse) *TokenProvider {
+// NewTokenProvider creates a TokenProvider by invoking the provided full authenticator and using the Facade for Bearer token handling.
+func NewTokenProvider(ctx context.Context, auth TokenRefresher, authenticator FullAuthenticator) (*TokenProvider, error) {
+
+	tokens, err := authenticator(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	at := tokens.GetAccessToken()
 	rt := tokens.GetRefreshToken()
 
 	expAt := at.GetValidUntil().UTC()
 
 	return &TokenProvider{
-		auth:         auth,
-		accessToken:  at.Token,
-		accessExp:    expAt,
-		refreshToken: rt.Token,
-		refreshSkew:  30 * time.Second, // bufor bezpieczeństwa
-	}
+		auth:          auth,
+		authenticator: authenticator,
+		accessToken:   at.Token,
+		accessExp:     expAt,
+		refreshToken:  rt.Token,
+		refreshSkew:   30 * time.Second, // bufor bezpieczeństwa
+	}, nil
 }
 
 // Bearer spełnia interfejs api.SecuritySource.
@@ -104,3 +111,5 @@ func (p *TokenProvider) refreshAccessToken(ctx context.Context) (string, error) 
 
 // ErrNoRefreshToken sygnalizuje brak refresh tokena w źródle.
 var ErrNoRefreshToken = errors.New("no refresh token available")
+
+type FullAuthenticator func(ctx context.Context) (*api.AuthenticationTokensResponse, error)

@@ -1,4 +1,4 @@
-package ksef
+package auth
 
 import (
 	"context"
@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alapierre/go-ksef-client/ksef"
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	log "github.com/sirupsen/logrus"
 )
 
-type AuthFacade struct {
+type Facade struct {
 	raw        *api.Client
-	env        Environment
+	env        ksef.Environment
 	httpClient *http.Client
 }
 
@@ -23,8 +24,8 @@ func (b localStaticBearer) Bearer(ctx context.Context, _ api.OperationName) (api
 	return api.Bearer{Token: b.Token}, nil
 }
 
-// NewAuthFacade Konstruktor fasady autoryzacyjnej.
-func NewAuthFacade(env Environment, httpClient *http.Client) (*AuthFacade, error) {
+// NewFacade Konstruktor fasady autoryzacyjnej.
+func NewFacade(env ksef.Environment, httpClient *http.Client) (*Facade, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
 		nil,
@@ -33,10 +34,10 @@ func NewAuthFacade(env Environment, httpClient *http.Client) (*AuthFacade, error
 	if err != nil {
 		return nil, err
 	}
-	return &AuthFacade{raw: cli, env: env, httpClient: httpClient}, nil
+	return &Facade{raw: cli, env: env, httpClient: httpClient}, nil
 }
 
-func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
+func (c *Facade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
 	res, err := c.raw.APIV2AuthChallengePost(ctx)
 	if err != nil {
 		return nil, err
@@ -48,14 +49,14 @@ func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChall
 
 		// generyczna obsługa błędów (4xx/5xx):
 	case interface{ GetValue() *api.ExceptionResponse }:
-		return nil, handleAPIError(v)
+		return nil, ksef.HandleAPIError(v)
 
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
 	}
 }
 
-func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge, nip Nip, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
+func (c *Facade) AuthWithToken(ctx context.Context, challenge api.Challenge, nip ksef.Nip, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
 
 	req := api.InitTokenAuthenticationRequest{
 		Challenge: challenge,
@@ -78,14 +79,14 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 	case *api.AuthenticationInitResponse:
 		return v, nil
 	case interface{ GetValue() *api.ExceptionResponse }:
-		return nil, handleAPIError(v)
+		return nil, ksef.HandleAPIError(v)
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
 	}
 }
 
 // AuthWaitAndRedeem Polluje status aż do 200 lub do ctx.Done(). Interwał czekania kontrolowany parametrem pollEvery.
-func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
+func (c *Facade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
 	if authResp == nil {
 		return nil, fmt.Errorf("authResponse is nil")
 	}
@@ -129,7 +130,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 				}
 
 			case interface{ GetValue() *api.ExceptionResponse }:
-				return nil, handleAPIError(v)
+				return nil, ksef.HandleAPIError(v)
 
 			default:
 				return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
@@ -138,7 +139,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 	}
 }
 
-func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error) {
+func (c *Facade) RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error) {
 
 	cli, err := api.NewClient(
 		c.env.BaseURL(),
@@ -160,11 +161,12 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 
 	// specyficzny wariant błędu bez treści (401)
 	case *api.APIV2AuthTokenRefreshPostUnauthorized:
-		return api.TokenInfo{}, fmt.Errorf("refresh: 401 Unauthorized")
+		return api.TokenInfo{}, ksef.ErrUnauthorized
 
 	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
 	case interface{ GetValue() *api.ExceptionResponse }:
-		return api.TokenInfo{}, handleAPIError(v)
+
+		return api.TokenInfo{}, ksef.HandleAPIError(v)
 
 	default:
 		return api.TokenInfo{}, fmt.Errorf("nieoczekiwany wariant odpowiedzi (refresh): %T", v)
@@ -183,36 +185,13 @@ func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationToke
 
 	// specyficzny wariant błędu bez treści (401)
 	case *api.APIV2AuthTokenRedeemPostUnauthorized:
-		return nil, fmt.Errorf("redeem: 401 Unauthorized")
+		return nil, ksef.ErrUnauthorized
 
 	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
-	case interface{ GetValue() *api.ExceptionResponse }:
-		return nil, handleAPIError(v)
+	case ksef.ExceptionValuer:
+		return nil, ksef.HandleAPIError(v)
 
 	default:
-		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi (redeem): %T", v)
+		return nil, ksef.HandelOtherApiError(v)
 	}
-}
-
-// handleAPIError obsługuje generyczne błędy API (4xx/5xx)
-func handleAPIError(response interface{}) error {
-	v, ok := response.(interface{ GetValue() *api.ExceptionResponse })
-	if !ok {
-		return fmt.Errorf("nieoczekiwany typ odpowiedzi: %T", response)
-	}
-
-	ex := v.GetValue()
-
-	// Stwórz podstawowy komunikat błędu
-	errorMsg := fmt.Sprintf("błąd API: %s", ex.GetException().Value)
-
-	// Sprawdź czy mamy listę szczegółów błędów
-	if details, ok := ex.GetException().Value.ExceptionDetailList.Get(); ok && len(details) > 0 {
-		errorMsg += "\nSzczegóły:"
-		for i, detail := range details {
-			errorMsg += fmt.Sprintf("\n  %d: %+v", i+1, detail)
-		}
-	}
-
-	return fmt.Errorf(errorMsg)
 }

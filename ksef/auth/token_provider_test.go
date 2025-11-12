@@ -1,19 +1,19 @@
-package main
+package auth
 
 import (
 	"context"
 	"fmt"
 	"net/http"
+	"testing"
 	"time"
 
 	"github.com/alapierre/go-ksef-client/ksef"
 	"github.com/alapierre/go-ksef-client/ksef/api"
-	"github.com/alapierre/go-ksef-client/ksef/auth"
 	"github.com/alapierre/go-ksef-client/ksef/cipher"
 	"github.com/alapierre/go-ksef-client/ksef/util"
 )
 
-func main() {
+func TestGetToken(t *testing.T) {
 
 	nip := util.GetEnvOrFailed("KSEF_NIP")
 	token := util.GetEnvOrFailed("KSEF_TOKEN")
@@ -23,36 +23,30 @@ func main() {
 	}
 
 	env := ksef.Test
-	authFacade, err := auth.NewFacade(env, httpClient)
+
+	authFacade, err := NewFacade(env, httpClient)
+
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	encryptor, err := cipher.NewEncryptionService(env, httpClient)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	ctx := context.Background()
-	tokens, err := initTokens(authFacade, encryptor, token, nip)
-
+	provider, err := NewTokenProvider(ctx, authFacade, func(ctx context.Context) (*api.AuthenticationTokensResponse, error) {
+		return initTokens(authFacade, encryptor, token, nip)
+	})
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
-	fmt.Println(tokens.AccessToken.Token)
-	fmt.Println(tokens.RefreshToken.Token)
-
-	refreshToken, err := authFacade.RefreshToken(ctx, tokens.RefreshToken.Token)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(refreshToken.GetToken())
-	fmt.Println("Refreshed")
+	fmt.Println(provider.accessToken)
 }
 
-func initTokens(authFacade *auth.Facade, encryptor *cipher.EncryptionService, token string, nip string) (*api.AuthenticationTokensResponse, error) {
+func initTokens(authFacade *Facade, encryptor *cipher.EncryptionService, token string, nip string) (*api.AuthenticationTokensResponse, error) {
 
 	ctx := context.Background()
 	challenge, err := authFacade.GetChallenge(ctx)
