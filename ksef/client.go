@@ -14,7 +14,7 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func New(env Environment, httpClient *http.Client, sec api.SecuritySource) (*Client, error) {
+func NewClient(env Environment, httpClient *http.Client, sec api.SecuritySource) (*Client, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
 		sec,

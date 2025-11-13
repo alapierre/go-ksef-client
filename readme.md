@@ -150,8 +150,6 @@ After ForceRefresh, use the regular methods (EncryptKsefToken, EncryptSymmetricK
 
 ## Authentication with KSeF Token 
 
-Sample usage:
-
 ````go
 package main
 
@@ -162,13 +160,13 @@ import (
 	"time"
 
 	"github.com/alapierre/go-ksef-client/ksef"
-	"github.com/alapierre/go-ksef-client/ksef/api"
-	"github.com/alapierre/go-ksef-client/ksef/auth"
-	"github.com/alapierre/go-ksef-client/ksef/cipher"
 	"github.com/alapierre/go-ksef-client/ksef/util"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+
+	logrus.SetLevel(logrus.DebugLevel)
 
 	nip := util.GetEnvOrFailed("KSEF_NIP")
 	token := util.GetEnvOrFailed("KSEF_TOKEN")
@@ -178,19 +176,19 @@ func main() {
 	}
 
 	env := ksef.Test
-	authFacade, err := auth.NewFacade(env, httpClient)
+	authFacade, err := ksef.NewFacade(env, httpClient)
 	if err != nil {
 		panic(err)
 	}
 
-	encryptor, err := cipher.NewEncryptionService(env, httpClient)
+	encryptor, err := ksef.NewEncryptionService(env, httpClient)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx := context.Background()
 	ctx = ksef.Context(ctx, nip)
-	tokens, err := initTokens(ctx, authFacade, encryptor, token)
+	tokens, err := ksef.WithKsefToken(ctx, authFacade, encryptor, token)
 
 	if err != nil {
 		panic(err)
@@ -207,27 +205,79 @@ func main() {
 	fmt.Println(refreshToken.GetToken())
 	fmt.Println("Refreshed")
 }
+````
 
-func initTokens(ctx context.Context, authFacade *auth.Facade, encryptor *cipher.EncryptionService, token string) (*api.AuthenticationTokensResponse, error) {
+## Opening an interactive session
 
-	challenge, err := authFacade.GetChallenge(ctx)
-	if err != nil {
-		return nil, err
+````go
+package main
+
+import (
+    "context"
+    "fmt"
+    "net/http"
+    "time"
+    
+    "github.com/alapierre/go-ksef-client/ksef"
+    "github.com/alapierre/go-ksef-client/ksef/api"
+    "github.com/alapierre/go-ksef-client/ksef/util"
+    "github.com/sirupsen/logrus"
+)
+
+func openSession() {
+
+	logrus.SetLevel(logrus.DebugLevel)
+
+	nip := util.GetEnvOrFailed("KSEF_NIP")
+	token := util.GetEnvOrFailed("KSEF_TOKEN")
+
+	httpClient := &http.Client{
+		Timeout: 15 * time.Second,
 	}
 
-	encryptedToken, err := encryptor.EncryptKsefToken(ctx, token, challenge.Timestamp)
+	env := ksef.Test
+
+	authFacade, err := ksef.NewFacade(env, httpClient)
+
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	initResp, err := authFacade.AuthWithToken(ctx, challenge.Challenge, encryptedToken)
+	encryptor, err := ksef.NewEncryptionService(env, httpClient)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
+	ctx := context.Background()
+	ctx = ksef.Context(ctx, nip)
 
-	return authFacade.AuthWaitAndRedeem(ctx, initResp, 1*time.Second)
+	provider := ksef.NewTokenProvider(authFacade, func(ctx context.Context) (*api.AuthenticationTokensResponse, error) {
+		return ksef.WithKsefToken(ctx, authFacade, encryptor, token)
+	})
+
+	client, err := ksef.NewClient(env, httpClient, provider)
+
+	form := api.FormCode{
+		SystemCode:    "FA (3)",
+		SchemaVersion: "1-0E",
+		Value:         "FA",
+	}
+
+	key, err := ksef.GenerateRandom256BitsKey()
+	iv, err := ksef.GenerateRandom16BytesIv()
+	encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, key)
+
+	enc := api.EncryptionInfo{
+		EncryptedSymmetricKey: encryptedKey,
+		InitializationVector:  iv,
+	}
+
+	session, err := client.OpenInteractiveSession(ctx, form, enc)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(session)
+	// send invoices TBD
 }
 ````

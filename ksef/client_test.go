@@ -43,7 +43,7 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 		return WithKsefToken(ctx, authFacade, encryptor, token)
 	})
 
-	client, err := New(env, httpClient, provider)
+	client, err := NewClient(env, httpClient, provider)
 
 	form := api.FormCode{
 		SystemCode:    "FA (3)",
