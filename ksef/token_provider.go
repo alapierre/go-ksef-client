@@ -1,4 +1,4 @@
-package auth
+package ksef
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alapierre/go-ksef-client/ksef"
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	log "github.com/sirupsen/logrus"
 )
@@ -47,9 +46,9 @@ func NewTokenProvider(auth TokenRefresher, authenticator FullAuthenticator) *Tok
 // Jeżeli refresh token jest nieważny lub brak – wykonuje pełne uwierzytelnienie.
 func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Bearer, error) {
 
-	nip, ok := ksef.NipFromContext(ctx)
+	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
-		return api.Bearer{}, ksef.ErrNoNip
+		return api.Bearer{}, ErrNoNip
 	}
 
 	// szybka ścieżka bez blokady
@@ -128,9 +127,9 @@ func (p *TokenProvider) isTokenValid(exp time.Time) bool {
 
 func (p *TokenProvider) refreshAccessTokenLocked(ctx context.Context) error {
 
-	nip, ok := ksef.NipFromContext(ctx)
+	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
-		return ksef.ErrNoNip
+		return ErrNoNip
 	}
 
 	entry, ok := p.cache[nip]
@@ -150,9 +149,9 @@ func (p *TokenProvider) refreshAccessTokenLocked(ctx context.Context) error {
 
 func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, error) {
 
-	nip, ok := ksef.NipFromContext(ctx)
+	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
-		return api.Bearer{}, ksef.ErrNoNip
+		return api.Bearer{}, ErrNoNip
 	}
 
 	log.Debug("TokenProvider: Performing full authentication - calling authenticator func")

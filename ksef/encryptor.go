@@ -1,4 +1,4 @@
-package cipher
+package ksef
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alapierre/go-ksef-client/ksef"
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	log "github.com/sirupsen/logrus"
 )
@@ -83,7 +82,7 @@ func WithPreloadedKeys(pk PreloadedKeys) Option {
 	}
 }
 
-func NewEncryptionService(env ksef.Environment, httpClient *http.Client, opts ...Option) (*EncryptionService, error) {
+func NewEncryptionService(env Environment, httpClient *http.Client, opts ...Option) (*EncryptionService, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
 		nil, // nie potrzebujemy autoryzacji do pobierania certyfikatów publicznych
@@ -311,4 +310,24 @@ func parseRSAPubFromB64Cert(certB64 string) (*rsa.PublicKey, time.Time, error) {
 		return nil, time.Time{}, fmt.Errorf("cert nie zawiera klucza RSA (typ: %T)", xc.PublicKey)
 	}
 	return rsaPub, xc.NotAfter, nil
+}
+
+// GenerateRandom256BitsKey generuje losowy 256-bitowy klucz (32 bajty)
+func GenerateRandom256BitsKey() ([]byte, error) {
+	key := make([]byte, 32) // 256 bits = 32 bytes
+	_, err := rand.Read(key)
+	if err != nil {
+		return nil, fmt.Errorf("błąd generowania losowego klucza: %w", err)
+	}
+	return key, nil
+}
+
+// GenerateRandom16BytesIv generuje losowy 16-bajtowy wektor inicjalizacji
+func GenerateRandom16BytesIv() ([]byte, error) {
+	iv := make([]byte, 16)
+	_, err := rand.Read(iv)
+	if err != nil {
+		return nil, fmt.Errorf("błąd generowania losowego IV: %w", err)
+	}
+	return iv, nil
 }

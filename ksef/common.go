@@ -22,6 +22,7 @@ func NipFromContext(ctx context.Context) (string, bool) {
 var (
 	// ErrUnauthorized ogólny marker dla 401
 	ErrUnauthorized = errors.New("ksef unauthorized")
+	ErrForbidden    = errors.New("ksef forbidden")
 	Err500          = errors.New("ksef other error")
 	ErrNoNip        = errors.New("no NIP in context.Context")
 )
@@ -51,7 +52,7 @@ func HandelOtherApiError(res interface{}) error {
 func HandleAPIError(ex *api.ExceptionResponse) error {
 
 	// Stwórz podstawowy komunikat o błędzie
-	errorMsg := fmt.Sprintf("błąd API: %s", ex.GetException().Value)
+	errorMsg := fmt.Sprintf("błąd API: %v", ex.GetException().Value)
 
 	var d []ErrorDetail
 
@@ -90,4 +91,30 @@ func HandleAPIError(ex *api.ExceptionResponse) error {
 		Body:    nil,
 		Message: errorMsg,
 	}
+}
+
+type Environment int
+
+const (
+	Test Environment = iota
+	Demo
+	Prod
+)
+
+func (e Environment) BaseURL() string {
+	switch e {
+	case Prod:
+		return "https://ksef.mf.gov.pl"
+	case Test:
+		return "https://ksef-test.mf.gov.pl"
+	case Demo:
+		return "https://ksef-demo.mf.gov.pl"
+	}
+	panic("Invalid environment")
+}
+
+type Nip string
+
+type TokenRefresher interface {
+	RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error)
 }
