@@ -6,7 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alapierre/go-ksef-client/ksef"
 	"github.com/alapierre/go-ksef-client/ksef/api"
+	log "github.com/sirupsen/logrus"
 )
 
 // TokenProvider implementuje api.SecuritySource z automatycznym odświeżaniem access tokena.
@@ -14,99 +16,160 @@ type TokenProvider struct {
 	auth          TokenRefresher
 	authenticator FullAuthenticator
 
-	// przechowywane tokeny
-	mu           sync.Mutex
-	accessToken  string
-	accessExp    time.Time
-	refreshToken string
+	// Przechowywane tokenów per NIP
+	mu    sync.Mutex
+	cache map[string]*nipTokens
 
 	// o ile wcześniej przed wygaśnięciem spróbować odświeżyć
 	refreshSkew time.Duration
 }
 
-// NewTokenProvider creates a TokenProvider by invoking the provided full authenticator and using the Facade for Bearer token handling.
-func NewTokenProvider(ctx context.Context, auth TokenRefresher, authenticator FullAuthenticator) (*TokenProvider, error) {
+type nipTokens struct {
+	accessToken  string
+	accessExp    time.Time
+	refreshToken string
+	refreshExp   time.Time
+}
 
-	tokens, err := authenticator(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	at := tokens.GetAccessToken()
-	rt := tokens.GetRefreshToken()
-
-	expAt := at.GetValidUntil().UTC()
-
+// NewTokenProvider tworzy provider bez wstępnego logowania; pełne uwierzytelnienie nastąpi on-demand
+// przy pierwszym żądaniu dla danego NIP w Bearer().
+func NewTokenProvider(auth TokenRefresher, authenticator FullAuthenticator) *TokenProvider {
 	return &TokenProvider{
 		auth:          auth,
 		authenticator: authenticator,
-		accessToken:   at.Token,
-		accessExp:     expAt,
-		refreshToken:  rt.Token,
+		cache:         make(map[string]*nipTokens),
 		refreshSkew:   30 * time.Second, // bufor bezpieczeństwa
-	}, nil
+	}
 }
 
 // Bearer spełnia interfejs api.SecuritySource.
-// Zwraca ważny access token; gdy wygasł lub zaraz wygaśnie – odświeża go.
+// Dla NIP z ctx zwraca ważny access token; gdy brak lub zaraz wygaśnie – odświeża.
+// Jeżeli refresh token jest nieważny lub brak – wykonuje pełne uwierzytelnienie.
 func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Bearer, error) {
+
+	nip, ok := ksef.NipFromContext(ctx)
+	if !ok || nip == "" {
+		return api.Bearer{}, ksef.ErrNoNip
+	}
+
 	// szybka ścieżka bez blokady
-	if token, ok := p.currentIfValid(); ok {
+	if token, ok := p.currentIfValid(nip); ok {
 		return api.Bearer{Token: token}, nil
 	}
 
-	// ścieżka z odświeżeniem
+	// ścieżka z odświeżeniem / pełnym uwierzytelnieniem
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	// podwójne sprawdzenie po złapaniu blokady
-	if token, ok := p.currentIfValidLocked(); ok {
+	if token, ok := p.currentIfValidLocked(nip); ok {
 		return api.Bearer{Token: token}, nil
 	}
 
-	// brak ważnego access tokena -> odśwież
-	newAT, err := p.refreshAccessToken(ctx)
-	if err != nil {
-		return api.Bearer{}, err
+	// pobierz wpis dla NIP
+	entry, found := p.cache[nip]
+	if !found {
+		// brak – pełne uwierzytelnienie
+		log.Debug("TokenProvider: No entry for context NIP, performing full authentication")
+		return p.fullAuthLocked(ctx)
 	}
-	return api.Bearer{Token: newAT}, nil
+
+	// czy refresh token jest nadal ważny?
+	if entry.refreshToken != "" && p.isTokenValid(entry.refreshExp) {
+		// spróbuj odświeżyć access token
+		log.Debug("TokenProvider: Refresh token expired or empty, trying to refresh access token")
+
+		var err error
+		if err = p.refreshAccessTokenLocked(ctx); err == nil {
+			return api.Bearer{Token: p.cache[nip].accessToken}, nil
+		}
+		// jeśli refresh nie powiódł się, spróbuj pełnego uwierzytelnienia
+		log.Debugf("TokenProvider: Refresh failed: %v, performing full authentication", err)
+		return p.fullAuthLocked(ctx)
+	}
+
+	// refresh token brak lub wygasł -> pełne uwierzytelnienie
+	log.Debug("All others options failed, finally performing full authentication")
+	return p.fullAuthLocked(ctx)
 }
 
-func (p *TokenProvider) currentIfValid() (string, bool) {
+// Zakłada blokadę i sprawdza - deleguje do currentIfValidLocked()
+func (p *TokenProvider) currentIfValid(nip string) (string, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	return p.currentIfValidLocked()
+	return p.currentIfValidLocked(nip)
 }
 
-func (p *TokenProvider) currentIfValidLocked() (string, bool) {
-	if p.accessToken == "" {
+// Nie blokuje, zakłada, że blokadę założyła metoda wywołująca
+func (p *TokenProvider) currentIfValidLocked(nip string) (string, bool) {
+	entry, ok := p.cache[nip]
+	if !ok || entry.accessToken == "" {
 		return "", false
 	}
 	// brak daty ważności -> wymuś odświeżenie
-	if p.accessExp.IsZero() {
+	if entry.accessExp.IsZero() {
 		return "", false
 	}
 	// porównuj w UTC z marginesem
 	now := time.Now().UTC()
-	if p.accessExp.Sub(now) <= p.refreshSkew {
+	if entry.accessExp.Sub(now) <= p.refreshSkew {
 		return "", false
 	}
-	return p.accessToken, true
+	return entry.accessToken, true
 }
 
-func (p *TokenProvider) refreshAccessToken(ctx context.Context) (string, error) {
-	if p.refreshToken == "" {
-		return "", ErrNoRefreshToken
+func (p *TokenProvider) isTokenValid(exp time.Time) bool {
+	if exp.IsZero() {
+		return false
+	}
+	now := time.Now().UTC()
+	return exp.Sub(now) > p.refreshSkew
+}
+
+func (p *TokenProvider) refreshAccessTokenLocked(ctx context.Context) error {
+
+	nip, ok := ksef.NipFromContext(ctx)
+	if !ok || nip == "" {
+		return ksef.ErrNoNip
 	}
 
-	ti, err := p.auth.RefreshToken(ctx, p.refreshToken)
+	entry, ok := p.cache[nip]
+	if !ok || entry.refreshToken == "" {
+		return ErrNoRefreshToken
+	}
+
+	ti, err := p.auth.RefreshToken(ctx, entry.refreshToken)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	p.accessToken = ti.Token
-	p.accessExp = ti.GetValidUntil()
-	return p.accessToken, nil
+	entry.accessToken = ti.Token
+	entry.accessExp = ti.GetValidUntil().UTC()
+	return nil
+}
+
+func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, error) {
+
+	nip, ok := ksef.NipFromContext(ctx)
+	if !ok || nip == "" {
+		return api.Bearer{}, ksef.ErrNoNip
+	}
+
+	log.Debug("TokenProvider: Performing full authentication - calling authenticator func")
+	tokens, err := p.authenticator(ctx)
+	if err != nil {
+		return api.Bearer{}, err
+	}
+	at := tokens.GetAccessToken()
+	rt := tokens.GetRefreshToken()
+	p.cache[nip] = &nipTokens{
+		accessToken:  at.Token,
+		accessExp:    at.GetValidUntil().UTC(),
+		refreshToken: rt.Token,
+		refreshExp:   rt.GetValidUntil().UTC(),
+	}
+	log.Debug("TokenProvider: Full authentication completed, tokens cached")
+	return api.Bearer{Token: at.Token}, nil
 }
 
 // ErrNoRefreshToken sygnalizuje brak refresh tokena w źródle.

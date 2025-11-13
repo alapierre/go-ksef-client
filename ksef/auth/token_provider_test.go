@@ -11,9 +11,12 @@ import (
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	"github.com/alapierre/go-ksef-client/ksef/cipher"
 	"github.com/alapierre/go-ksef-client/ksef/util"
+	"github.com/sirupsen/logrus"
 )
 
 func TestGetToken(t *testing.T) {
+
+	logrus.SetLevel(logrus.DebugLevel)
 
 	nip := util.GetEnvOrFailed("KSEF_NIP")
 	token := util.GetEnvOrFailed("KSEF_TOKEN")
@@ -36,19 +39,22 @@ func TestGetToken(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	provider, err := NewTokenProvider(ctx, authFacade, func(ctx context.Context) (*api.AuthenticationTokensResponse, error) {
-		return initTokens(authFacade, encryptor, token, nip)
+	ctx = ksef.Context(ctx, nip)
+
+	provider := NewTokenProvider(authFacade, func(ctx context.Context) (*api.AuthenticationTokensResponse, error) {
+		return initTokens(ctx, authFacade, encryptor, token)
 	})
+
+	b, err := provider.Bearer(ctx, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Println(provider.accessToken)
+	fmt.Println(b.Token)
 }
 
-func initTokens(authFacade *Facade, encryptor *cipher.EncryptionService, token string, nip string) (*api.AuthenticationTokensResponse, error) {
+func initTokens(ctx context.Context, authFacade *Facade, encryptor *cipher.EncryptionService, token string) (*api.AuthenticationTokensResponse, error) {
 
-	ctx := context.Background()
 	challenge, err := authFacade.GetChallenge(ctx)
 	if err != nil {
 		return nil, err
@@ -59,7 +65,7 @@ func initTokens(authFacade *Facade, encryptor *cipher.EncryptionService, token s
 		return nil, err
 	}
 
-	initResp, err := authFacade.AuthWithToken(ctx, challenge.Challenge, ksef.Nip(nip), encryptedToken)
+	initResp, err := authFacade.AuthWithToken(ctx, challenge.Challenge, encryptedToken)
 	if err != nil {
 		return nil, err
 	}

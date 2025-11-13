@@ -23,6 +23,7 @@ var (
 	// ErrUnauthorized ogólny marker dla 401
 	ErrUnauthorized = errors.New("ksef unauthorized")
 	Err500          = errors.New("ksef other error")
+	ErrNoNip        = errors.New("no NIP in context.Context")
 )
 
 // ApiError błąd z kontekstem zdarzenia

@@ -56,7 +56,12 @@ func (c *Facade) GetChallenge(ctx context.Context) (*api.AuthenticationChallenge
 	}
 }
 
-func (c *Facade) AuthWithToken(ctx context.Context, challenge api.Challenge, nip ksef.Nip, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
+func (c *Facade) AuthWithToken(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
+
+	nip, ok := ksef.NipFromContext(ctx)
+	if !ok || nip == "" {
+		return nil, ksef.ErrNoNip
+	}
 
 	req := api.InitTokenAuthenticationRequest{
 		Challenge: challenge,
