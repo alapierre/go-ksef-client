@@ -102,12 +102,8 @@ func NewEncryptionService(env Environment, httpClient *http.Client, opts ...Opti
 	return s, nil
 }
 
-// Encrypt szyfruje dane dla klucza tokenowego (RSA-OAEP SHA-256)
-func (s *EncryptionService) Encrypt(ctx context.Context, plaintext []byte) ([]byte, error) {
-	pubKey, err := s.GetPublicKeyFor(ctx, api.PublicKeyCertificateUsageKsefTokenEncryption)
-	if err != nil {
-		return nil, fmt.Errorf("nie można pobrać klucza publicznego (token): %w", err)
-	}
+func (s *EncryptionService) encryptWithUsage(plaintext []byte, pubKey *rsa.PublicKey) ([]byte, error) {
+
 	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, plaintext, nil)
 	if err != nil {
 		return nil, fmt.Errorf("błąd szyfrowania RSA-OAEP: %w", err)
@@ -115,25 +111,16 @@ func (s *EncryptionService) Encrypt(ctx context.Context, plaintext []byte) ([]by
 	return encrypted, nil
 }
 
-// EncryptToBase64 szyfruje dane kluczem tokenowym i zwraca Base64
-func (s *EncryptionService) EncryptToBase64(ctx context.Context, plaintext []byte) (string, error) {
-	encrypted, err := s.Encrypt(ctx, plaintext)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(encrypted), nil
-}
-
-// EncryptString szyfruje string kluczem tokenowym i zwraca Base64
-func (s *EncryptionService) EncryptString(ctx context.Context, plaintext string) (string, error) {
-	return s.EncryptToBase64(ctx, []byte(plaintext))
-}
-
 // EncryptKsefToken szyfruje token KSeF + timestamp kluczem tokenowym
 func (s *EncryptionService) EncryptKsefToken(ctx context.Context, ksefToken string, timestamp time.Time) ([]byte, error) {
+
+	pubKey, err := s.GetPublicKeyFor(ctx, api.PublicKeyCertificateUsageKsefTokenEncryption)
+	if err != nil {
+		return nil, fmt.Errorf("nie można pobrać klucza publicznego (token): %w", err)
+	}
 	timestampMs := timestamp.UnixMilli()
 	payload := fmt.Sprintf("%s|%d", ksefToken, timestampMs)
-	return s.Encrypt(ctx, []byte(payload))
+	return s.encryptWithUsage([]byte(payload), pubKey)
 }
 
 // EncryptSymmetricKey szyfruje klucz symetryczny faktury kluczem o Usage=SymmetricKeyEncryption
@@ -142,11 +129,7 @@ func (s *EncryptionService) EncryptSymmetricKey(ctx context.Context, symmetricKe
 	if err != nil {
 		return nil, fmt.Errorf("nie można pobrać klucza publicznego (sym): %w", err)
 	}
-	encrypted, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, symmetricKey, nil)
-	if err != nil {
-		return nil, fmt.Errorf("błąd szyfrowania RSA-OAEP: %w", err)
-	}
-	return encrypted, nil
+	return s.encryptWithUsage([]byte(symmetricKey), pubKey)
 }
 
 // GetPublicKeyFor zwraca klucz publiczny dla wskazanego Usage
