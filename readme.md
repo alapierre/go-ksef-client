@@ -207,7 +207,7 @@ func main() {
 }
 ````
 
-## Opening an interactive session
+## Opening an interactive session and sending invoices
 
 ````go
 package main
@@ -230,6 +230,7 @@ func openSession() {
 
 	nip := util.GetEnvOrFailed("KSEF_NIP")
 	token := util.GetEnvOrFailed("KSEF_TOKEN")
+	buer := util.GetEnvOrFailed("KSEF_BUYER_NIP")
 
 	httpClient := &http.Client{
 		Timeout: 15 * time.Second,
@@ -278,6 +279,80 @@ func openSession() {
 	}
 
 	fmt.Println(session)
-	// send invoices TBD
+	
+	// send invoices	
+	
+	invoice, err := util.ReplacePlaceholdersInXML("../invoice_fa_3_type.xml", map[string]any{
+		"NIP":        nip,
+		"ISSUE_DATE": time.Now(),
+		"BUYER_NIP":  buer,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	ir, err := client.SendInvoice(ctx, string(session.ReferenceNumber), api.OptBool{}, invoice, key, iv)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(ir)
+}
+````
+
+## Notice
+
+### Client validation
+
+Cause by ogen issue: https://github.com/ogen-go/ogen/issues/1570 validation of SHA-256 Base64 string is not working corectly. 
+So in the generated code, the validation is commented out. Alternative is to change the following definition in the openapi.json: 
+
+from:
+
+````json
+      "Sha256HashBase64": {
+        "maxLength": 44,
+        "minLength": 44,
+        "type": "string",
+        "description": "SHA-256 w Base64.",
+        "format": "byte"
+      },
+````
+
+to:
+
+````json
+      "Sha256HashBase64": {
+        "maxLength": 32,
+        "minLength": 32,
+        "type": "string",
+        "description": "SHA-256 w Base64.",
+        "format": "byte"
+      },
+````
+
+### Too many requests support
+
+Currently KseF OpenAPI does not define Too Many Requests (429) responses for any endpoints. 
+So the client does not handle them — `ogen` does not generate the code to get `Retry-After` response header.
+Issue is tracked here: https://github.com/CIRFMF/ksef-docs/issues/347
+
+Workaround: manually add `Too Many Requests` `429` responses in OpenAPI spec and regenerate the client.
+
+````json
+{
+  "responses": {
+    "429": {
+      "description": "Przekroczono limit żądań",
+      "headers": {
+        "Retry-After": {
+          "description": "ilość sekund na które założona jest blokada",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
 }
 ````

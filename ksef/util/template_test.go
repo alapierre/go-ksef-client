@@ -2,61 +2,23 @@ package util
 
 import (
 	"fmt"
-	"go-ksef/ksef/cipher"
-	"go-ksef/ksef/model"
-	"go-ksef/ksef/tpl"
 	"testing"
+	"time"
 )
 
 var identifier = GetEnvOrFailed("KSEF_NIP")
-var token = GetEnvOrFailed("KSEF_TOKEN")
 
-func TestMergeTemplate(t *testing.T) {
+func Test(t *testing.T) {
 
-	var dto = model.TokenRequestDTO{
-		Identifier: identifier,
-		Token:      []byte("encrypted"),
-		Challenge:  "20221026-CR-C3CADF764E-CD1519BDA4-01",
-		Encryption: model.EncryptionDTO{
-			Enabled: false,
-		},
-	}
-
-	request, err := MergeTemplate(&tpl.InitSessionTokenRequest, dto)
+	output, err := ReplacePlaceholdersInXML("../../invoice_fa_3_type.xml", map[string]any{
+		"NIP":        "1234567890",
+		"ISSUE_DATE": time.Now(),
+		"BUYER_NIP":  "0987654321",
+	})
 	if err != nil {
-		t.Errorf("can't merge template %v", err)
+		panic(err)
 	}
 
-	fmt.Println("merged: ", string(request))
-}
+	fmt.Println(string(output))
 
-func TestMergeTemplateWithEncryption(t *testing.T) {
-
-	aes, err := cipher.AesWithRandomKey(32)
-	if err != nil {
-		t.Errorf("Can't init AES cipher")
-	}
-
-	key, err := cipher.RsaEncrypt(aes.Key(), "../../data/mfkeys/test/publicKey.pem")
-	if err != nil {
-		t.Errorf("Can;t initailize RSA cipher: %v", err)
-	}
-
-	var dto = model.TokenRequestDTO{
-		Identifier: identifier,
-		Token:      []byte("encrypted"),
-		Challenge:  "20221026-CR-C3CADF764E-CD1519BDA4-01",
-		Encryption: model.EncryptionDTO{
-			Enabled: true,
-			Key:     key,
-			IV:      aes.Iv(),
-		},
-	}
-
-	request, err := MergeTemplate(&tpl.InitSessionTokenRequest, dto)
-	if err != nil {
-		t.Errorf("can't merge template %v", err)
-	}
-
-	fmt.Println("merged: ", string(request))
 }

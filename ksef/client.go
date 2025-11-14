@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/alapierre/go-ksef-client/ksef/aes"
 	"github.com/alapierre/go-ksef-client/ksef/api"
 )
 
@@ -50,5 +51,48 @@ func (c *Client) OpenInteractiveSession(ctx context.Context, form api.FormCode, 
 		return nil, HandleAPIError(v)
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
+func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.OptBool, invoice, key, iv []byte) (string, error) {
+
+	encrypted, err := aes.EncryptBytesWithAES256CBCPKCS7(invoice, key, iv)
+	if err != nil {
+		return "", err
+	}
+
+	im := aes.GetMetadata(invoice)
+	em := aes.GetMetadata(encrypted)
+
+	req := api.OptSendInvoiceRequest{}
+	req.SetTo(api.SendInvoiceRequest{
+		InvoiceHash:             im.HashSHA,
+		InvoiceSize:             im.Size,
+		EncryptedInvoiceHash:    em.HashSHA,
+		EncryptedInvoiceSize:    em.Size,
+		EncryptedInvoiceContent: encrypted,
+		OfflineMode:             offline,
+	})
+
+	params := api.APIV2SessionsOnlineReferenceNumberInvoicesPostParams{
+		ReferenceNumber: api.ReferenceNumber(reference),
+	}
+
+	res, err := c.raw.APIV2SessionsOnlineReferenceNumberInvoicesPost(ctx, req, params)
+	if err != nil {
+		return "", err
+	}
+
+	switch v := res.(type) {
+	case *api.SendInvoiceResponse:
+		return string(v.GetReferenceNumber()), nil
+	case *api.APIV2SessionsOnlineReferenceNumberInvoicesPostUnauthorized:
+		return "", ErrUnauthorized
+	case *api.APIV2SessionsOnlineReferenceNumberInvoicesPostForbidden:
+		return "", ErrForbidden
+	case *api.ExceptionResponse:
+		return "", HandleAPIError(v)
+	default:
+		return "", fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alapierre/go-ksef-client/ksef/aes"
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	"github.com/alapierre/go-ksef-client/ksef/util"
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,7 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 
 	nip := util.GetEnvOrFailed("KSEF_NIP")
 	token := util.GetEnvOrFailed("KSEF_TOKEN")
+	buer := util.GetEnvOrFailed("KSEF_BUYER_NIP")
 
 	httpClient := &http.Client{
 		Timeout: 15 * time.Second,
@@ -51,8 +53,8 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 		Value:         "FA",
 	}
 
-	key, err := GenerateRandom256BitsKey()
-	iv, err := GenerateRandom16BytesIv()
+	key, err := aes.GenerateRandom256BitsKey()
+	iv, err := aes.GenerateRandom16BytesIv()
 	encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, key)
 
 	enc := api.EncryptionInfo{
@@ -67,4 +69,19 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 
 	fmt.Println(session)
 
+	invoice, err := util.ReplacePlaceholdersInXML("../invoice_fa_3_type.xml", map[string]any{
+		"NIP":        nip,
+		"ISSUE_DATE": time.Now(),
+		"BUYER_NIP":  buer,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ir, err := client.SendInvoice(ctx, string(session.ReferenceNumber), api.OptBool{}, invoice, key, iv)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(ir)
 }

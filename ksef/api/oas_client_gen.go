@@ -5796,21 +5796,21 @@ func (c *Client) APIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.Cont
 
 func (c *Client) sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params APIV2SessionsOnlineReferenceNumberInvoicesPostParams) (res APIV2SessionsOnlineReferenceNumberInvoicesPostRes, err error) {
 	// Validate request before sending.
-	if err := func() error {
-		if value, ok := request.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return res, errors.Wrap(err, "validate")
-	}
+	//if err := func() error {
+	//	if value, ok := request.Get(); ok {
+	//		if err := func() error {
+	//			if err := value.Validate(); err != nil {
+	//				return err
+	//			}
+	//			return nil
+	//		}(); err != nil {
+	//			return err
+	//		}
+	//	}
+	//	return nil
+	//}(); err != nil {
+	//	return res, errors.Wrap(err, "validate")
+	//}
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
