@@ -16,7 +16,12 @@ import (
 
 // BuildBatchFromSource builds a single ZIP package by pulling invoices
 // from the given InvoiceSource, then splits this ZIP into parts <= MaxPartSize
-// and encrypts each part.
+// and encrypts each part. This is the main, flexible entry point – the source
+// may be backed by files, DB records, HTTP multipart, template generator, etc.
+//
+// Behavior regarding SHA-256:
+//   - If InvoiceItem.SHA256 is non-empty, it is used directly (copied).
+//   - Otherwise, SHA-256 is computed from InvoiceItem.XML.
 func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, error) {
 	if cfg.OutputDir == "" {
 		cfg.OutputDir = os.TempDir()
@@ -32,12 +37,13 @@ func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, err
 		cfg.TempFilePattern = "ksef-batch-*.zip"
 	}
 
-	// Step 1: ZIP with invoices.
+	// Step 1: build a single ZIP with all invoices from the source.
 	tmpZipFile, err := os.CreateTemp(cfg.OutputDir, cfg.TempFilePattern)
 	if err != nil {
 		return nil, fmt.Errorf("create temp zip: %w", err)
 	}
-	// Cleanup
+	// If something goes wrong later and CleanupPlainZip is enabled,
+	// try to remove the plain ZIP.
 	defer func() {
 		if err != nil && cfg.CleanupPlainZip {
 			_ = os.Remove(tmpZipFile.Name())
@@ -66,10 +72,18 @@ func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, err
 			return nil, fmt.Errorf("invoice %d (%s) has empty XML", index, item.ID)
 		}
 
-		// SHA-256 from original invoice XML bytes
-		sum := sha256.Sum256(item.XML)
-		hash := make([]byte, len(sum))
-		copy(hash, sum[:])
+		// Decide where to get SHA-256 from:
+		// - use precomputed item.SHA256 if provided,
+		// - otherwise compute SHA-256 from item.XML.
+		var hash []byte
+		if len(item.SHA256) > 0 {
+			hash = make([]byte, len(item.SHA256))
+			copy(hash, item.SHA256)
+		} else {
+			sum := sha256.Sum256(item.XML)
+			hash = make([]byte, len(sum))
+			copy(hash, sum[:])
+		}
 
 		zipName := item.FileName
 		if zipName == "" {
@@ -121,7 +135,7 @@ func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, err
 		return nil, fmt.Errorf("close zip file: %w", err)
 	}
 
-	// Step 2: cut and encrypt ZIP parts.
+	// Step 2: split and encrypt the ZIP file.
 	return buildBatchFromZip(cfg, tmpZipFile.Name(), invoiceHashes)
 }
 
@@ -209,6 +223,10 @@ type InvoiceItem struct {
 
 	// XML is the raw XML content of the invoice.
 	XML []byte
+
+	// SHA256 is an optional precomputed SHA-256 hash of XML.
+	// Jeśli puste/nil, BuildBatchFromSource policzy SHA samodzielnie.
+	SHA256 []byte
 }
 
 // InvoiceSource is a generic source of invoices (iterator).

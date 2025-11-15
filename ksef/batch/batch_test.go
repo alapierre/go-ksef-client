@@ -12,23 +12,24 @@ import (
 	"github.com/alapierre/go-ksef-client/ksef/util"
 )
 
-// templateInvoiceSource generuje faktury z szablonu "w locie"
-// i implementuje InvoiceSource. Przy okazji zapamiętuje SHA-256
-// dla każdej faktury, żeby test mógł to porównać z wynikiem batcha.
+// templateInvoiceSource generuje faktury z szablonu "w locie" i implementuje InvoiceSource.
+// Dodatkowo liczy SHA-256 i:
+//   - wstawia je do InvoiceItem.SHA256 (używane przez BuildBatchFromSource),
+//   - zapamiętuje w expectedSHA, żeby test mógł porównać wyniki.
 type templateInvoiceSource struct {
 	templatePath string
 	count        int
 	idx          int
 
-	// expected przechowuje oczekiwane hashe w kolejności Next().
-	expected []InvoiceHash
+	// expectedSHA przechowuje oczekiwane SHA-256 w kolejności Next().
+	expectedSHA [][]byte
 }
 
 func newTemplateInvoiceSource(templatePath string, count int) *templateInvoiceSource {
 	return &templateInvoiceSource{
 		templatePath: templatePath,
 		count:        count,
-		expected:     make([]InvoiceHash, 0, count),
+		expectedSHA:  make([][]byte, 0, count),
 	}
 }
 
@@ -42,9 +43,9 @@ func (s *templateInvoiceSource) Next() (*InvoiceItem, error) {
 	buyerNip := fmt.Sprintf("%010d", s.count+i)
 
 	xmlBytes, err := util.ReplacePlaceholdersInXML(s.templatePath, map[string]any{
-		"NIP":        "1234567890",
-		"ISSUE_DATE": time.Now().AddDate(0, 0, i%30),
-		"BUYER_NIP":  buyerNip,
+		"NIP":        "1234567890",                   // stały NIP sprzedawcy
+		"ISSUE_DATE": time.Now().AddDate(0, 0, i%30), // różne daty
+		"BUYER_NIP":  buyerNip,                       // różne NIP-y nabywców
 	})
 	if err != nil {
 		return nil, fmt.Errorf("ReplacePlaceholdersInXML failed (i=%d): %w", i, err)
@@ -56,16 +57,14 @@ func (s *templateInvoiceSource) Next() (*InvoiceItem, error) {
 
 	fileName := fmt.Sprintf("invoice_%04d.xml", i)
 
-	s.expected = append(s.expected, InvoiceHash{
-		ID:       fileName,
-		FileName: fileName,
-		SHA256:   hash,
-	})
+	// zapamiętujemy hash jako „expected”
+	s.expectedSHA = append(s.expectedSHA, hash)
 
 	item := &InvoiceItem{
 		ID:       fileName,
 		FileName: fileName,
 		XML:      xmlBytes,
+		SHA256:   hash, // KLUCZOWE: BuildBatchFromSource użyje tego zamiast liczyć SHA ponownie
 	}
 
 	s.idx++
@@ -73,10 +72,10 @@ func (s *templateInvoiceSource) Next() (*InvoiceItem, error) {
 }
 
 func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
-	// Ilość faktur do wygenerowania.
+	// Ilość faktur do wygenerowania (duża, żeby wymusić podział ZIP-a).
 	const invoiceCount = 2000
 
-	// Limit wielkości części – powinno wymusić kilka partów.
+	// Limit wielkości części – 256 KiB powinno dać kilka partów.
 	const maxPartSize = 256 * 1024 // 256 KiB
 
 	tmpDir := t.TempDir()
@@ -88,7 +87,7 @@ func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 		OutputDir:       tmpDir,
 		MaxPartSize:     maxPartSize,
 		TempFilePattern: "test-batch-*.zip",
-		CleanupPlainZip: false,
+		CleanupPlainZip: false, // możesz dać true, jeśli nie chcesz zostawiać ZIP-a
 	}
 
 	result, err := BuildBatchFromSource(cfg, src)
@@ -108,30 +107,29 @@ func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 	}
 
 	// 2) Źródło wygenerowało dokładnie tyle hashy, ile faktur.
-	if len(src.expected) != invoiceCount {
+	if len(src.expectedSHA) != invoiceCount {
 		t.Fatalf("templateInvoiceSource expected %d hashes, has %d",
-			invoiceCount, len(src.expected))
+			invoiceCount, len(src.expectedSHA))
 	}
 
-	// 3) Przy 2000 faktur i maxPartSize 256 KiB ZIP powinien być pocięty na kilka części.
+	// 3) ZIP przy takim rozmiarze powinien być podzielony na kilka części.
 	if len(result.Parts) < 2 {
 		t.Errorf("expected ZIP to be split into multiple parts, but got only %d part(s)", len(result.Parts))
 	}
 
-	// 4) Porównanie hashy: to, co policzył batch (result.InvoiceHashes),
-	// musi się zgadzać z tym, co policzyło źródło (src.expected),
-	// po indeksie (kolejność Next()).
-	if len(result.InvoiceHashes) != len(src.expected) {
-		t.Fatalf("mismatch between InvoiceHashes (%d) and expected (%d)",
-			len(result.InvoiceHashes), len(src.expected))
+	// 4) Porównanie hashy: to, co policzyło źródło (expectedSHA),
+	// musi się zgadzać z tym, co trafiło do InvoiceHashes.
+	if len(result.InvoiceHashes) != len(src.expectedSHA) {
+		t.Fatalf("mismatch between InvoiceHashes (%d) and expectedSHA (%d)",
+			len(result.InvoiceHashes), len(src.expectedSHA))
 	}
 
-	for i := range src.expected {
-		got := result.InvoiceHashes[i]
-		exp := src.expected[i]
+	for i := range src.expectedSHA {
+		got := result.InvoiceHashes[i].SHA256
+		exp := src.expectedSHA[i]
 
-		if !bytes.Equal(got.SHA256, exp.SHA256) {
-			t.Errorf("hash mismatch for invoice index %d (FileName=%s)", i, exp.FileName)
+		if !bytes.Equal(got, exp) {
+			t.Errorf("hash mismatch for invoice index %d (FileName=%s)", i, result.InvoiceHashes[i].FileName)
 		}
 	}
 
