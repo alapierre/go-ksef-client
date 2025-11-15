@@ -1,10 +1,11 @@
 package util
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsDebugEnabled_False(t *testing.T) {

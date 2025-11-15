@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-var identifier = GetEnvOrFailed("KSEF_NIP")
-
 func Test(t *testing.T) {
 
 	output, err := ReplacePlaceholdersInXML("../../invoice_fa_3_type.xml", map[string]any{
