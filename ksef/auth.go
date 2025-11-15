@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Facade struct {
+type AuthFacade struct {
 	raw        *api.Client
 	env        Environment
 	httpClient *http.Client
@@ -24,7 +24,7 @@ func (b localStaticBearer) Bearer(ctx context.Context, _ api.OperationName) (api
 }
 
 // NewFacade Konstruktor fasady autoryzacyjnej.
-func NewFacade(env Environment, httpClient *http.Client) (*Facade, error) {
+func NewFacade(env Environment, httpClient *http.Client) (*AuthFacade, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
 		nil,
@@ -33,10 +33,10 @@ func NewFacade(env Environment, httpClient *http.Client) (*Facade, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Facade{raw: cli, env: env, httpClient: httpClient}, nil
+	return &AuthFacade{raw: cli, env: env, httpClient: httpClient}, nil
 }
 
-func (c *Facade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
+func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
 	res, err := c.raw.APIV2AuthChallengePost(ctx)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (c *Facade) GetChallenge(ctx context.Context) (*api.AuthenticationChallenge
 	}
 }
 
-func (c *Facade) AuthWithToken(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
+func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
 
 	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
@@ -90,7 +90,7 @@ func (c *Facade) AuthWithToken(ctx context.Context, challenge api.Challenge, enc
 }
 
 // AuthWaitAndRedeem Polluje status aż do 200 lub do ctx.Done(). Interwał czekania kontrolowany parametrem pollEvery.
-func (c *Facade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
+func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
 	if authResp == nil {
 		return nil, fmt.Errorf("authResponse is nil")
 	}
@@ -143,7 +143,7 @@ func (c *Facade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authentica
 	}
 }
 
-func (c *Facade) RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error) {
+func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error) {
 
 	cli, err := api.NewClient(
 		c.env.BaseURL(),

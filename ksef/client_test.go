@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -14,6 +15,17 @@ import (
 )
 
 func TestClient_OpenInteractiveSession(t *testing.T) {
+
+	if _, ok := os.LookupEnv("KSEF_NIP"); !ok {
+		t.Skip("KSEF_NIP not set – skipping integration test")
+	}
+	if _, ok := os.LookupEnv("KSEF_TOKEN"); !ok {
+		t.Skip("KSEF_TOKEN not set – skipping integration test")
+	}
+
+	if _, ok := os.LookupEnv("KSEF_BUYER_NIP"); !ok {
+		t.Skip("KSEF_TOKEN not set – skipping integration test")
+	}
 
 	logrus.SetLevel(logrus.DebugLevel)
 

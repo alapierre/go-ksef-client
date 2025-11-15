@@ -7,7 +7,7 @@ import (
 	"github.com/alapierre/go-ksef-client/ksef/api"
 )
 
-func WithKsefToken(ctx context.Context, authFacade *Facade, encryptor *EncryptionService, token string) (*api.AuthenticationTokensResponse, error) {
+func WithKsefToken(ctx context.Context, authFacade *AuthFacade, encryptor *EncryptionService, token string) (*api.AuthenticationTokensResponse, error) {
 
 	challenge, err := authFacade.GetChallenge(ctx)
 	if err != nil {

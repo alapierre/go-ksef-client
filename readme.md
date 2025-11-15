@@ -356,3 +356,64 @@ Workaround: manually add `Too Many Requests` `429` responses in OpenAPI spec and
   }
 }
 ````
+
+
+## TokenProvider design and benchmarks
+
+The `TokenProvider` component is responsible for providing and transparently refreshing KSeF access tokens. It implements `api.SecuritySource` and is used by the generated client to attach `Authorization: Bearer` headers to all protected requests.
+
+### Design rationale
+
+The provider is designed with the following goals:
+
+- **Correctness under concurrency**  
+  Multiple goroutines may request tokens for the same or different NIPs at the same time. `TokenProvider` uses an internal cache protected by a mutex to ensure:
+    - exactly one full authentication per NIP when tokens are missing or expired,
+    - serialized refresh of access tokens per NIP,
+    - race-free reads from the cache (verified with `go test -race`).
+
+- **Steady‑state performance**  
+  In typical usage, most calls should reuse a cached access token that is still valid. This “fast path” avoids network calls and does not allocate memory on the heap.
+
+- **Simplicity vs. complexity**  
+  The current implementation uses a single mutex and a per‑NIP cache. Given the expected load (usually 1–2, up to ~40 NIPs per application instance), more complex patterns (like per‑NIP locks or `singleflight` groups) were evaluated and considered unnecessary for now. The benchmarks below confirm that the cost of the provider itself is negligible compared to KSeF network latency.
+
+### What we benchmark and why
+
+Benchmarks focus on the `Bearer` method of `TokenProvider` in several scenarios:
+
+- **Sequential, warm cache**  
+  Multiple calls for the same NIP with tokens already cached and valid.  
+  This measures the *absolute overhead* of the provider in the happy‑path case.
+
+- **Parallel, same NIP, warm cache**  
+  Many goroutines requesting a token for the same NIP simultaneously, with tokens already cached.  
+  This stresses the locking strategy and measures contention on the mutex.
+
+- **Parallel, many NIPs, cold cache**  
+  Many goroutines requesting tokens for many different NIPs when the cache is empty.  
+  This simulates the worst case (initial warm‑up), where each NIP requires a full authentication. The benchmark is dominated by the simulated authentication delay; it is useful mainly to estimate upper bounds and allocations during warm‑up, not to compare micro‑optimizations.
+
+- **Parallel, many NIPs, warm cache**  
+  Many goroutines requesting tokens for multiple NIPs after the cache has been pre‑filled.  
+  This is close to real‑world steady‑state with multiple tenants and concurrent traffic.
+
+### Sample benchmark results
+
+`Go 1.25`
+
+````shell
+go test ./ksef -bench 'BenchmarkTokenProvider_' -benchmem
+````
+````
+goos: linux
+goarch: amd64
+pkg: github.com/alapierre/go-ksef-client/ksef
+cpu: Intel(R) Core(TM) i9-9940X CPU @ 3.30GHz
+BenchmarkTokenProvider_Sequential-28                    13828598                73.83 ns/op            0 B/op          0 allocs/op
+BenchmarkTokenProvider_ParallelSameNip-28                2263152               516.3 ns/op             0 B/op          0 allocs/op
+BenchmarkTokenProvider_ParallelManyNips-28                507884              2033 ns/op              64 B/op          2 allocs/op
+BenchmarkTokenProvider_ParallelManyNipsWarmCache-28      1261300               970.5 ns/op            64 B/op          2 allocs/op
+PASS
+ok      github.com/alapierre/go-ksef-client/ksef        21.349s
+````
