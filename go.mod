@@ -2,7 +2,7 @@ module github.com/alapierre/go-ksef-client
 
 go 1.24.0
 
-toolchain go1.24.2
+toolchain go1.25.4
 
 require (
 	github.com/go-faster/errors v0.7.1
