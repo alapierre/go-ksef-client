@@ -39,7 +39,7 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 
 	env := Test
 
-	authFacade, err := NewFacade(env, httpClient)
+	authFacade, err := NewAuthFacade(env, httpClient)
 
 	if err != nil {
 		t.Fatal(err)

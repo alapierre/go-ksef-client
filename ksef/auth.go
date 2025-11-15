@@ -23,8 +23,8 @@ func (b localStaticBearer) Bearer(ctx context.Context, _ api.OperationName) (api
 	return api.Bearer{Token: b.Token}, nil
 }
 
-// NewFacade Konstruktor fasady autoryzacyjnej.
-func NewFacade(env Environment, httpClient *http.Client) (*AuthFacade, error) {
+// NewAuthFacade Konstruktor fasady autoryzacyjnej.
+func NewAuthFacade(env Environment, httpClient *http.Client) (*AuthFacade, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
 		nil,

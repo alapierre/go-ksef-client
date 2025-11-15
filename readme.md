@@ -176,7 +176,7 @@ func main() {
 	}
 
 	env := ksef.Test
-	authFacade, err := ksef.NewFacade(env, httpClient)
+	authFacade, err := ksef.NewAuthFacade(env, httpClient)
 	if err != nil {
 		panic(err)
 	}
@@ -238,7 +238,7 @@ func openSession() {
 
 	env := ksef.Test
 
-	authFacade, err := ksef.NewFacade(env, httpClient)
+	authFacade, err := ksef.NewAuthFacade(env, httpClient)
 
 	if err != nil {
 		panic(err)
@@ -300,7 +300,6 @@ func openSession() {
 }
 ````
 
-## Notice
 
 ### Client validation
 
