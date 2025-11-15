@@ -1,5 +1,6 @@
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=alapierre_go-ksef-client&metric=alert_status)](https://sonarcloud.io/dashboard?id=alapierre_go-ksef-client)
 [![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
+[![Go](https://github.com/alapierre/go-ksef-client/actions/workflows/go.yml/badge.svg)](https://github.com/alapierre/go-ksef-client/actions/workflows/go.yml)
 
 # GO KSeF 2.0 API client library
 
