@@ -12,65 +12,6 @@ import (
 	"github.com/alapierre/go-ksef-client/ksef/util"
 )
 
-// templateInvoiceSource generuje faktury z szablonu "w locie" i implementuje InvoiceSource.
-// Dodatkowo liczy SHA-256 i:
-//   - wstawia je do InvoiceItem.SHA256 (używane przez BuildBatchFromSource),
-//   - zapamiętuje w expectedSHA, żeby test mógł porównać wyniki.
-type templateInvoiceSource struct {
-	templatePath string
-	count        int
-	idx          int
-
-	// expectedSHA przechowuje oczekiwane SHA-256 w kolejności Next().
-	expectedSHA [][]byte
-}
-
-func newTemplateInvoiceSource(templatePath string, count int) *templateInvoiceSource {
-	return &templateInvoiceSource{
-		templatePath: templatePath,
-		count:        count,
-		expectedSHA:  make([][]byte, 0, count),
-	}
-}
-
-func (s *templateInvoiceSource) Next() (*InvoiceItem, error) {
-	if s.idx >= s.count {
-		return nil, io.EOF
-	}
-
-	i := s.idx
-
-	buyerNip := fmt.Sprintf("%010d", s.count+i)
-
-	xmlBytes, err := util.ReplacePlaceholdersInXML(s.templatePath, map[string]any{
-		"NIP":        "1234567890",                   // stały NIP sprzedawcy
-		"ISSUE_DATE": time.Now().AddDate(0, 0, i%30), // różne daty
-		"BUYER_NIP":  buyerNip,                       // różne NIP-y nabywców
-	})
-	if err != nil {
-		return nil, fmt.Errorf("ReplacePlaceholdersInXML failed (i=%d): %w", i, err)
-	}
-
-	sum := sha256.Sum256(xmlBytes)
-	hash := make([]byte, len(sum))
-	copy(hash, sum[:])
-
-	fileName := fmt.Sprintf("invoice_%04d.xml", i)
-
-	// zapamiętujemy hash jako „expected”
-	s.expectedSHA = append(s.expectedSHA, hash)
-
-	item := &InvoiceItem{
-		ID:       fileName,
-		FileName: fileName,
-		XML:      xmlBytes,
-		SHA256:   hash, // KLUCZOWE: BuildBatchFromSource użyje tego zamiast liczyć SHA ponownie
-	}
-
-	s.idx++
-	return item, nil
-}
-
 func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 	// Ilość faktur do wygenerowania (duża, żeby wymusić podział ZIP-a).
 	const invoiceCount = 2000
@@ -87,7 +28,7 @@ func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 		OutputDir:       tmpDir,
 		MaxPartSize:     maxPartSize,
 		TempFilePattern: "test-batch-*.zip",
-		CleanupPlainZip: false, // możesz dać true, jeśli nie chcesz zostawiać ZIP-a
+		CleanupPlainZip: false,
 	}
 
 	result, err := BuildBatchFromSource(cfg, src)
@@ -138,6 +79,10 @@ func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 		t.Errorf("AESKey is empty")
 	}
 
+	if len(result.IV) == 0 {
+		t.Errorf("IV is empty")
+	}
+
 	var totalPlain int64
 	for _, p := range result.Parts {
 		if p.PlainSize <= 0 {
@@ -149,8 +94,8 @@ func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 		if p.CipherSize <= 0 {
 			t.Errorf("part %d has non-positive CipherSize: %d", p.Index, p.CipherSize)
 		}
-		if len(p.IV) == 0 {
-			t.Errorf("part %d has empty IV", p.Index)
+		if len(p.CipherSHA256) == 0 {
+			t.Errorf("part %d has empty CipherSHA256", p.Index)
 		}
 		totalPlain += p.PlainSize
 	}
@@ -158,4 +103,55 @@ func TestBuildBatchFromSource_TemplateInvoices(t *testing.T) {
 	if totalPlain != result.ZipSize {
 		t.Errorf("sum of PlainSize in parts (%d) != ZipSize (%d)", totalPlain, result.ZipSize)
 	}
+}
+
+// templateInvoiceSource generuje faktury z szablonu "w locie" i implementuje InvoiceSource.
+type templateInvoiceSource struct {
+	templatePath string
+	count        int
+	idx          int
+
+	// expectedSHA przechowuje oczekiwane SHA-256 w kolejności Next().
+	expectedSHA [][]byte
+}
+
+func newTemplateInvoiceSource(templatePath string, count int) *templateInvoiceSource {
+	return &templateInvoiceSource{
+		templatePath: templatePath,
+		count:        count,
+		expectedSHA:  make([][]byte, 0, count),
+	}
+}
+
+func (s *templateInvoiceSource) Next() (*InvoiceItem, error) {
+	if s.idx >= s.count {
+		return nil, io.EOF
+	}
+
+	i := s.idx
+
+	buyerNip := fmt.Sprintf("%010d", s.count+i)
+
+	xmlBytes, err := util.ReplacePlaceholdersInXML(s.templatePath, map[string]any{
+		"NIP":        "1234567890",                   // stały NIP sprzedawcy
+		"ISSUE_DATE": time.Now().AddDate(0, 0, i%30), // różne daty
+		"BUYER_NIP":  buyerNip,                       // różne NIP-y nabywców
+	})
+	if err != nil {
+		return nil, fmt.Errorf("ReplacePlaceholdersInXML failed (i=%d): %w", i, err)
+	}
+
+	sum := sha256.Sum256(xmlBytes)
+	hash := make([]byte, len(sum))
+	copy(hash, sum[:])
+
+	fileName := fmt.Sprintf("invoice_%04d.xml", i)
+
+	// zapamiętujemy hash jako „expected”
+	s.expectedSHA = append(s.expectedSHA, hash)
+
+	item := NewInvoiceItem(fileName, fileName, xmlBytes)
+
+	s.idx++
+	return item, nil
 }

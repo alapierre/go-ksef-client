@@ -12,16 +12,13 @@ import (
 	"path/filepath"
 
 	"github.com/alapierre/go-ksef-client/ksef/aes"
+	"github.com/sirupsen/logrus"
 )
 
 // BuildBatchFromSource builds a single ZIP package by pulling invoices
 // from the given InvoiceSource, then splits this ZIP into parts <= MaxPartSize
 // and encrypts each part. This is the main, flexible entry point – the source
 // may be backed by files, DB records, HTTP multipart, template generator, etc.
-//
-// Behavior regarding SHA-256:
-//   - If InvoiceItem.SHA256 is non-empty, it is used directly (copied).
-//   - Otherwise, SHA-256 is computed from InvoiceItem.XML.
 func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, error) {
 	if cfg.OutputDir == "" {
 		cfg.OutputDir = os.TempDir()
@@ -39,9 +36,12 @@ func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, err
 
 	// Step 1: build a single ZIP with all invoices from the source.
 	tmpZipFile, err := os.CreateTemp(cfg.OutputDir, cfg.TempFilePattern)
+
 	if err != nil {
 		return nil, fmt.Errorf("create temp zip: %w", err)
 	}
+	logrus.WithField("zip_path", tmpZipFile.Name()).Debug("Created temp file for invoice batch")
+
 	// If something goes wrong later and CleanupPlainZip is enabled,
 	// try to remove the plain ZIP.
 	defer func() {
@@ -72,18 +72,7 @@ func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, err
 			return nil, fmt.Errorf("invoice %d (%s) has empty XML", index, item.ID)
 		}
 
-		// Decide where to get SHA-256 from:
-		// - use precomputed item.SHA256 if provided,
-		// - otherwise compute SHA-256 from item.XML.
-		var hash []byte
-		if len(item.SHA256) > 0 {
-			hash = make([]byte, len(item.SHA256))
-			copy(hash, item.SHA256)
-		} else {
-			sum := sha256.Sum256(item.XML)
-			hash = make([]byte, len(sum))
-			copy(hash, sum[:])
-		}
+		hash := item.SHA256()
 
 		zipName := item.FileName
 		if zipName == "" {
@@ -166,6 +155,9 @@ type BatchResult struct {
 	// ZipSize is the size of the plain ZIP in bytes.
 	ZipSize int64
 
+	// ZipSHA256 is the SHA-256 hash of the plain ZIP.
+	ZipSHA256 []byte
+
 	// Parts is a list of encrypted parts (for fileParts in KSeF request).
 	Parts []BatchPartInfo
 
@@ -175,6 +167,9 @@ type BatchResult struct {
 	// AESKey is the single AES-256 key used to encrypt all parts of this ZIP.
 	// IV jest per-part, ale klucz jest wspólny dla całej paczki.
 	AESKey []byte
+
+	// IV jest the single AES-256 initialization vector used to encrypt all parts of this ZIP.
+	IV []byte
 }
 
 // BatchPartInfo describes one encrypted part of the ZIP file.
@@ -194,9 +189,8 @@ type BatchPartInfo struct {
 	// CipherSize is the size of encrypted data (after AES).
 	CipherSize int64
 
-	// IV is the initialization vector used for this part (16 bytes).
-	// Klucz AES jest wspólny dla całej paczki (BatchResult.AESKey).
-	IV []byte
+	// CipherSHA256 is the SHA-256 hash of the encrypted data.
+	CipherSHA256 []byte
 }
 
 // InvoiceHash binds an invoice XML document to its SHA-256 hash computed on
@@ -213,20 +207,53 @@ type InvoiceHash struct {
 }
 
 // InvoiceItem represents a single invoice to be added to the ZIP.
+//
+// IMPORTANT: InvoiceItem is intended to be immutable after construction.
+// In particular, XML and other fields should not be modified once the item
+// is passed to batch builder or other code consuming it.
 type InvoiceItem struct {
-	// ID is a logical identifier (np. ścieżka, ID z bazy, itp.).
+	// ID is a logical identifier (path, DB id, etc.).
 	ID string
 
 	// FileName is the name of this invoice inside the ZIP.
-	// Jeśli puste, builder sam coś wygeneruje.
+	// If empty, a default name is generated based on ID.
 	FileName string
 
 	// XML is the raw XML content of the invoice.
+	// It is assumed to remain unchanged after the item is created.
 	XML []byte
 
-	// SHA256 is an optional precomputed SHA-256 hash of XML.
-	// Jeśli puste/nil, BuildBatchFromSource policzy SHA samodzielnie.
-	SHA256 []byte
+	// sha256 is an optional cached SHA-256 hash of XML.
+	// It is either precomputed by NewInvoiceItem or computed lazily
+	// on first call to (*InvoiceItem).SHA256.
+	sha256 []byte
+}
+
+// NewInvoiceItem creates a new InvoiceItem with SHA-256 precomputed from XML.
+// XML is not copied; it is assumed that the caller will not mutate it
+// after passing it to NewInvoiceItem.
+func NewInvoiceItem(id, fileName string, xml []byte) *InvoiceItem {
+	sum := sha256.Sum256(xml)
+	return &InvoiceItem{
+		ID:       id,
+		FileName: fileName,
+		XML:      xml,
+		sha256:   sum[:],
+	}
+}
+
+// SHA256 returns the SHA-256 hash of XML.
+// If the hash has not been precomputed (e.g. the item was created as a struct
+// literal), it is computed on first call and cached for subsequent calls.
+func (i *InvoiceItem) SHA256() []byte {
+	if i.sha256 != nil {
+		return i.sha256
+	}
+	sum := sha256.Sum256(i.XML)
+	hash := make([]byte, len(sum))
+	copy(hash, sum[:])
+	i.sha256 = hash
+	return hash
 }
 
 // InvoiceSource is a generic source of invoices (iterator).
@@ -263,11 +290,7 @@ func (s *fileInvoiceSource) Next() (*InvoiceItem, error) {
 		baseName = fmt.Sprintf("invoice_%06d.xml", s.idx)
 	}
 
-	return &InvoiceItem{
-		ID:       path,
-		FileName: baseName,
-		XML:      xmlBytes,
-	}, nil
+	return NewInvoiceItem(path, baseName, xmlBytes), nil
 }
 
 // buildBatchFromZip takes an existing ZIP file and a list of InvoiceHashes,
@@ -290,14 +313,22 @@ func buildBatchFromZip(cfg BatchConfig, zipPath string, invoiceHashes []InvoiceH
 		cfg.MaxPartSize = 100 * 1024 * 1024
 	}
 
+	// same key and IV for all parts (KSeF requires this, it is a security issue reported here: https://github.com/CIRFMF/ksef-docs/issues/355).
 	key, keyErr := aes.GenerateRandom256BitsKey()
 	if keyErr != nil {
 		return nil, fmt.Errorf("generate AES key for batch: %w", keyErr)
+	}
+	iv, ivErr := aes.GenerateRandom16BytesIv()
+	if ivErr != nil {
+		return nil, fmt.Errorf("generate IV for batch: %w", ivErr)
 	}
 
 	var parts []BatchPartInfo
 	var offset int64
 	index := 0
+
+	// Hash plain ZIP-a
+	zipHash := sha256.New()
 
 	for offset < totalSize {
 		remaining := totalSize - offset
@@ -315,15 +346,19 @@ func buildBatchFromZip(cfg BatchConfig, zipPath string, invoiceHashes []InvoiceH
 			return nil, fmt.Errorf("short read: expected %d, got %d", partSize, n)
 		}
 
-		iv, ivErr := aes.GenerateRandom16BytesIv()
-		if ivErr != nil {
-			return nil, fmt.Errorf("generate IV for part %d: %w", index, ivErr)
+		// counting ZIP file SHA part by part
+		if _, err := zipHash.Write(plainPart); err != nil {
+			return nil, fmt.Errorf("updating zip hash at offset %d: %w", offset, err)
 		}
 
+		// encrypt part
 		cipherPart, encErr := aes.EncryptBytesWithAES256CBCPKCS7(plainPart, key, iv)
 		if encErr != nil {
 			return nil, fmt.Errorf("encrypt part %d: %w", index, encErr)
 		}
+
+		cipherSum := sha256.Sum256(cipherPart)
+		cipherHash := cipherSum[:]
 
 		partPath := fmt.Sprintf("%s.part-%03d.enc", zipPath, index)
 		if writeErr := os.WriteFile(partPath, cipherPart, 0o600); writeErr != nil {
@@ -331,26 +366,30 @@ func buildBatchFromZip(cfg BatchConfig, zipPath string, invoiceHashes []InvoiceH
 		}
 
 		parts = append(parts, BatchPartInfo{
-			Index:       index,
-			PlainOffset: offset,
-			PlainSize:   partSize,
-			CipherPath:  partPath,
-			CipherSize:  int64(len(cipherPart)),
-			IV:          iv,
+			Index:        index,
+			PlainOffset:  offset,
+			PlainSize:    partSize,
+			CipherPath:   partPath,
+			CipherSize:   int64(len(cipherPart)),
+			CipherSHA256: cipherHash,
 		})
 
 		offset += partSize
 		index++
 	}
 
+	zipSHA := zipHash.Sum(nil)
+
 	if cfg.CleanupPlainZip {
 		if rmErr := os.Remove(zipPath); rmErr != nil {
 			return &BatchResult{
 				ZipPath:       zipPath,
 				ZipSize:       totalSize,
+				ZipSHA256:     zipSHA,
 				Parts:         parts,
 				InvoiceHashes: invoiceHashes,
 				AESKey:        key,
+				IV:            iv,
 			}, fmt.Errorf("batch built, but failed to remove plain zip: %w", rmErr)
 		}
 	}
@@ -358,8 +397,10 @@ func buildBatchFromZip(cfg BatchConfig, zipPath string, invoiceHashes []InvoiceH
 	return &BatchResult{
 		ZipPath:       zipPath,
 		ZipSize:       totalSize,
+		ZipSHA256:     zipSHA,
 		Parts:         parts,
 		InvoiceHashes: invoiceHashes,
 		AESKey:        key,
+		IV:            iv,
 	}, nil
 }
