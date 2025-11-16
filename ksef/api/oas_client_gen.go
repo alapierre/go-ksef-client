@@ -5166,22 +5166,22 @@ func (c *Client) APIV2SessionsBatchPost(ctx context.Context, request OptOpenBatc
 }
 
 func (c *Client) sendAPIV2SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (res APIV2SessionsBatchPostRes, err error) {
-	// Validate request before sending.
-	if err := func() error {
-		if value, ok := request.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return res, errors.Wrap(err, "validate")
-	}
+	//// Validate request before sending.
+	//if err := func() error {
+	//	if value, ok := request.Get(); ok {
+	//		if err := func() error {
+	//			if err := value.Validate(); err != nil {
+	//				return err
+	//			}
+	//			return nil
+	//		}(); err != nil {
+	//			return err
+	//		}
+	//	}
+	//	return nil
+	//}(); err != nil {
+	//	return res, errors.Wrap(err, "validate")
+	//}
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
