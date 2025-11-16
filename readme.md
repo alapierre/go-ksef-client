@@ -10,7 +10,7 @@ Very early project status - not ready for production use.
 
 # Ready futures
 
-- ending invoices — interactively and in batch  
+- Sending invoices — interactively and in batch  
 
 ## Design assumptions
 
