@@ -66,7 +66,7 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 		Challenge: challenge,
 		ContextIdentifier: api.AuthenticationContextIdentifier{
 			Type:  api.AuthenticationContextIdentifierTypeNip,
-			Value: string(nip),
+			Value: nip,
 		},
 		EncryptedToken:      encryptedTokenBytes,
 		AuthorizationPolicy: api.OptNilAuthorizationPolicy{},

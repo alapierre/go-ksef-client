@@ -9,14 +9,24 @@ import (
 )
 
 type nipKey struct{}
+type forceAuthKey struct{}
 
 func Context(ctx context.Context, nip string) context.Context {
 	return context.WithValue(ctx, nipKey{}, nip)
 }
 
+func ContextWithForceAuth(ctx context.Context) context.Context {
+	return context.WithValue(ctx, forceAuthKey{}, true)
+}
+
 func NipFromContext(ctx context.Context) (string, bool) {
 	v, ok := ctx.Value(nipKey{}).(string)
 	return v, ok
+}
+
+func IsForceAuth(ctx context.Context) bool {
+	v, ok := ctx.Value(forceAuthKey{}).(bool)
+	return ok && v
 }
 
 var (

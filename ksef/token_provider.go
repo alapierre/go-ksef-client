@@ -51,8 +51,17 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 		return api.Bearer{}, ErrNoNip
 	}
 
+	// wymuszenie pełnej autoryzacji
+	if IsForceAuth(ctx) {
+		log.Debug("TokenProvider: Force auth requested")
+		p.mu.Lock()
+		defer p.mu.Unlock()
+		return p.fullAuthLocked(ctx)
+	}
+
 	// szybka ścieżka bez blokady
 	if token, ok := p.currentIfValid(nip); ok {
+		log.Debug("TokenProvider: Found valid token in cache, returning it immediately")
 		return api.Bearer{Token: token}, nil
 	}
 
