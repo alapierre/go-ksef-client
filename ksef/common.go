@@ -50,6 +50,10 @@ type ErrorDetail struct {
 	Message string
 }
 
+func (e *ErrorDetail) Error() string {
+	return fmt.Sprintf("%d: %s", e.Code, e.Message)
+}
+
 func (e *ApiError) Error() string {
 	return fmt.Sprintf("KSeF returns http status %d: %s", e.Status, e.Message)
 }
