@@ -35,8 +35,8 @@ func IsForceAuth(ctx context.Context) bool {
 	return ok && v
 }
 
-func EnvFromContext(ctx context.Context) (string, bool) {
-	v, ok := ctx.Value(envKey{}).(string)
+func EnvFromContext(ctx context.Context) (Environment, bool) {
+	v, ok := ctx.Value(envKey{}).(Environment)
 	return v, ok
 }
 
@@ -46,6 +46,7 @@ var (
 	ErrForbidden    = errors.New("ksef forbidden")
 	Err500          = errors.New("ksef other error")
 	ErrNoNip        = errors.New("no NIP in context.Context")
+	ErrNoEnv        = errors.New("no KSeF environment in context.Context")
 )
 
 // ApiError błąd z kontekstem zdarzenia
