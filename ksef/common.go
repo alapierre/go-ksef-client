@@ -10,6 +10,7 @@ import (
 
 type nipKey struct{}
 type forceAuthKey struct{}
+type envKey struct{}
 
 func Context(ctx context.Context, nip string) context.Context {
 	return context.WithValue(ctx, nipKey{}, nip)
@@ -17,6 +18,11 @@ func Context(ctx context.Context, nip string) context.Context {
 
 func ContextWithForceAuth(ctx context.Context) context.Context {
 	return context.WithValue(ctx, forceAuthKey{}, true)
+}
+
+func ContextWithEnv(ctx context.Context, nip string, e Environment) context.Context {
+	c := context.WithValue(ctx, nipKey{}, nip)
+	return context.WithValue(c, envKey{}, e)
 }
 
 func NipFromContext(ctx context.Context) (string, bool) {
@@ -27,6 +33,11 @@ func NipFromContext(ctx context.Context) (string, bool) {
 func IsForceAuth(ctx context.Context) bool {
 	v, ok := ctx.Value(forceAuthKey{}).(bool)
 	return ok && v
+}
+
+func EnvFromContext(ctx context.Context) (string, bool) {
+	v, ok := ctx.Value(envKey{}).(string)
+	return v, ok
 }
 
 var (
@@ -123,6 +134,18 @@ func (e Environment) BaseURL() string {
 		return "https://ksef-test.mf.gov.pl"
 	case Demo:
 		return "https://ksef-demo.mf.gov.pl"
+	}
+	panic("Invalid environment")
+}
+
+func (e Environment) Name() string {
+	switch e {
+	case Prod:
+		return "prod"
+	case Test:
+		return "test"
+	case Demo:
+		return "demo"
 	}
 	panic("Invalid environment")
 }
