@@ -130,11 +130,11 @@ const (
 func (e Environment) BaseURL() string {
 	switch e {
 	case Prod:
-		return "https://ksef.mf.gov.pl"
+		return "https://api.ksef.mf.gov.pl"
 	case Test:
-		return "https://ksef-test.mf.gov.pl"
+		return "https://api-test.ksef.mf.gov.pl"
 	case Demo:
-		return "https://ksef-demo.mf.gov.pl"
+		return "https://api-demo.ksef.mf.gov.pl"
 	}
 	panic("Invalid environment")
 }
