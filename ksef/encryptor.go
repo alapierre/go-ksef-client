@@ -12,7 +12,6 @@ import (
 
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	rsa2 "github.com/alapierre/go-ksef-client/ksef/rsa"
-	log "github.com/sirupsen/logrus"
 )
 
 type EncryptionService struct {
@@ -173,7 +172,7 @@ func (s *EncryptionService) GetPublicKeyFor(ctx context.Context, usage api.Publi
 // ForceRefresh wymusza odświeżenie cache obu kluczy; nie zwraca klucza.
 // Po wywołaniu użyj GetPublicKeyFor(...) lub metod szyfrujących.
 func (s *EncryptionService) ForceRefresh(ctx context.Context) error {
-	log.Debug("Force refreshing encryption keys")
+	logger.Debug("Force refreshing encryption keys")
 	return s.fetchAndSelect(ctx)
 }
 
@@ -182,11 +181,11 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	log.Debug("Fetching and selecting encryption keys")
+	logger.Debug(" Fetching and selecting encryption keys")
 	// ktoś mógł już odświeżyć w międzyczasie
 	if s.tokenPub != nil && time.Until(s.tokenValidTo) > s.refreshSkew &&
 		s.symKeyPub != nil && time.Until(s.symKeyValidTo) > s.refreshSkew {
-		log.Debug("Refresh skipped: keys already valid")
+		logger.Debug("Refresh skipped: keys already valid")
 		return nil
 	}
 
@@ -217,11 +216,11 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context) error {
 		for _, u := range c.Usage {
 			if u == api.PublicKeyCertificateUsageKsefTokenEncryption {
 				hasToken = true
-				log.Debug("Found token cert")
+				logger.Debug("Found token cert")
 			}
 			if u == api.PublicKeyCertificateUsageSymmetricKeyEncryption {
 				hasSym = true
-				log.Debug("Found sym cert")
+				logger.Debug("Found sym cert")
 			}
 		}
 		if hasToken && (chosenToken == nil || c.ValidFrom.After(chosenToken.ValidFrom)) {
@@ -238,7 +237,7 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context) error {
 		if rsaPub, err := rsa2.ParseRSAPubFromCert(*chosenToken); err == nil {
 			s.tokenPub = rsaPub
 			s.tokenValidTo = chosenToken.ValidTo
-			log.Debugf("Token cert parsed, expires at %s", s.tokenValidTo)
+			logger.Debugf("Token cert parsed, expires at %s", s.tokenValidTo)
 		} else {
 			return fmt.Errorf("parse token cert: %w", err)
 		}
@@ -247,7 +246,7 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context) error {
 		if rsaPub, err := rsa2.ParseRSAPubFromCert(*chosenSym); err == nil {
 			s.symKeyPub = rsaPub
 			s.symKeyValidTo = chosenSym.ValidTo
-			log.Debugf("Symmetric cert parsed, expires at %s", s.symKeyValidTo)
+			logger.Debugf("Symmetric cert parsed, expires at %s", s.symKeyValidTo)
 		} else {
 			return fmt.Errorf("parse symmetric cert: %w", err)
 		}

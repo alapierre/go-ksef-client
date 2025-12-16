@@ -6,7 +6,10 @@ import (
 	"fmt"
 
 	"github.com/alapierre/go-ksef-client/ksef/api"
+	"github.com/sirupsen/logrus"
 )
+
+var logger = logrus.WithField("component", "ksef")
 
 type nipKey struct{}
 type forceAuthKey struct{}
@@ -125,6 +128,8 @@ const (
 	Test Environment = iota
 	Demo
 	Prod
+	Demo_old
+	Test_old
 )
 
 func (e Environment) BaseURL() string {
@@ -135,6 +140,10 @@ func (e Environment) BaseURL() string {
 		return "https://api-test.ksef.mf.gov.pl"
 	case Demo:
 		return "https://api-demo.ksef.mf.gov.pl"
+	case Demo_old:
+		return "https://ksef-demo.mf.gov.pl"
+	case Test_old:
+		return "https://ksef-test.mf.gov.pl"
 	}
 	panic("Invalid environment")
 }

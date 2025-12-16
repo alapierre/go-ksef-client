@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/alapierre/go-ksef-client/ksef/api"
-	log "github.com/sirupsen/logrus"
 )
 
 // TokenProvider implementuje api.SecuritySource z automatycznym odświeżaniem access tokena.
@@ -53,7 +52,7 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 
 	// wymuszenie pełnej autoryzacji
 	if IsForceAuth(ctx) {
-		log.Debug("TokenProvider: Force auth requested")
+		logger.Debug("TokenProvider: Force auth requested")
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		return p.fullAuthLocked(ctx)
@@ -61,7 +60,7 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 
 	// szybka ścieżka bez blokady
 	if token, ok := p.currentIfValid(nip); ok {
-		log.Debug("TokenProvider: Found valid token in cache, returning it immediately")
+		logger.Debug("TokenProvider: Found valid token in cache, returning it immediately")
 		return api.Bearer{Token: token}, nil
 	}
 
@@ -78,26 +77,26 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 	entry, found := p.cache[nip]
 	if !found {
 		// brak – pełne uwierzytelnienie
-		log.Debug("TokenProvider: No entry for context NIP, performing full authentication")
+		logger.Debug("TokenProvider: No entry for context NIP, performing full authentication")
 		return p.fullAuthLocked(ctx)
 	}
 
 	// czy refresh token jest nadal ważny?
 	if entry.refreshToken != "" && p.isTokenValid(entry.refreshExp) {
 		// spróbuj odświeżyć access token
-		log.Debug("TokenProvider: Refresh token expired or empty, trying to refresh access token")
+		logger.Debug("TokenProvider: Refresh token expired or empty, trying to refresh access token")
 
 		var err error
 		if err = p.refreshAccessTokenLocked(ctx); err == nil {
 			return api.Bearer{Token: p.cache[nip].accessToken}, nil
 		}
 		// jeśli refresh nie powiódł się, spróbuj pełnego uwierzytelnienia
-		log.Debugf("TokenProvider: Refresh failed: %v, performing full authentication", err)
+		logger.Debugf("TokenProvider: Refresh failed: %v, performing full authentication", err)
 		return p.fullAuthLocked(ctx)
 	}
 
 	// refresh token brak lub wygasł -> pełne uwierzytelnienie
-	log.Debug("All others options failed, finally performing full authentication")
+	logger.Debug("All others options failed, finally performing full authentication")
 	return p.fullAuthLocked(ctx)
 }
 
@@ -163,7 +162,7 @@ func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, error) 
 		return api.Bearer{}, ErrNoNip
 	}
 
-	log.Debug("TokenProvider: Performing full authentication - calling authenticator func")
+	logger.Debug("TokenProvider: Performing full authentication - calling authenticator func")
 	tokens, err := p.authenticator(ctx)
 	if err != nil {
 		return api.Bearer{}, err
@@ -176,7 +175,7 @@ func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, error) 
 		refreshToken: rt.Token,
 		refreshExp:   rt.GetValidUntil().UTC(),
 	}
-	log.Debug("TokenProvider: Full authentication completed, tokens cached")
+	logger.Debug("TokenProvider: Full authentication completed, tokens cached")
 	return api.Bearer{Token: at.Token}, nil
 }
 

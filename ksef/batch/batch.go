@@ -15,6 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var logger = logrus.WithField("component", "ksef.batch")
+
 // BuildBatchFromSource builds a single ZIP package by pulling invoices
 // from the given InvoiceSource, then splits this ZIP into parts <= MaxPartSize
 // and encrypts each part. This is the main, flexible entry point – the source
@@ -40,7 +42,7 @@ func BuildBatchFromSource(cfg BatchConfig, src InvoiceSource) (*BatchResult, err
 	if err != nil {
 		return nil, fmt.Errorf("create temp zip: %w", err)
 	}
-	logrus.WithField("zip_path", tmpZipFile.Name()).Debug("Created temp file for invoice batch")
+	logger.WithField("zip_path", tmpZipFile.Name()).Debug("Created temp file for invoice batch")
 
 	// If something goes wrong later and CleanupPlainZip is enabled,
 	// try to remove the plain ZIP.

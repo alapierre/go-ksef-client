@@ -9,7 +9,6 @@ import (
 
 	"github.com/alapierre/go-ksef-client/ksef/aes"
 	"github.com/alapierre/go-ksef-client/ksef/api"
-	"github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -158,7 +157,7 @@ func (c *Client) SendBatchPart(ctx context.Context, data []byte, info api.PartUp
 
 	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
-		logrus.Warningf("reading response for part %d (%s) failed: %v", info.OrdinalNumber, urlStr, readErr)
+		logger.Warningf("reading response for part %d (%s) failed: %v", info.OrdinalNumber, urlStr, readErr)
 	}
 
 	result := &BatchPartResult{

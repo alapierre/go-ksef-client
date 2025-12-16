@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/alapierre/go-ksef-client/ksef/api"
-	log "github.com/sirupsen/logrus"
 )
 
 type AuthFacade struct {
@@ -126,7 +125,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 				case 100: // w toku – kolejna pętla
 					continue
 				case 200: // gotowe
-					log.Infof("%v+", v.GetStatus())
+					logger.Infof("%v+", v.GetStatus())
 					return redeemTokens(ctx, cli)
 				default:
 					desc := v.GetStatus().Description

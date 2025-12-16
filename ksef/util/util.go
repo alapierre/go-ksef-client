@@ -1,10 +1,13 @@
 package util
 
 import (
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
+
+	"github.com/sirupsen/logrus"
 )
+
+var logger = logrus.WithField("component", "ksef.util")
 
 func DebugEnabled() bool {
 	return etb("KSEF_DEBUG")
@@ -28,7 +31,7 @@ func etb(envName string) bool {
 func GetEnvOrFailed(key string) string {
 	v, ok := os.LookupEnv(key)
 	if !ok {
-		log.Fatal(key, " environment variable is not set")
+		logger.Fatal(key, " environment variable is not set")
 	}
 	return v
 }
