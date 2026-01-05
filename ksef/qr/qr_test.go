@@ -3,6 +3,7 @@ package qr
 import (
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/alapierre/go-ksef-client/ksef"
@@ -11,6 +12,10 @@ import (
 )
 
 func TestSerialFromCert(t *testing.T) {
+
+	if _, err := os.Stat("./../test/test-sign.crt"); err != nil {
+		t.Skipf("cert file not available (%v), skipping test", err)
+	}
 
 	cert, err := LoadCertificateFromFile("../../test/test-sign.crt")
 	if err != nil {
