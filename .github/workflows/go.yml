@@ -25,5 +25,9 @@ jobs:
         run: go vet ./...
 
       - name: Test
+        env:
+          KSEF_CERT_PASS: ${{ secrets.KSEF_CERT_PASS }}
+          KSEF_CERT_NIP: ${{ secrets.KSEF_CERT_NIP }}
+          KSEF_CERT_SERIAL: ${{ secrets.KSEF_CERT_SERIAL }}
         run: go test -v ./...
 
