@@ -20,3 +20,4 @@
 private.env
 /go-ksef-client
 
+/test/test-sign.crt

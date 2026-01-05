@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/alapierre/go-ksef-client/ksef/api"
 	"github.com/sirupsen/logrus"
@@ -14,6 +15,8 @@ var logger = logrus.WithField("component", "ksef")
 type nipKey struct{}
 type forceAuthKey struct{}
 type envKey struct{}
+
+type authReference struct{}
 
 func Context(ctx context.Context, nip string) context.Context {
 	return context.WithValue(ctx, nipKey{}, nip)
@@ -28,6 +31,10 @@ func ContextWithEnv(ctx context.Context, nip string, e Environment) context.Cont
 	return context.WithValue(c, envKey{}, e)
 }
 
+func ContextWithAuthReference(ctx context.Context, ref string) context.Context {
+	return context.WithValue(ctx, authReference{}, ref)
+}
+
 func NipFromContext(ctx context.Context) (string, bool) {
 	v, ok := ctx.Value(nipKey{}).(string)
 	return v, ok
@@ -40,6 +47,11 @@ func IsForceAuth(ctx context.Context) bool {
 
 func EnvFromContext(ctx context.Context) (Environment, bool) {
 	v, ok := ctx.Value(envKey{}).(Environment)
+	return v, ok
+}
+
+func AuthReferenceFromContext(ctx context.Context) (string, bool) {
+	v, ok := ctx.Value(authReference{}).(string)
 	return v, ok
 }
 
@@ -132,8 +144,8 @@ const (
 	Test_old
 )
 
-func (e Environment) BaseURL() string {
-	switch e {
+func (e *Environment) BaseURL() string {
+	switch *e {
 	case Prod:
 		return "https://api.ksef.mf.gov.pl"
 	case Test:
@@ -148,16 +160,36 @@ func (e Environment) BaseURL() string {
 	panic("Invalid environment")
 }
 
-func (e Environment) Name() string {
-	switch e {
+func (e *Environment) Name() string {
+	switch *e {
 	case Prod:
 		return "prod"
-	case Test:
+	case Test, Test_old:
 		return "test"
-	case Demo:
+	case Demo, Demo_old:
 		return "demo"
 	}
 	panic("Invalid environment")
+}
+
+func (e *Environment) UnmarshalText(text []byte) error {
+	val := strings.ToLower(strings.TrimSpace(string(text)))
+
+	switch val {
+	case "prod":
+		*e = Prod
+	case "demo":
+		*e = Demo
+	case "demo_old":
+		*e = Demo_old
+	case "test":
+		*e = Test
+	case "test_old":
+		*e = Test_old
+	default:
+		return fmt.Errorf("invalid KSEF_ENV: %q (allowed: prod, demo, test)", val)
+	}
+	return nil
 }
 
 type Nip string
