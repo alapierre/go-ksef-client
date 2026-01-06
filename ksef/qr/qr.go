@@ -1,6 +1,7 @@
 package qr
 
 import (
+	"context"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
@@ -32,10 +33,12 @@ const (
 	CtxNipVatUe   ContextIdentifierType = "NipVatUe"
 )
 
+type SignFunc func(ctx context.Context, digest []byte) (sig []byte, err error)
+
 // ====== KOD I ======
 
 // GenerateVerificationLink buduje link w formacie:
-// https://{qr-env}/client-app/invoice/{NIP}/{DD-MM-YYYY}/{Base64URL(SHA256(xml)) no padding}
+// https://{qr-env}/invoice/{NIP}/{DD-MM-YYYY}/{Base64URL(SHA256(xml)) no padding}
 func GenerateVerificationLink(env ksef.Environment, nip string, issueDate time.Time, invoiceXML []byte) (string, error) {
 	baseQR, err := QRBaseURL(env.BaseURL())
 	if err != nil {
@@ -50,35 +53,58 @@ func GenerateVerificationLink(env ksef.Environment, nip string, issueDate time.T
 	date := issueDate.Format("02-01-2006") // dd-MM-yyyy
 	hash := computeInvoiceHashBase64URL(invoiceXML)
 
-	return fmt.Sprintf("%s/client-app/invoice/%s/%s/%s", trimTrailingSlash(baseQR), normalizedNip, date, hash), nil
+	return fmt.Sprintf("%s/invoice/%s/%s/%s", trimTrailingSlash(baseQR), normalizedNip, date, hash), nil
 }
 
 // ====== KOD II ======
 
 // GenerateCertificateVerificationLink buduje link KOD II i podpisuje ciąg: "{host}{path}"
-// np. "qr-test.ksef.mf.gov.pl/client-app/certificate/Nip/...."
+// np. "qr-test.ksef.mf.gov.pl/certificate/Nip/...."
 func GenerateCertificateVerificationLink(
 	env ksef.Environment,
 	ctxType ContextIdentifierType,
 	ctxValue string,
 	sellerNip string,
 	certSerial string,
-	privateKey crypto.PrivateKey, // *rsa.PrivateKey lub *ecdsa.PrivateKey
-	invoiceHash []byte, // SHA-256(XML) jako bajty (32)
+	privateKey crypto.PrivateKey,
+	invoiceHash []byte,
 ) (string, error) {
+	signer, ok := privateKey.(crypto.Signer)
+	if !ok {
+		return "", fmt.Errorf("privateKey does not implement crypto.Signer: %T", privateKey)
+	}
 
+	return CertificateVerificationLinkWithSigner(
+		context.Background(),
+		env, ctxType, ctxValue, sellerNip, certSerial, invoiceHash,
+		SignDigestWithCryptoSigner(signer),
+	)
+}
+
+// CertificateVerificationLinkWithSigner generates a verification link for a certificate and signs it using the provided signer.
+func CertificateVerificationLinkWithSigner(
+	ctx context.Context,
+	env ksef.Environment,
+	ctxType ContextIdentifierType,
+	ctxValue string,
+	sellerNip string,
+	certSerial string,
+	invoiceHash []byte,
+	sign SignFunc,
+) (string, error) {
 	if len(invoiceHash) == 0 {
 		return "", fmt.Errorf("invoiceHash is empty")
 	}
+	if sign == nil {
+		return "", fmt.Errorf("sign func is nil")
+	}
 
 	baseQR, err := QRBaseURL(env.BaseURL())
-
 	if err != nil {
 		return "", err
 	}
-
-	logger.Debugf("baseQR: %s", baseQR)
 	baseQR = trimTrailingSlash(baseQR)
+	logger.Debugf("baseQR: %s", baseQR)
 
 	normalizedNip, err := normalizeAndValidateNip(sellerNip)
 	if err != nil {
@@ -87,7 +113,6 @@ func GenerateCertificateVerificationLink(
 
 	invoiceHashB64 := base64.RawURLEncoding.EncodeToString(invoiceHash)
 
-	// Ścieżka bez podpisu
 	path := fmt.Sprintf(
 		"/certificate/%s/%s/%s/%s/%s",
 		string(ctxType),
@@ -97,7 +122,6 @@ func GenerateCertificateVerificationLink(
 		invoiceHashB64,
 	)
 
-	// Dane do podpisu: host + path (bez schematu)
 	hostPathToSign, err := hostPlusPath(baseQR, path)
 	if err != nil {
 		return "", err
@@ -105,12 +129,32 @@ func GenerateCertificateVerificationLink(
 
 	logger.Debugf("TO_SIGN: %s", hostPathToSign)
 
-	sigB64, err := computeSignedHashBase64URL(hostPathToSign, privateKey)
+	digest := sha256.Sum256([]byte(hostPathToSign))
+
+	sig, err := sign(ctx, digest[:])
 	if err != nil {
 		return "", err
 	}
 
+	sigB64 := base64.RawURLEncoding.EncodeToString(sig)
 	return fmt.Sprintf("%s%s/%s", baseQR, path, sigB64), nil
+}
+
+// SignDigestWithCryptoSigner creates a SignFunc that uses the provided crypto.Signer to sign a digest.
+func SignDigestWithCryptoSigner(signer crypto.Signer) SignFunc {
+	return func(ctx context.Context, digest []byte) ([]byte, error) {
+		switch k := signer.(type) {
+		case *rsa.PrivateKey:
+			return rsa.SignPSS(rand.Reader, k, crypto.SHA256, digest, &rsa.PSSOptions{
+				SaltLength: 32,
+				Hash:       crypto.SHA256,
+			})
+		case *ecdsa.PrivateKey:
+			return ecdsa.SignASN1(rand.Reader, k, digest)
+		default:
+			return nil, fmt.Errorf("unsupported signer type: %T", signer)
+		}
+	}
 }
 
 // ====== URL / ENV helpers ======
@@ -143,7 +187,6 @@ func QRBaseURL(base string) (string, error) {
 }
 
 // ExtractCertSerial zwraca serial certyfikatu w HEX (UPPERCASE),
-// analogicznie do Twojej metody Java extractCertSerial().
 func ExtractCertSerial(cert *x509.Certificate) (string, error) {
 	if cert == nil {
 		return "", errors.New("cert is nil")
@@ -232,7 +275,6 @@ func computeSignedHashBase64URL(dataToSign string, key crypto.PrivateKey) (strin
 		return base64.RawURLEncoding.EncodeToString(sig), nil
 
 	case *ecdsa.PrivateKey:
-		// ECDSA w Go zwróci DER (ASN.1) – to jest typowy format podpisu ECDSA
 		sigDER, err := ecdsa.SignASN1(rand.Reader, k, digest[:])
 		if err != nil {
 			return "", fmt.Errorf("ecdsa sign failed: %w", err)
