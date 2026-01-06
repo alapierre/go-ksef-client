@@ -58,6 +58,17 @@ func GenerateVerificationLink(env ksef.Environment, nip string, issueDate time.T
 
 // ====== KOD II ======
 
+type CertificateVerificationLinkRequest struct {
+	Env          ksef.Environment
+	ContextType  ContextIdentifierType
+	ContextValue string
+
+	SellerNIP  string
+	CertSerial string
+
+	InvoiceHash []byte
+}
+
 // GenerateCertificateVerificationLink buduje link KOD II i podpisuje ciąg: "{host}{path}"
 // np. "qr-test.ksef.mf.gov.pl/certificate/Nip/...."
 func GenerateCertificateVerificationLink(
@@ -74,51 +85,50 @@ func GenerateCertificateVerificationLink(
 		return "", fmt.Errorf("privateKey does not implement crypto.Signer: %T", privateKey)
 	}
 
-	return CertificateVerificationLinkWithSigner(
-		context.Background(),
-		env, ctxType, ctxValue, sellerNip, certSerial, invoiceHash,
-		SignDigestWithCryptoSigner(signer),
-	)
+	req := CertificateVerificationLinkRequest{
+		Env:          env,
+		ContextType:  ctxType,
+		ContextValue: ctxValue,
+		SellerNIP:    sellerNip,
+		CertSerial:   certSerial,
+		InvoiceHash:  invoiceHash,
+	}
+
+	return CertificateVerificationLinkWithSigner(context.Background(), req, SignDigestWithCryptoSigner(signer))
 }
 
 // CertificateVerificationLinkWithSigner generates a verification link for a certificate and signs it using the provided signer.
 func CertificateVerificationLinkWithSigner(
 	ctx context.Context,
-	env ksef.Environment,
-	ctxType ContextIdentifierType,
-	ctxValue string,
-	sellerNip string,
-	certSerial string,
-	invoiceHash []byte,
+	req CertificateVerificationLinkRequest,
 	sign SignFunc,
 ) (string, error) {
-	if len(invoiceHash) == 0 {
+	if len(req.InvoiceHash) == 0 {
 		return "", fmt.Errorf("invoiceHash is empty")
 	}
 	if sign == nil {
 		return "", fmt.Errorf("sign func is nil")
 	}
 
-	baseQR, err := QRBaseURL(env.BaseURL())
+	baseQR, err := QRBaseURL(req.Env.BaseURL())
 	if err != nil {
 		return "", err
 	}
 	baseQR = trimTrailingSlash(baseQR)
-	logger.Debugf("baseQR: %s", baseQR)
 
-	normalizedNip, err := normalizeAndValidateNip(sellerNip)
+	normalizedNip, err := normalizeAndValidateNip(req.SellerNIP)
 	if err != nil {
 		return "", err
 	}
 
-	invoiceHashB64 := base64.RawURLEncoding.EncodeToString(invoiceHash)
+	invoiceHashB64 := base64.RawURLEncoding.EncodeToString(req.InvoiceHash)
 
 	path := fmt.Sprintf(
 		"/certificate/%s/%s/%s/%s/%s",
-		string(ctxType),
-		ctxValue,
+		string(req.ContextType),
+		req.ContextValue,
 		normalizedNip,
-		certSerial,
+		req.CertSerial,
 		invoiceHashB64,
 	)
 
@@ -126,8 +136,6 @@ func CertificateVerificationLinkWithSigner(
 	if err != nil {
 		return "", err
 	}
-
-	logger.Debugf("TO_SIGN: %s", hostPathToSign)
 
 	digest := sha256.Sum256([]byte(hostPathToSign))
 
