@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/alapierre/go-ksef-client/ksef"
-	"github.com/alapierre/go-ksef-client/ksef/rsa"
+	"github.com/alapierre/go-ksef-client/ksef/keys"
 	"github.com/alapierre/go-ksef-client/ksef/util"
 )
 
 func TestSerialFromCert(t *testing.T) {
 
-	if _, err := os.Stat("./../test/test-sign.crt"); err != nil {
+	if _, err := os.Stat("../../test/test-sign.crt"); err != nil {
 		t.Skipf("cert file not available (%v), skipping test", err)
 	}
 
@@ -37,7 +37,7 @@ func TestQr2(t *testing.T) {
 	nip := util.GetEnvOrFailed("KSEF_CERT_NIP")
 	serial := util.GetEnvOrFailed("KSEF_CERT_SERIAL")
 
-	key, err := rsa.LoadEncryptedPKCS8PrivateKeyFromFile("../../test/test-sign.key", []byte(pass))
+	key, err := keys.LoadEncryptedPKCS8SignerFromFile("../../test/test-sign.key", []byte(pass))
 	if err != nil {
 		t.Fatalf("LoadEncryptedPKCS8PrivateKeyFromFile failed: %v", err)
 	}

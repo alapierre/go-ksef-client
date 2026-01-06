@@ -9,6 +9,19 @@ import (
 
 func WithKsefToken(ctx context.Context, authFacade *AuthFacade, encryptor *EncryptionService, token string) (*api.AuthenticationTokensResponse, error) {
 
+	r, err := WithKsefTokenResult(ctx, authFacade, encryptor, token)
+	if err != nil {
+		return nil, err
+	}
+	return r.Tokens, nil
+}
+
+type AuthResult struct {
+	ReferenceNumber string
+	Tokens          *api.AuthenticationTokensResponse
+}
+
+func WithKsefTokenResult(ctx context.Context, authFacade *AuthFacade, encryptor *EncryptionService, token string) (*AuthResult, error) {
 	challenge, err := authFacade.GetChallenge(ctx)
 	if err != nil {
 		return nil, err
@@ -28,5 +41,10 @@ func WithKsefToken(ctx context.Context, authFacade *AuthFacade, encryptor *Encry
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	return authFacade.AuthWaitAndRedeem(ctx, initResp, 1*time.Second)
+	res, err := authFacade.AuthWaitAndRedeem(ctx, initResp, 1*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AuthResult{ReferenceNumber: string(initResp.ReferenceNumber), Tokens: res}, nil
 }
