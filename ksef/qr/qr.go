@@ -39,7 +39,7 @@ type SignFunc func(ctx context.Context, digest []byte) (sig []byte, err error)
 
 // GenerateVerificationLink buduje link w formacie:
 // https://{qr-env}/invoice/{NIP}/{DD-MM-YYYY}/{Base64URL(SHA256(xml)) no padding}
-func GenerateVerificationLink(env ksef.Environment, nip string, issueDate time.Time, invoiceXML []byte) (string, error) {
+func GenerateVerificationLink(env ksef.Environment, nip string, issueDate time.Time, invoiceHash []byte) (string, error) {
 	baseQR, err := QRBaseURL(env.BaseURL())
 	if err != nil {
 		return "", err
@@ -51,7 +51,7 @@ func GenerateVerificationLink(env ksef.Environment, nip string, issueDate time.T
 	}
 
 	date := issueDate.Format("02-01-2006") // dd-MM-yyyy
-	hash := computeInvoiceHashBase64URL(invoiceXML)
+	hash := computeInvoiceHashBase64URL(invoiceHash)
 
 	return fmt.Sprintf("%s/invoice/%s/%s/%s", trimTrailingSlash(baseQR), normalizedNip, date, hash), nil
 }
@@ -260,9 +260,8 @@ func trimTrailingSlash(s string) string {
 
 // ====== Crypto helpers ======
 
-func computeInvoiceHashBase64URL(invoiceXML []byte) string {
-	sum := sha256.Sum256(invoiceXML)
-	return base64.RawURLEncoding.EncodeToString(sum[:])
+func computeInvoiceHashBase64URL(hash []byte) string {
+	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
 // computeSignedHashBase64URL podpisuje SHA-256(host+path) RSA-PSS (salt=32) lub ECDSA.
