@@ -433,3 +433,4 @@ Because of how ogen handles size validation for string fields with the byte form
         "format": "byte"
       },
 ````
+
