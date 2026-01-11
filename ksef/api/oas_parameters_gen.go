@@ -2,68 +2,68 @@
 
 package api
 
-// APIV2AuthReferenceNumberGetParams is parameters of GET /api/v2/auth/{referenceNumber} operation.
-type APIV2AuthReferenceNumberGetParams struct {
+// AuthReferenceNumberGetParams is parameters of GET /auth/{referenceNumber} operation.
+type AuthReferenceNumberGetParams struct {
 	// Numer referencyjny tokena otrzymanego przy inicjalizacji operacji uwierzytelniania.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2AuthSessionsGetParams is parameters of GET /api/v2/auth/sessions operation.
-type APIV2AuthSessionsGetParams struct {
+// AuthSessionsGetParams is parameters of GET /auth/sessions operation.
+type AuthSessionsGetParams struct {
 	// Token służący do pobrania kolejnej strony wyników.
 	XContinuationToken OptString `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2AuthSessionsReferenceNumberDeleteParams is parameters of DELETE /api/v2/auth/sessions/{referenceNumber} operation.
-type APIV2AuthSessionsReferenceNumberDeleteParams struct {
+// AuthSessionsReferenceNumberDeleteParams is parameters of DELETE /auth/sessions/{referenceNumber} operation.
+type AuthSessionsReferenceNumberDeleteParams struct {
 	// Numer referencyjny sesji uwierzytelnienia.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2AuthXadesSignaturePostParams is parameters of POST /api/v2/auth/xades-signature operation.
-type APIV2AuthXadesSignaturePostParams struct {
+// AuthXadesSignaturePostParams is parameters of POST /auth/xades-signature operation.
+type AuthXadesSignaturePostParams struct {
 	// Wymuszenie weryfikacji zaufania łańcucha certyfikatu wraz ze sprawdzeniem statusu certyfikatu
 	// (OCSP/CRL) na środowiskach które umożliwiają wykorzystanie samodzielnie wygenerowanych
 	// certyfikatów.
 	VerifyCertificateChain OptBool `json:",omitempty,omitzero"`
 }
 
-// APIV2CertificatesCertificateSerialNumberRevokePostParams is parameters of POST /api/v2/certificates/{certificateSerialNumber}/revoke operation.
-type APIV2CertificatesCertificateSerialNumberRevokePostParams struct {
+// CertificatesCertificateSerialNumberRevokePostParams is parameters of POST /certificates/{certificateSerialNumber}/revoke operation.
+type CertificatesCertificateSerialNumberRevokePostParams struct {
 	// Numer seryjny certyfikatu (w formacie szesnastkowym).
 	CertificateSerialNumber string
 }
 
-// APIV2CertificatesEnrollmentsReferenceNumberGetParams is parameters of GET /api/v2/certificates/enrollments/{referenceNumber} operation.
-type APIV2CertificatesEnrollmentsReferenceNumberGetParams struct {
+// CertificatesEnrollmentsReferenceNumberGetParams is parameters of GET /certificates/enrollments/{referenceNumber} operation.
+type CertificatesEnrollmentsReferenceNumberGetParams struct {
 	// Numer referencyjny wniosku certyfikacyjnego.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2CertificatesQueryPostParams is parameters of POST /api/v2/certificates/query operation.
-type APIV2CertificatesQueryPostParams struct {
+// CertificatesQueryPostParams is parameters of POST /certificates/query operation.
+type CertificatesQueryPostParams struct {
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2InvoicesExportsReferenceNumberGetParams is parameters of GET /api/v2/invoices/exports/{referenceNumber} operation.
-type APIV2InvoicesExportsReferenceNumberGetParams struct {
+// InvoicesExportsReferenceNumberGetParams is parameters of GET /invoices/exports/{referenceNumber} operation.
+type InvoicesExportsReferenceNumberGetParams struct {
 	// Numer referencyjny eksportu faktur.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2InvoicesKsefKsefNumberGetParams is parameters of GET /api/v2/invoices/ksef/{ksefNumber} operation.
-type APIV2InvoicesKsefKsefNumberGetParams struct {
+// InvoicesKsefKsefNumberGetParams is parameters of GET /invoices/ksef/{ksefNumber} operation.
+type InvoicesKsefKsefNumberGetParams struct {
 	// Numer KSeF faktury.
 	KsefNumber KsefNumber
 }
 
-// APIV2InvoicesQueryMetadataPostParams is parameters of POST /api/v2/invoices/query/metadata operation.
-type APIV2InvoicesQueryMetadataPostParams struct {
+// InvoicesQueryMetadataPostParams is parameters of POST /invoices/query/metadata operation.
+type InvoicesQueryMetadataPostParams struct {
 	// Kolejność sortowania wyników.
 	// | Wartość | Opis |
 	// | --- | --- |
@@ -76,96 +76,96 @@ type APIV2InvoicesQueryMetadataPostParams struct {
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PeppolQueryGetParams is parameters of GET /api/v2/peppol/query operation.
-type APIV2PeppolQueryGetParams struct {
+// PeppolQueryGetParams is parameters of GET /peppol/query operation.
+type PeppolQueryGetParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteParams is parameters of DELETE /api/v2/permissions/authorizations/grants/{permissionId} operation.
-type APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteParams struct {
+// PermissionsAuthorizationsGrantsPermissionIdDeleteParams is parameters of DELETE /permissions/authorizations/grants/{permissionId} operation.
+type PermissionsAuthorizationsGrantsPermissionIdDeleteParams struct {
 	// Id uprawnienia.
 	PermissionId PermissionId
 }
 
-// APIV2PermissionsCommonGrantsPermissionIdDeleteParams is parameters of DELETE /api/v2/permissions/common/grants/{permissionId} operation.
-type APIV2PermissionsCommonGrantsPermissionIdDeleteParams struct {
+// PermissionsCommonGrantsPermissionIdDeleteParams is parameters of DELETE /permissions/common/grants/{permissionId} operation.
+type PermissionsCommonGrantsPermissionIdDeleteParams struct {
 	// Id uprawnienia.
 	PermissionId PermissionId
 }
 
-// APIV2PermissionsOperationsReferenceNumberGetParams is parameters of GET /api/v2/permissions/operations/{referenceNumber} operation.
-type APIV2PermissionsOperationsReferenceNumberGetParams struct {
+// PermissionsOperationsReferenceNumberGetParams is parameters of GET /permissions/operations/{referenceNumber} operation.
+type PermissionsOperationsReferenceNumberGetParams struct {
 	// Numer referencyjny operacji nadania lub odbierania uprawnień.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2PermissionsQueryAuthorizationsGrantsPostParams is parameters of POST /api/v2/permissions/query/authorizations/grants operation.
-type APIV2PermissionsQueryAuthorizationsGrantsPostParams struct {
+// PermissionsQueryAuthorizationsGrantsPostParams is parameters of POST /permissions/query/authorizations/grants operation.
+type PermissionsQueryAuthorizationsGrantsPostParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsQueryEntitiesRolesGetParams is parameters of GET /api/v2/permissions/query/entities/roles operation.
-type APIV2PermissionsQueryEntitiesRolesGetParams struct {
+// PermissionsQueryEntitiesRolesGetParams is parameters of GET /permissions/query/entities/roles operation.
+type PermissionsQueryEntitiesRolesGetParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsQueryEuEntitiesGrantsPostParams is parameters of POST /api/v2/permissions/query/eu-entities/grants operation.
-type APIV2PermissionsQueryEuEntitiesGrantsPostParams struct {
+// PermissionsQueryEuEntitiesGrantsPostParams is parameters of POST /permissions/query/eu-entities/grants operation.
+type PermissionsQueryEuEntitiesGrantsPostParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsQueryPersonalGrantsPostParams is parameters of POST /api/v2/permissions/query/personal/grants operation.
-type APIV2PermissionsQueryPersonalGrantsPostParams struct {
+// PermissionsQueryPersonalGrantsPostParams is parameters of POST /permissions/query/personal/grants operation.
+type PermissionsQueryPersonalGrantsPostParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsQueryPersonsGrantsPostParams is parameters of POST /api/v2/permissions/query/persons/grants operation.
-type APIV2PermissionsQueryPersonsGrantsPostParams struct {
+// PermissionsQueryPersonsGrantsPostParams is parameters of POST /permissions/query/persons/grants operation.
+type PermissionsQueryPersonsGrantsPostParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsQuerySubordinateEntitiesRolesPostParams is parameters of POST /api/v2/permissions/query/subordinate-entities/roles operation.
-type APIV2PermissionsQuerySubordinateEntitiesRolesPostParams struct {
+// PermissionsQuerySubordinateEntitiesRolesPostParams is parameters of POST /permissions/query/subordinate-entities/roles operation.
+type PermissionsQuerySubordinateEntitiesRolesPostParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2PermissionsQuerySubunitsGrantsPostParams is parameters of POST /api/v2/permissions/query/subunits/grants operation.
-type APIV2PermissionsQuerySubunitsGrantsPostParams struct {
+// PermissionsQuerySubunitsGrantsPostParams is parameters of POST /permissions/query/subunits/grants operation.
+type PermissionsQuerySubunitsGrantsPostParams struct {
 	// Numer strony wyników.
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2SessionsBatchReferenceNumberClosePostParams is parameters of POST /api/v2/sessions/batch/{referenceNumber}/close operation.
-type APIV2SessionsBatchReferenceNumberClosePostParams struct {
+// SessionsBatchReferenceNumberClosePostParams is parameters of POST /sessions/batch/{referenceNumber}/close operation.
+type SessionsBatchReferenceNumberClosePostParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2SessionsGetParams is parameters of GET /api/v2/sessions operation.
-type APIV2SessionsGetParams struct {
+// SessionsGetParams is parameters of GET /sessions operation.
+type SessionsGetParams struct {
 	// Rozmiar strony.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 	// Typ sesji.
@@ -203,26 +203,26 @@ type APIV2SessionsGetParams struct {
 	XContinuationToken OptString `json:",omitempty,omitzero"`
 }
 
-// APIV2SessionsOnlineReferenceNumberClosePostParams is parameters of POST /api/v2/sessions/online/{referenceNumber}/close operation.
-type APIV2SessionsOnlineReferenceNumberClosePostParams struct {
+// SessionsOnlineReferenceNumberClosePostParams is parameters of POST /sessions/online/{referenceNumber}/close operation.
+type SessionsOnlineReferenceNumberClosePostParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2SessionsOnlineReferenceNumberInvoicesPostParams is parameters of POST /api/v2/sessions/online/{referenceNumber}/invoices operation.
-type APIV2SessionsOnlineReferenceNumberInvoicesPostParams struct {
+// SessionsOnlineReferenceNumberInvoicesPostParams is parameters of POST /sessions/online/{referenceNumber}/invoices operation.
+type SessionsOnlineReferenceNumberInvoicesPostParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2SessionsReferenceNumberGetParams is parameters of GET /api/v2/sessions/{referenceNumber} operation.
-type APIV2SessionsReferenceNumberGetParams struct {
+// SessionsReferenceNumberGetParams is parameters of GET /sessions/{referenceNumber} operation.
+type SessionsReferenceNumberGetParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2SessionsReferenceNumberInvoicesFailedGetParams is parameters of GET /api/v2/sessions/{referenceNumber}/invoices/failed operation.
-type APIV2SessionsReferenceNumberInvoicesFailedGetParams struct {
+// SessionsReferenceNumberInvoicesFailedGetParams is parameters of GET /sessions/{referenceNumber}/invoices/failed operation.
+type SessionsReferenceNumberInvoicesFailedGetParams struct {
 	// Token służący do pobrania kolejnej strony wyników.
 	XContinuationToken OptString `json:",omitempty,omitzero"`
 	// Numer referencyjny sesji.
@@ -231,8 +231,8 @@ type APIV2SessionsReferenceNumberInvoicesFailedGetParams struct {
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2SessionsReferenceNumberInvoicesGetParams is parameters of GET /api/v2/sessions/{referenceNumber}/invoices operation.
-type APIV2SessionsReferenceNumberInvoicesGetParams struct {
+// SessionsReferenceNumberInvoicesGetParams is parameters of GET /sessions/{referenceNumber}/invoices operation.
+type SessionsReferenceNumberInvoicesGetParams struct {
 	// Token służący do pobrania kolejnej strony wyników.
 	XContinuationToken OptString `json:",omitempty,omitzero"`
 	// Numer referencyjny sesji.
@@ -241,40 +241,40 @@ type APIV2SessionsReferenceNumberInvoicesGetParams struct {
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
-// APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams is parameters of GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
-type APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams struct {
+// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams is parameters of GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
+type SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 	// Numer referencyjny faktury.
 	InvoiceReferenceNumber ReferenceNumber
 }
 
-// APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams is parameters of GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
-type APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams struct {
+// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams is parameters of GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
+type SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 	// Numer referencyjny faktury.
 	InvoiceReferenceNumber ReferenceNumber
 }
 
-// APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams is parameters of GET /api/v2/sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
-type APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams struct {
+// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams is parameters of GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
+type SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 	// Numer KSeF faktury.
 	KsefNumber KsefNumber
 }
 
-// APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetParams is parameters of GET /api/v2/sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
-type APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetParams struct {
+// SessionsReferenceNumberUpoUpoReferenceNumberGetParams is parameters of GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
+type SessionsReferenceNumberUpoUpoReferenceNumberGetParams struct {
 	// Numer referencyjny sesji.
 	ReferenceNumber ReferenceNumber
 	// Numer referencyjny UPO.
 	UpoReferenceNumber ReferenceNumber
 }
 
-// APIV2TokensGetParams is parameters of GET /api/v2/tokens operation.
-type APIV2TokensGetParams struct {
+// TokensGetParams is parameters of GET /tokens operation.
+type TokensGetParams struct {
 	// Status tokenów do zwrócenia. W przypadku braku parametru zwracane są wszystkie tokeny. Parametr
 	// można przekazać wielokrotnie.
 	// | Wartość | Opis |
@@ -308,14 +308,14 @@ type APIV2TokensGetParams struct {
 	XContinuationToken OptString `json:",omitempty,omitzero"`
 }
 
-// APIV2TokensReferenceNumberDeleteParams is parameters of DELETE /api/v2/tokens/{referenceNumber} operation.
-type APIV2TokensReferenceNumberDeleteParams struct {
+// TokensReferenceNumberDeleteParams is parameters of DELETE /tokens/{referenceNumber} operation.
+type TokensReferenceNumberDeleteParams struct {
 	// Numer referencyjny tokena KSeF.
 	ReferenceNumber ReferenceNumber
 }
 
-// APIV2TokensReferenceNumberGetParams is parameters of GET /api/v2/tokens/{referenceNumber} operation.
-type APIV2TokensReferenceNumberGetParams struct {
+// TokensReferenceNumberGetParams is parameters of GET /tokens/{referenceNumber} operation.
+type TokensReferenceNumberGetParams struct {
 	// Numer referencyjny tokena KSeF.
 	ReferenceNumber ReferenceNumber
 }

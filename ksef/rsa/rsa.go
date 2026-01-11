@@ -11,10 +11,8 @@ import (
 )
 
 func ParseRSAPubFromCert(c api.PublicKeyCertificate) (*rsa2.PublicKey, error) {
-	der, err := base64.StdEncoding.DecodeString(c.Certificate)
-	if err != nil {
-		return nil, fmt.Errorf("decode cert: %w", err)
-	}
+	der := c.Certificate
+
 	xc, err := x509.ParseCertificate(der)
 	if err != nil {
 		return nil, fmt.Errorf("parse x509: %w", err)

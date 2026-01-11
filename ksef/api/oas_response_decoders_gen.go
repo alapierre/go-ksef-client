@@ -10,11 +10,13 @@ import (
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
+	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/ogenerrors"
+	"github.com/ogen-go/ogen/uri"
 	"github.com/ogen-go/ogen/validate"
 )
 
-func decodeAPIV2AuthChallengePostResponse(resp *http.Response) (res APIV2AuthChallengePostRes, _ error) {
+func decodeAuthChallengePostResponse(resp *http.Response) (res AuthChallengePostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -104,11 +106,102 @@ func decodeAPIV2AuthChallengePostResponse(resp *http.Response) (res APIV2AuthCha
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthKsefTokenPostResponse(resp *http.Response) (res APIV2AuthKsefTokenPostRes, _ error) {
+func decodeAuthKsefTokenPostResponse(resp *http.Response) (res AuthKsefTokenPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -198,11 +291,102 @@ func decodeAPIV2AuthKsefTokenPostResponse(resp *http.Response) (res APIV2AuthKse
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthReferenceNumberGetResponse(resp *http.Response) (res APIV2AuthReferenceNumberGetRes, _ error) {
+func decodeAuthReferenceNumberGetResponse(resp *http.Response) (res AuthReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -294,16 +478,107 @@ func decodeAPIV2AuthReferenceNumberGetResponse(resp *http.Response) (res APIV2Au
 		}
 	case 401:
 		// Code 401.
-		return &APIV2AuthReferenceNumberGetUnauthorized{}, nil
+		return &AuthReferenceNumberGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthSessionsCurrentDeleteResponse(resp *http.Response) (res APIV2AuthSessionsCurrentDeleteRes, _ error) {
+func decodeAuthSessionsCurrentDeleteResponse(resp *http.Response) (res AuthSessionsCurrentDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &APIV2AuthSessionsCurrentDeleteNoContent{}, nil
+		return &AuthSessionsCurrentDeleteNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -350,12 +625,103 @@ func decodeAPIV2AuthSessionsCurrentDeleteResponse(resp *http.Response) (res APIV
 		}
 	case 401:
 		// Code 401.
-		return &APIV2AuthSessionsCurrentDeleteUnauthorized{}, nil
+		return &AuthSessionsCurrentDeleteUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthSessionsGetResponse(resp *http.Response) (res APIV2AuthSessionsGetRes, _ error) {
+func decodeAuthSessionsGetResponse(resp *http.Response) (res AuthSessionsGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -447,16 +813,107 @@ func decodeAPIV2AuthSessionsGetResponse(resp *http.Response) (res APIV2AuthSessi
 		}
 	case 401:
 		// Code 401.
-		return &APIV2AuthSessionsGetUnauthorized{}, nil
+		return &AuthSessionsGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthSessionsReferenceNumberDeleteResponse(resp *http.Response) (res APIV2AuthSessionsReferenceNumberDeleteRes, _ error) {
+func decodeAuthSessionsReferenceNumberDeleteResponse(resp *http.Response) (res AuthSessionsReferenceNumberDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &APIV2AuthSessionsReferenceNumberDeleteNoContent{}, nil
+		return &AuthSessionsReferenceNumberDeleteNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -503,12 +960,103 @@ func decodeAPIV2AuthSessionsReferenceNumberDeleteResponse(resp *http.Response) (
 		}
 	case 401:
 		// Code 401.
-		return &APIV2AuthSessionsReferenceNumberDeleteUnauthorized{}, nil
+		return &AuthSessionsReferenceNumberDeleteUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthTokenRedeemPostResponse(resp *http.Response) (res APIV2AuthTokenRedeemPostRes, _ error) {
+func decodeAuthTokenRedeemPostResponse(resp *http.Response) (res AuthTokenRedeemPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -591,12 +1139,103 @@ func decodeAPIV2AuthTokenRedeemPostResponse(resp *http.Response) (res APIV2AuthT
 		}
 	case 401:
 		// Code 401.
-		return &APIV2AuthTokenRedeemPostUnauthorized{}, nil
+		return &AuthTokenRedeemPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthTokenRefreshPostResponse(resp *http.Response) (res APIV2AuthTokenRefreshPostRes, _ error) {
+func decodeAuthTokenRefreshPostResponse(resp *http.Response) (res AuthTokenRefreshPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -679,12 +1318,103 @@ func decodeAPIV2AuthTokenRefreshPostResponse(resp *http.Response) (res APIV2Auth
 		}
 	case 401:
 		// Code 401.
-		return &APIV2AuthTokenRefreshPostUnauthorized{}, nil
+		return &AuthTokenRefreshPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2AuthXadesSignaturePostResponse(resp *http.Response) (res APIV2AuthXadesSignaturePostRes, _ error) {
+func decodeAuthXadesSignaturePostResponse(resp *http.Response) (res AuthXadesSignaturePostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -774,15 +1504,106 @@ func decodeAPIV2AuthXadesSignaturePostResponse(resp *http.Response) (res APIV2Au
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesCertificateSerialNumberRevokePostResponse(resp *http.Response) (res APIV2CertificatesCertificateSerialNumberRevokePostRes, _ error) {
+func decodeCertificatesCertificateSerialNumberRevokePostResponse(resp *http.Response) (res CertificatesCertificateSerialNumberRevokePostRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &APIV2CertificatesCertificateSerialNumberRevokePostNoContent{}, nil
+		return &CertificatesCertificateSerialNumberRevokePostNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -829,12 +1650,103 @@ func decodeAPIV2CertificatesCertificateSerialNumberRevokePostResponse(resp *http
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesCertificateSerialNumberRevokePostUnauthorized{}, nil
+		return &CertificatesCertificateSerialNumberRevokePostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesEnrollmentsDataGetResponse(resp *http.Response) (res APIV2CertificatesEnrollmentsDataGetRes, _ error) {
+func decodeCertificatesEnrollmentsDataGetResponse(resp *http.Response) (res CertificatesEnrollmentsDataGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -917,12 +1829,103 @@ func decodeAPIV2CertificatesEnrollmentsDataGetResponse(resp *http.Response) (res
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesEnrollmentsDataGetUnauthorized{}, nil
+		return &CertificatesEnrollmentsDataGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesEnrollmentsPostResponse(resp *http.Response) (res APIV2CertificatesEnrollmentsPostRes, _ error) {
+func decodeCertificatesEnrollmentsPostResponse(resp *http.Response) (res CertificatesEnrollmentsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -1014,12 +2017,103 @@ func decodeAPIV2CertificatesEnrollmentsPostResponse(resp *http.Response) (res AP
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesEnrollmentsPostUnauthorized{}, nil
+		return &CertificatesEnrollmentsPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesEnrollmentsReferenceNumberGetResponse(resp *http.Response) (res APIV2CertificatesEnrollmentsReferenceNumberGetRes, _ error) {
+func decodeCertificatesEnrollmentsReferenceNumberGetResponse(resp *http.Response) (res CertificatesEnrollmentsReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1111,12 +2205,103 @@ func decodeAPIV2CertificatesEnrollmentsReferenceNumberGetResponse(resp *http.Res
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesEnrollmentsReferenceNumberGetUnauthorized{}, nil
+		return &CertificatesEnrollmentsReferenceNumberGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesLimitsGetResponse(resp *http.Response) (res APIV2CertificatesLimitsGetRes, _ error) {
+func decodeCertificatesLimitsGetResponse(resp *http.Response) (res CertificatesLimitsGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1199,12 +2384,103 @@ func decodeAPIV2CertificatesLimitsGetResponse(resp *http.Response) (res APIV2Cer
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesLimitsGetUnauthorized{}, nil
+		return &CertificatesLimitsGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesQueryPostResponse(resp *http.Response) (res APIV2CertificatesQueryPostRes, _ error) {
+func decodeCertificatesQueryPostResponse(resp *http.Response) (res CertificatesQueryPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1296,12 +2572,103 @@ func decodeAPIV2CertificatesQueryPostResponse(resp *http.Response) (res APIV2Cer
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesQueryPostUnauthorized{}, nil
+		return &CertificatesQueryPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2CertificatesRetrievePostResponse(resp *http.Response) (res APIV2CertificatesRetrievePostRes, _ error) {
+func decodeCertificatesRetrievePostResponse(resp *http.Response) (res CertificatesRetrievePostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1393,12 +2760,103 @@ func decodeAPIV2CertificatesRetrievePostResponse(resp *http.Response) (res APIV2
 		}
 	case 401:
 		// Code 401.
-		return &APIV2CertificatesRetrievePostUnauthorized{}, nil
+		return &CertificatesRetrievePostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2InvoicesExportsPostResponse(resp *http.Response) (res APIV2InvoicesExportsPostRes, _ error) {
+func decodeInvoicesExportsPostResponse(resp *http.Response) (res InvoicesExportsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -1490,15 +2948,106 @@ func decodeAPIV2InvoicesExportsPostResponse(resp *http.Response) (res APIV2Invoi
 		}
 	case 401:
 		// Code 401.
-		return &APIV2InvoicesExportsPostUnauthorized{}, nil
+		return &InvoicesExportsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2InvoicesExportsPostForbidden{}, nil
+		return &InvoicesExportsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2InvoicesExportsReferenceNumberGetResponse(resp *http.Response) (res APIV2InvoicesExportsReferenceNumberGetRes, _ error) {
+func decodeInvoicesExportsReferenceNumberGetResponse(resp *http.Response) (res InvoicesExportsReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1590,15 +3139,106 @@ func decodeAPIV2InvoicesExportsReferenceNumberGetResponse(resp *http.Response) (
 		}
 	case 401:
 		// Code 401.
-		return &APIV2InvoicesExportsReferenceNumberGetUnauthorized{}, nil
+		return &InvoicesExportsReferenceNumberGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2InvoicesExportsReferenceNumberGetForbidden{}, nil
+		return &InvoicesExportsReferenceNumberGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2InvoicesKsefKsefNumberGetResponse(resp *http.Response) (res APIV2InvoicesKsefKsefNumberGetRes, _ error) {
+func decodeInvoicesKsefKsefNumberGetResponse(resp *http.Response) (res InvoicesKsefKsefNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1614,8 +3254,48 @@ func decodeAPIV2InvoicesKsefKsefNumberGetResponse(resp *http.Response) (res APIV
 				return res, err
 			}
 
-			response := APIV2InvoicesKsefKsefNumberGetOK{Data: bytes.NewReader(b)}
-			return &response, nil
+			response := InvoicesKsefKsefNumberGetOK{Data: bytes.NewReader(b)}
+			var wrapper InvoicesKsefKsefNumberGetOKHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "x-ms-meta-hash" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "x-ms-meta-hash",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXMsMetaHashVal []byte
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToBytes(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXMsMetaHashVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse x-ms-meta-hash header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -1665,15 +3345,106 @@ func decodeAPIV2InvoicesKsefKsefNumberGetResponse(resp *http.Response) (res APIV
 		}
 	case 401:
 		// Code 401.
-		return &APIV2InvoicesKsefKsefNumberGetUnauthorized{}, nil
+		return &InvoicesKsefKsefNumberGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2InvoicesKsefKsefNumberGetForbidden{}, nil
+		return &InvoicesKsefKsefNumberGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2InvoicesQueryMetadataPostResponse(resp *http.Response) (res APIV2InvoicesQueryMetadataPostRes, _ error) {
+func decodeInvoicesQueryMetadataPostResponse(resp *http.Response) (res InvoicesQueryMetadataPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1765,15 +3536,106 @@ func decodeAPIV2InvoicesQueryMetadataPostResponse(resp *http.Response) (res APIV
 		}
 	case 401:
 		// Code 401.
-		return &APIV2InvoicesQueryMetadataPostUnauthorized{}, nil
+		return &InvoicesQueryMetadataPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2InvoicesQueryMetadataPostForbidden{}, nil
+		return &InvoicesQueryMetadataPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2LimitsContextGetResponse(resp *http.Response) (res APIV2LimitsContextGetRes, _ error) {
+func decodeLimitsContextGetResponse(resp *http.Response) (res LimitsContextGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1865,12 +3727,103 @@ func decodeAPIV2LimitsContextGetResponse(resp *http.Response) (res APIV2LimitsCo
 		}
 	case 401:
 		// Code 401.
-		return &APIV2LimitsContextGetUnauthorized{}, nil
+		return &LimitsContextGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2LimitsSubjectGetResponse(resp *http.Response) (res APIV2LimitsSubjectGetRes, _ error) {
+func decodeLimitsSubjectGetResponse(resp *http.Response) (res LimitsSubjectGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1953,12 +3906,103 @@ func decodeAPIV2LimitsSubjectGetResponse(resp *http.Response) (res APIV2LimitsSu
 		}
 	case 401:
 		// Code 401.
-		return &APIV2LimitsSubjectGetUnauthorized{}, nil
+		return &LimitsSubjectGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PeppolQueryGetResponse(resp *http.Response) (res APIV2PeppolQueryGetRes, _ error) {
+func decodePeppolQueryGetResponse(resp *http.Response) (res PeppolQueryGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2048,11 +4092,102 @@ func decodeAPIV2PeppolQueryGetResponse(resp *http.Response) (res APIV2PeppolQuer
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsAttachmentsStatusGetResponse(resp *http.Response) (res APIV2PermissionsAttachmentsStatusGetRes, _ error) {
+func decodePermissionsAttachmentsStatusGetResponse(resp *http.Response) (res PermissionsAttachmentsStatusGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2135,15 +4270,106 @@ func decodeAPIV2PermissionsAttachmentsStatusGetResponse(resp *http.Response) (re
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsAttachmentsStatusGetUnauthorized{}, nil
+		return &PermissionsAttachmentsStatusGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsAttachmentsStatusGetForbidden{}, nil
+		return &PermissionsAttachmentsStatusGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp *http.Response) (res APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteRes, _ error) {
+func decodePermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp *http.Response) (res PermissionsAuthorizationsGrantsPermissionIdDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2235,15 +4461,106 @@ func decodeAPIV2PermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp *
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteUnauthorized{}, nil
+		return &PermissionsAuthorizationsGrantsPermissionIdDeleteUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteForbidden{}, nil
+		return &PermissionsAuthorizationsGrantsPermissionIdDeleteForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsAuthorizationsGrantsPostResponse(resp *http.Response) (res APIV2PermissionsAuthorizationsGrantsPostRes, _ error) {
+func decodePermissionsAuthorizationsGrantsPostResponse(resp *http.Response) (res PermissionsAuthorizationsGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2335,15 +4652,106 @@ func decodeAPIV2PermissionsAuthorizationsGrantsPostResponse(resp *http.Response)
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsAuthorizationsGrantsPostUnauthorized{}, nil
+		return &PermissionsAuthorizationsGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsAuthorizationsGrantsPostForbidden{}, nil
+		return &PermissionsAuthorizationsGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsCommonGrantsPermissionIdDeleteResponse(resp *http.Response) (res APIV2PermissionsCommonGrantsPermissionIdDeleteRes, _ error) {
+func decodePermissionsCommonGrantsPermissionIdDeleteResponse(resp *http.Response) (res PermissionsCommonGrantsPermissionIdDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2435,15 +4843,106 @@ func decodeAPIV2PermissionsCommonGrantsPermissionIdDeleteResponse(resp *http.Res
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsCommonGrantsPermissionIdDeleteUnauthorized{}, nil
+		return &PermissionsCommonGrantsPermissionIdDeleteUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsCommonGrantsPermissionIdDeleteForbidden{}, nil
+		return &PermissionsCommonGrantsPermissionIdDeleteForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsEntitiesGrantsPostResponse(resp *http.Response) (res APIV2PermissionsEntitiesGrantsPostRes, _ error) {
+func decodePermissionsEntitiesGrantsPostResponse(resp *http.Response) (res PermissionsEntitiesGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2535,15 +5034,106 @@ func decodeAPIV2PermissionsEntitiesGrantsPostResponse(resp *http.Response) (res 
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsEntitiesGrantsPostUnauthorized{}, nil
+		return &PermissionsEntitiesGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsEntitiesGrantsPostForbidden{}, nil
+		return &PermissionsEntitiesGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsEuEntitiesAdministrationGrantsPostResponse(resp *http.Response) (res APIV2PermissionsEuEntitiesAdministrationGrantsPostRes, _ error) {
+func decodePermissionsEuEntitiesAdministrationGrantsPostResponse(resp *http.Response) (res PermissionsEuEntitiesAdministrationGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2635,15 +5225,106 @@ func decodeAPIV2PermissionsEuEntitiesAdministrationGrantsPostResponse(resp *http
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsEuEntitiesAdministrationGrantsPostUnauthorized{}, nil
+		return &PermissionsEuEntitiesAdministrationGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsEuEntitiesAdministrationGrantsPostForbidden{}, nil
+		return &PermissionsEuEntitiesAdministrationGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsEuEntitiesGrantsPostResponse(resp *http.Response) (res APIV2PermissionsEuEntitiesGrantsPostRes, _ error) {
+func decodePermissionsEuEntitiesGrantsPostResponse(resp *http.Response) (res PermissionsEuEntitiesGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2735,15 +5416,106 @@ func decodeAPIV2PermissionsEuEntitiesGrantsPostResponse(resp *http.Response) (re
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsEuEntitiesGrantsPostUnauthorized{}, nil
+		return &PermissionsEuEntitiesGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsEuEntitiesGrantsPostForbidden{}, nil
+		return &PermissionsEuEntitiesGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsIndirectGrantsPostResponse(resp *http.Response) (res APIV2PermissionsIndirectGrantsPostRes, _ error) {
+func decodePermissionsIndirectGrantsPostResponse(resp *http.Response) (res PermissionsIndirectGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -2835,15 +5607,106 @@ func decodeAPIV2PermissionsIndirectGrantsPostResponse(resp *http.Response) (res 
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsIndirectGrantsPostUnauthorized{}, nil
+		return &PermissionsIndirectGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsIndirectGrantsPostForbidden{}, nil
+		return &PermissionsIndirectGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsOperationsReferenceNumberGetResponse(resp *http.Response) (res APIV2PermissionsOperationsReferenceNumberGetRes, _ error) {
+func decodePermissionsOperationsReferenceNumberGetResponse(resp *http.Response) (res PermissionsOperationsReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2935,12 +5798,103 @@ func decodeAPIV2PermissionsOperationsReferenceNumberGetResponse(resp *http.Respo
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsOperationsReferenceNumberGetUnauthorized{}, nil
+		return &PermissionsOperationsReferenceNumberGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsPersonsGrantsPostResponse(resp *http.Response) (res APIV2PermissionsPersonsGrantsPostRes, _ error) {
+func decodePermissionsPersonsGrantsPostResponse(resp *http.Response) (res PermissionsPersonsGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -3032,15 +5986,106 @@ func decodeAPIV2PermissionsPersonsGrantsPostResponse(resp *http.Response) (res A
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsPersonsGrantsPostUnauthorized{}, nil
+		return &PermissionsPersonsGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsPersonsGrantsPostForbidden{}, nil
+		return &PermissionsPersonsGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQueryAuthorizationsGrantsPostResponse(resp *http.Response) (res APIV2PermissionsQueryAuthorizationsGrantsPostRes, _ error) {
+func decodePermissionsQueryAuthorizationsGrantsPostResponse(resp *http.Response) (res PermissionsQueryAuthorizationsGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3132,15 +6177,106 @@ func decodeAPIV2PermissionsQueryAuthorizationsGrantsPostResponse(resp *http.Resp
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQueryAuthorizationsGrantsPostUnauthorized{}, nil
+		return &PermissionsQueryAuthorizationsGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsQueryAuthorizationsGrantsPostForbidden{}, nil
+		return &PermissionsQueryAuthorizationsGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQueryEntitiesRolesGetResponse(resp *http.Response) (res APIV2PermissionsQueryEntitiesRolesGetRes, _ error) {
+func decodePermissionsQueryEntitiesRolesGetResponse(resp *http.Response) (res PermissionsQueryEntitiesRolesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3232,15 +6368,106 @@ func decodeAPIV2PermissionsQueryEntitiesRolesGetResponse(resp *http.Response) (r
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQueryEntitiesRolesGetUnauthorized{}, nil
+		return &PermissionsQueryEntitiesRolesGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsQueryEntitiesRolesGetForbidden{}, nil
+		return &PermissionsQueryEntitiesRolesGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQueryEuEntitiesGrantsPostResponse(resp *http.Response) (res APIV2PermissionsQueryEuEntitiesGrantsPostRes, _ error) {
+func decodePermissionsQueryEuEntitiesGrantsPostResponse(resp *http.Response) (res PermissionsQueryEuEntitiesGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3332,15 +6559,106 @@ func decodeAPIV2PermissionsQueryEuEntitiesGrantsPostResponse(resp *http.Response
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQueryEuEntitiesGrantsPostUnauthorized{}, nil
+		return &PermissionsQueryEuEntitiesGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsQueryEuEntitiesGrantsPostForbidden{}, nil
+		return &PermissionsQueryEuEntitiesGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQueryPersonalGrantsPostResponse(resp *http.Response) (res APIV2PermissionsQueryPersonalGrantsPostRes, _ error) {
+func decodePermissionsQueryPersonalGrantsPostResponse(resp *http.Response) (res PermissionsQueryPersonalGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3432,12 +6750,103 @@ func decodeAPIV2PermissionsQueryPersonalGrantsPostResponse(resp *http.Response) 
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQueryPersonalGrantsPostUnauthorized{}, nil
+		return &PermissionsQueryPersonalGrantsPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQueryPersonsGrantsPostResponse(resp *http.Response) (res APIV2PermissionsQueryPersonsGrantsPostRes, _ error) {
+func decodePermissionsQueryPersonsGrantsPostResponse(resp *http.Response) (res PermissionsQueryPersonsGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3529,15 +6938,106 @@ func decodeAPIV2PermissionsQueryPersonsGrantsPostResponse(resp *http.Response) (
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQueryPersonsGrantsPostUnauthorized{}, nil
+		return &PermissionsQueryPersonsGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsQueryPersonsGrantsPostForbidden{}, nil
+		return &PermissionsQueryPersonsGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQuerySubordinateEntitiesRolesPostResponse(resp *http.Response) (res APIV2PermissionsQuerySubordinateEntitiesRolesPostRes, _ error) {
+func decodePermissionsQuerySubordinateEntitiesRolesPostResponse(resp *http.Response) (res PermissionsQuerySubordinateEntitiesRolesPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3629,15 +7129,106 @@ func decodeAPIV2PermissionsQuerySubordinateEntitiesRolesPostResponse(resp *http.
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQuerySubordinateEntitiesRolesPostUnauthorized{}, nil
+		return &PermissionsQuerySubordinateEntitiesRolesPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsQuerySubordinateEntitiesRolesPostForbidden{}, nil
+		return &PermissionsQuerySubordinateEntitiesRolesPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsQuerySubunitsGrantsPostResponse(resp *http.Response) (res APIV2PermissionsQuerySubunitsGrantsPostRes, _ error) {
+func decodePermissionsQuerySubunitsGrantsPostResponse(resp *http.Response) (res PermissionsQuerySubunitsGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3729,15 +7320,106 @@ func decodeAPIV2PermissionsQuerySubunitsGrantsPostResponse(resp *http.Response) 
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsQuerySubunitsGrantsPostUnauthorized{}, nil
+		return &PermissionsQuerySubunitsGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsQuerySubunitsGrantsPostForbidden{}, nil
+		return &PermissionsQuerySubunitsGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2PermissionsSubunitsGrantsPostResponse(resp *http.Response) (res APIV2PermissionsSubunitsGrantsPostRes, _ error) {
+func decodePermissionsSubunitsGrantsPostResponse(resp *http.Response) (res PermissionsSubunitsGrantsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -3829,15 +7511,106 @@ func decodeAPIV2PermissionsSubunitsGrantsPostResponse(resp *http.Response) (res 
 		}
 	case 401:
 		// Code 401.
-		return &APIV2PermissionsSubunitsGrantsPostUnauthorized{}, nil
+		return &PermissionsSubunitsGrantsPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2PermissionsSubunitsGrantsPostForbidden{}, nil
+		return &PermissionsSubunitsGrantsPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2RateLimitsGetResponse(resp *http.Response) (res APIV2RateLimitsGetRes, _ error) {
+func decodeRateLimitsGetResponse(resp *http.Response) (res RateLimitsGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3920,12 +7693,103 @@ func decodeAPIV2RateLimitsGetResponse(resp *http.Response) (res APIV2RateLimitsG
 		}
 	case 401:
 		// Code 401.
-		return &APIV2RateLimitsGetUnauthorized{}, nil
+		return &RateLimitsGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SecurityPublicKeyCertificatesGetResponse(resp *http.Response) (res APIV2SecurityPublicKeyCertificatesGetRes, _ error) {
+func decodeSecurityPublicKeyCertificatesGetResponse(resp *http.Response) (res SecurityPublicKeyCertificatesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3941,7 +7805,7 @@ func decodeAPIV2SecurityPublicKeyCertificatesGetResponse(resp *http.Response) (r
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response APIV2SecurityPublicKeyCertificatesGetOKApplicationJSON
+			var response SecurityPublicKeyCertificatesGetOKApplicationJSON
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -4015,11 +7879,102 @@ func decodeAPIV2SecurityPublicKeyCertificatesGetResponse(resp *http.Response) (r
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsBatchPostResponse(resp *http.Response) (res APIV2SessionsBatchPostRes, _ error) {
+func decodeSessionsBatchPostResponse(resp *http.Response) (res SessionsBatchPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -4111,19 +8066,110 @@ func decodeAPIV2SessionsBatchPostResponse(resp *http.Response) (res APIV2Session
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsBatchPostUnauthorized{}, nil
+		return &SessionsBatchPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsBatchPostForbidden{}, nil
+		return &SessionsBatchPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsBatchReferenceNumberClosePostResponse(resp *http.Response) (res APIV2SessionsBatchReferenceNumberClosePostRes, _ error) {
+func decodeSessionsBatchReferenceNumberClosePostResponse(resp *http.Response) (res SessionsBatchReferenceNumberClosePostRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &APIV2SessionsBatchReferenceNumberClosePostNoContent{}, nil
+		return &SessionsBatchReferenceNumberClosePostNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -4170,15 +8216,106 @@ func decodeAPIV2SessionsBatchReferenceNumberClosePostResponse(resp *http.Respons
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsBatchReferenceNumberClosePostUnauthorized{}, nil
+		return &SessionsBatchReferenceNumberClosePostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsBatchReferenceNumberClosePostForbidden{}, nil
+		return &SessionsBatchReferenceNumberClosePostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsGetResponse(resp *http.Response) (res APIV2SessionsGetRes, _ error) {
+func decodeSessionsGetResponse(resp *http.Response) (res SessionsGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4270,15 +8407,106 @@ func decodeAPIV2SessionsGetResponse(resp *http.Response) (res APIV2SessionsGetRe
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsGetUnauthorized{}, nil
+		return &SessionsGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsGetForbidden{}, nil
+		return &SessionsGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsOnlinePostResponse(resp *http.Response) (res APIV2SessionsOnlinePostRes, _ error) {
+func decodeSessionsOnlinePostResponse(resp *http.Response) (res SessionsOnlinePostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -4370,19 +8598,110 @@ func decodeAPIV2SessionsOnlinePostResponse(resp *http.Response) (res APIV2Sessio
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsOnlinePostUnauthorized{}, nil
+		return &SessionsOnlinePostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsOnlinePostForbidden{}, nil
+		return &SessionsOnlinePostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsOnlineReferenceNumberClosePostResponse(resp *http.Response) (res APIV2SessionsOnlineReferenceNumberClosePostRes, _ error) {
+func decodeSessionsOnlineReferenceNumberClosePostResponse(resp *http.Response) (res SessionsOnlineReferenceNumberClosePostRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &APIV2SessionsOnlineReferenceNumberClosePostNoContent{}, nil
+		return &SessionsOnlineReferenceNumberClosePostNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -4429,15 +8748,106 @@ func decodeAPIV2SessionsOnlineReferenceNumberClosePostResponse(resp *http.Respon
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsOnlineReferenceNumberClosePostUnauthorized{}, nil
+		return &SessionsOnlineReferenceNumberClosePostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsOnlineReferenceNumberClosePostForbidden{}, nil
+		return &SessionsOnlineReferenceNumberClosePostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsOnlineReferenceNumberInvoicesPostResponse(resp *http.Response) (res APIV2SessionsOnlineReferenceNumberInvoicesPostRes, _ error) {
+func decodeSessionsOnlineReferenceNumberInvoicesPostResponse(resp *http.Response) (res SessionsOnlineReferenceNumberInvoicesPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -4529,15 +8939,106 @@ func decodeAPIV2SessionsOnlineReferenceNumberInvoicesPostResponse(resp *http.Res
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsOnlineReferenceNumberInvoicesPostUnauthorized{}, nil
+		return &SessionsOnlineReferenceNumberInvoicesPostUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsOnlineReferenceNumberInvoicesPostForbidden{}, nil
+		return &SessionsOnlineReferenceNumberInvoicesPostForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberGetRes, _ error) {
+func decodeSessionsReferenceNumberGetResponse(resp *http.Response) (res SessionsReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4629,15 +9130,106 @@ func decodeAPIV2SessionsReferenceNumberGetResponse(resp *http.Response) (res API
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberGetUnauthorized{}, nil
+		return &SessionsReferenceNumberGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberGetForbidden{}, nil
+		return &SessionsReferenceNumberGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberInvoicesFailedGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberInvoicesFailedGetRes, _ error) {
+func decodeSessionsReferenceNumberInvoicesFailedGetResponse(resp *http.Response) (res SessionsReferenceNumberInvoicesFailedGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4729,15 +9321,106 @@ func decodeAPIV2SessionsReferenceNumberInvoicesFailedGetResponse(resp *http.Resp
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberInvoicesFailedGetUnauthorized{}, nil
+		return &SessionsReferenceNumberInvoicesFailedGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberInvoicesFailedGetForbidden{}, nil
+		return &SessionsReferenceNumberInvoicesFailedGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberInvoicesGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberInvoicesGetRes, _ error) {
+func decodeSessionsReferenceNumberInvoicesGetResponse(resp *http.Response) (res SessionsReferenceNumberInvoicesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4829,15 +9512,106 @@ func decodeAPIV2SessionsReferenceNumberInvoicesGetResponse(resp *http.Response) 
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberInvoicesGetUnauthorized{}, nil
+		return &SessionsReferenceNumberInvoicesGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberInvoicesGetForbidden{}, nil
+		return &SessionsReferenceNumberInvoicesGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, _ error) {
+func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp *http.Response) (res SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4929,15 +9703,106 @@ func decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetUnauthorized{}, nil
+		return &SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetForbidden{}, nil
+		return &SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, _ error) {
+func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(resp *http.Response) (res SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4953,8 +9818,48 @@ func decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRespo
 				return res, err
 			}
 
-			response := APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOK{Data: bytes.NewReader(b)}
-			return &response, nil
+			response := SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOK{Data: bytes.NewReader(b)}
+			var wrapper SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOKHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "x-ms-meta-hash" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "x-ms-meta-hash",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXMsMetaHashVal []byte
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToBytes(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXMsMetaHashVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse x-ms-meta-hash header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5004,15 +9909,106 @@ func decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRespo
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetUnauthorized{}, nil
+		return &SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetForbidden{}, nil
+		return &SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, _ error) {
+func decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp *http.Response) (res SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -5028,8 +10024,48 @@ func decodeAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp
 				return res, err
 			}
 
-			response := APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOK{Data: bytes.NewReader(b)}
-			return &response, nil
+			response := SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOK{Data: bytes.NewReader(b)}
+			var wrapper SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOKHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "x-ms-meta-hash" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "x-ms-meta-hash",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXMsMetaHashVal []byte
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToBytes(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXMsMetaHashVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse x-ms-meta-hash header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5079,15 +10115,106 @@ func decodeAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetUnauthorized{}, nil
+		return &SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetForbidden{}, nil
+		return &SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *http.Response) (res APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetRes, _ error) {
+func decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *http.Response) (res SessionsReferenceNumberUpoUpoReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -5103,8 +10230,48 @@ func decodeAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *ht
 				return res, err
 			}
 
-			response := APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetOK{Data: bytes.NewReader(b)}
-			return &response, nil
+			response := SessionsReferenceNumberUpoUpoReferenceNumberGetOK{Data: bytes.NewReader(b)}
+			var wrapper SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "x-ms-meta-hash" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "x-ms-meta-hash",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXMsMetaHashVal []byte
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToBytes(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXMsMetaHashVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse x-ms-meta-hash header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5154,19 +10321,110 @@ func decodeAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *ht
 		}
 	case 401:
 		// Code 401.
-		return &APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetUnauthorized{}, nil
+		return &SessionsReferenceNumberUpoUpoReferenceNumberGetUnauthorized{}, nil
 	case 403:
 		// Code 403.
-		return &APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetForbidden{}, nil
+		return &SessionsReferenceNumberUpoUpoReferenceNumberGetForbidden{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TestdataAttachmentPostResponse(resp *http.Response) (res APIV2TestdataAttachmentPostRes, _ error) {
+func decodeTestdataAttachmentPostResponse(resp *http.Response) (res TestdataAttachmentPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &APIV2TestdataAttachmentPostOK{}, nil
+		return &TestdataAttachmentPostOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -5211,15 +10469,106 @@ func decodeAPIV2TestdataAttachmentPostResponse(resp *http.Response) (res APIV2Te
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TestdataAttachmentRevokePostResponse(resp *http.Response) (res APIV2TestdataAttachmentRevokePostRes, _ error) {
+func decodeTestdataAttachmentRevokePostResponse(resp *http.Response) (res TestdataAttachmentRevokePostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &APIV2TestdataAttachmentRevokePostOK{}, nil
+		return &TestdataAttachmentRevokePostOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -5264,17 +10613,8 @@ func decodeAPIV2TestdataAttachmentRevokePostResponse(resp *http.Response) (res A
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataLimitsContextSessionDeleteResponse(resp *http.Response) (res APIV2TestdataLimitsContextSessionDeleteRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataLimitsContextSessionDeleteOK{}, nil
-	case 400:
-		// Code 400.
+	case 429:
+		// Code 429.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 		if err != nil {
 			return res, errors.Wrap(err, "parse media type")
@@ -5287,7 +10627,7 @@ func decodeAPIV2TestdataLimitsContextSessionDeleteResponse(resp *http.Response) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response ExceptionResponse
+			var response TooManyRequestsResponse
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -5313,231 +10653,54 @@ func decodeAPIV2TestdataLimitsContextSessionDeleteResponse(resp *http.Response) 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 401:
-		// Code 401.
-		return &APIV2TestdataLimitsContextSessionDeleteUnauthorized{}, nil
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
 
-func decodeAPIV2TestdataLimitsContextSessionPostResponse(resp *http.Response) (res APIV2TestdataLimitsContextSessionPostRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataLimitsContextSessionPostOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
 
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
 				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
 			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 401:
-		// Code 401.
-		return &APIV2TestdataLimitsContextSessionPostUnauthorized{}, nil
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataLimitsSubjectCertificateDeleteResponse(resp *http.Response) (res APIV2TestdataLimitsSubjectCertificateDeleteRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataLimitsSubjectCertificateDeleteOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 401:
-		// Code 401.
-		return &APIV2TestdataLimitsSubjectCertificateDeleteUnauthorized{}, nil
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataLimitsSubjectCertificatePostResponse(resp *http.Response) (res APIV2TestdataLimitsSubjectCertificatePostRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataLimitsSubjectCertificatePostOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 401:
-		// Code 401.
-		return &APIV2TestdataLimitsSubjectCertificatePostUnauthorized{}, nil
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataPermissionsPostResponse(resp *http.Response) (res APIV2TestdataPermissionsPostRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataPermissionsPostOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5545,170 +10708,11 @@ func decodeAPIV2TestdataPermissionsPostResponse(resp *http.Response) (res APIV2T
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TestdataPermissionsRevokePostResponse(resp *http.Response) (res APIV2TestdataPermissionsRevokePostRes, _ error) {
+func decodeTestdataLimitsContextSessionDeleteResponse(resp *http.Response) (res TestdataLimitsContextSessionDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &APIV2TestdataPermissionsRevokePostOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataPersonPostResponse(resp *http.Response) (res APIV2TestdataPersonPostRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataPersonPostOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataPersonRemovePostResponse(resp *http.Response) (res APIV2TestdataPersonRemovePostRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataPersonRemovePostOK{}, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response ExceptionResponse
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeAPIV2TestdataRateLimitsDeleteResponse(resp *http.Response) (res APIV2TestdataRateLimitsDeleteRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &APIV2TestdataRateLimitsDeleteOK{}, nil
+		return &TestdataLimitsContextSessionDeleteOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -5755,16 +10759,107 @@ func decodeAPIV2TestdataRateLimitsDeleteResponse(resp *http.Response) (res APIV2
 		}
 	case 401:
 		// Code 401.
-		return &APIV2TestdataRateLimitsDeleteUnauthorized{}, nil
+		return &TestdataLimitsContextSessionDeleteUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TestdataRateLimitsPostResponse(resp *http.Response) (res APIV2TestdataRateLimitsPostRes, _ error) {
+func decodeTestdataLimitsContextSessionPostResponse(resp *http.Response) (res TestdataLimitsContextSessionPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &APIV2TestdataRateLimitsPostOK{}, nil
+		return &TestdataLimitsContextSessionPostOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -5811,16 +10906,107 @@ func decodeAPIV2TestdataRateLimitsPostResponse(resp *http.Response) (res APIV2Te
 		}
 	case 401:
 		// Code 401.
-		return &APIV2TestdataRateLimitsPostUnauthorized{}, nil
+		return &TestdataLimitsContextSessionPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TestdataSubjectPostResponse(resp *http.Response) (res APIV2TestdataSubjectPostRes, _ error) {
+func decodeTestdataLimitsSubjectCertificateDeleteResponse(resp *http.Response) (res TestdataLimitsSubjectCertificateDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &APIV2TestdataSubjectPostOK{}, nil
+		return &TestdataLimitsSubjectCertificateDeleteOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -5865,15 +11051,109 @@ func decodeAPIV2TestdataSubjectPostResponse(resp *http.Response) (res APIV2Testd
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 401:
+		// Code 401.
+		return &TestdataLimitsSubjectCertificateDeleteUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TestdataSubjectRemovePostResponse(resp *http.Response) (res APIV2TestdataSubjectRemovePostRes, _ error) {
+func decodeTestdataLimitsSubjectCertificatePostResponse(resp *http.Response) (res TestdataLimitsSubjectCertificatePostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &APIV2TestdataSubjectRemovePostOK{}, nil
+		return &TestdataLimitsSubjectCertificatePostOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -5918,11 +11198,1410 @@ func decodeAPIV2TestdataSubjectRemovePostResponse(resp *http.Response) (res APIV
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 401:
+		// Code 401.
+		return &TestdataLimitsSubjectCertificatePostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TokensGetResponse(resp *http.Response) (res APIV2TokensGetRes, _ error) {
+func decodeTestdataPermissionsPostResponse(resp *http.Response) (res TestdataPermissionsPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataPermissionsPostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataPermissionsRevokePostResponse(resp *http.Response) (res TestdataPermissionsRevokePostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataPermissionsRevokePostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataPersonPostResponse(resp *http.Response) (res TestdataPersonPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataPersonPostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataPersonRemovePostResponse(resp *http.Response) (res TestdataPersonRemovePostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataPersonRemovePostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataRateLimitsDeleteResponse(resp *http.Response) (res TestdataRateLimitsDeleteRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataRateLimitsDeleteOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		return &TestdataRateLimitsDeleteUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataRateLimitsPostResponse(resp *http.Response) (res TestdataRateLimitsPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataRateLimitsPostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		return &TestdataRateLimitsPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataRateLimitsProductionPostResponse(resp *http.Response) (res TestdataRateLimitsProductionPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataRateLimitsProductionPostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		return &TestdataRateLimitsProductionPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataSubjectPostResponse(resp *http.Response) (res TestdataSubjectPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataSubjectPostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTestdataSubjectRemovePostResponse(resp *http.Response) (res TestdataSubjectRemovePostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &TestdataSubjectRemovePostOK{}, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeTokensGetResponse(resp *http.Response) (res TokensGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -6014,12 +12693,103 @@ func decodeAPIV2TokensGetResponse(resp *http.Response) (res APIV2TokensGetRes, _
 		}
 	case 401:
 		// Code 401.
-		return &APIV2TokensGetUnauthorized{}, nil
+		return &TokensGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TokensPostResponse(resp *http.Response) (res APIV2TokensPostRes, _ error) {
+func decodeTokensPostResponse(resp *http.Response) (res TokensPostRes, _ error) {
 	switch resp.StatusCode {
 	case 202:
 		// Code 202.
@@ -6111,16 +12881,107 @@ func decodeAPIV2TokensPostResponse(resp *http.Response) (res APIV2TokensPostRes,
 		}
 	case 401:
 		// Code 401.
-		return &APIV2TokensPostUnauthorized{}, nil
+		return &TokensPostUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TokensReferenceNumberDeleteResponse(resp *http.Response) (res APIV2TokensReferenceNumberDeleteRes, _ error) {
+func decodeTokensReferenceNumberDeleteResponse(resp *http.Response) (res TokensReferenceNumberDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &APIV2TokensReferenceNumberDeleteNoContent{}, nil
+		return &TokensReferenceNumberDeleteNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -6167,12 +13028,103 @@ func decodeAPIV2TokensReferenceNumberDeleteResponse(resp *http.Response) (res AP
 		}
 	case 401:
 		// Code 401.
-		return &APIV2TokensReferenceNumberDeleteUnauthorized{}, nil
+		return &TokensReferenceNumberDeleteUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeAPIV2TokensReferenceNumberGetResponse(resp *http.Response) (res APIV2TokensReferenceNumberGetRes, _ error) {
+func decodeTokensReferenceNumberGetResponse(resp *http.Response) (res TokensReferenceNumberGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -6264,7 +13216,98 @@ func decodeAPIV2TokensReferenceNumberGetResponse(resp *http.Response) (res APIV2
 		}
 	case 401:
 		// Code 401.
-		return &APIV2TokensReferenceNumberGetUnauthorized{}, nil
+		return &TokensReferenceNumberGetUnauthorized{}, nil
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
 	}
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }

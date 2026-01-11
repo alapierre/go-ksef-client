@@ -36,7 +36,7 @@ func NewAuthFacade(env Environment, httpClient *http.Client) (*AuthFacade, error
 }
 
 func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
-	res, err := c.raw.APIV2AuthChallengePost(ctx)
+	res, err := c.raw.AuthChallengePost(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 
 	optReq := api.NewOptInitTokenAuthenticationRequest(req)
 
-	res, err := c.raw.APIV2AuthKsefTokenPost(ctx, optReq)
+	res, err := c.raw.AuthKsefTokenPost(ctx, optReq)
 	if err != nil {
 		return nil, fmt.Errorf("APIV2AuthKsefTokenPost: %w", err)
 	}
@@ -103,7 +103,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 		return nil, err
 	}
 
-	params := api.APIV2AuthReferenceNumberGetParams{
+	params := api.AuthReferenceNumberGetParams{
 		ReferenceNumber: authResp.GetReferenceNumber(),
 	}
 
@@ -113,7 +113,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 			return nil, ctx.Err()
 
 		case <-time.After(pollEvery):
-			res, err := cli.APIV2AuthReferenceNumberGet(ctx, params)
+			res, err := cli.AuthReferenceNumberGet(ctx, params)
 			if err != nil {
 				return nil, fmt.Errorf("APIV2AuthReferenceNumberGet: %w", err)
 			}
@@ -153,7 +153,7 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 		return api.TokenInfo{}, err
 	}
 
-	res, err := cli.APIV2AuthTokenRefreshPost(ctx)
+	res, err := cli.AuthTokenRefreshPost(ctx)
 	if err != nil {
 		return api.TokenInfo{}, fmt.Errorf("APIV2AuthTokenRefreshPost: %w", err)
 	}
@@ -163,7 +163,7 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 		return v.GetAccessToken(), nil
 
 	// specyficzny wariant błędu bez treści (401)
-	case *api.APIV2AuthTokenRefreshPostUnauthorized:
+	case *api.AuthTokenRefreshPostUnauthorized:
 		return api.TokenInfo{}, ErrUnauthorized
 
 	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
@@ -176,7 +176,7 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 }
 
 func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationTokensResponse, error) {
-	res, err := cli.APIV2AuthTokenRedeemPost(ctx)
+	res, err := cli.AuthTokenRedeemPost(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("APIV2AuthTokenRedeemPost: %w", err)
 	}
@@ -186,7 +186,7 @@ func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationToke
 		return v, nil
 
 	// specyficzny wariant błędu bez treści (401)
-	case *api.APIV2AuthTokenRedeemPostUnauthorized:
+	case *api.AuthTokenRedeemPostUnauthorized:
 		return nil, ErrUnauthorized
 
 	case *api.ExceptionResponse:

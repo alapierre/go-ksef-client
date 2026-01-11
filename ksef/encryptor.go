@@ -190,14 +190,14 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context) error {
 	}
 
 	now := time.Now()
-	res, err := s.cli.APIV2SecurityPublicKeyCertificatesGet(ctx)
+	res, err := s.cli.SecurityPublicKeyCertificatesGet(ctx)
 	if err != nil {
 		return err
 	}
 
 	var certs []api.PublicKeyCertificate
 	switch v := res.(type) {
-	case *api.APIV2SecurityPublicKeyCertificatesGetOKApplicationJSON:
+	case *api.SecurityPublicKeyCertificatesGetOKApplicationJSON:
 		certs = *v
 	default:
 		return fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
