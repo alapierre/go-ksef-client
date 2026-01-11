@@ -37,7 +37,7 @@ func (c *Client) OpenInteractiveSession(ctx context.Context, form api.FormCode, 
 		Encryption: enc,
 	})
 
-	res, err := c.raw.APIV2SessionsOnlinePost(ctx, req)
+	res, err := c.raw.SessionsOnlinePost(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +45,9 @@ func (c *Client) OpenInteractiveSession(ctx context.Context, form api.FormCode, 
 	switch v := res.(type) {
 	case *api.OpenOnlineSessionResponse:
 		return v, nil
-	case *api.APIV2SessionsOnlinePostUnauthorized:
+	case *api.SessionsOnlinePostUnauthorized:
 		return nil, ErrUnauthorized
-	case *api.APIV2SessionsOnlinePostForbidden:
+	case *api.SessionsOnlinePostForbidden:
 		return nil, ErrForbidden
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
@@ -76,11 +76,11 @@ func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.
 		OfflineMode:             offline,
 	})
 
-	params := api.APIV2SessionsOnlineReferenceNumberInvoicesPostParams{
+	params := api.SessionsOnlineReferenceNumberInvoicesPostParams{
 		ReferenceNumber: api.ReferenceNumber(reference),
 	}
 
-	res, err := c.raw.APIV2SessionsOnlineReferenceNumberInvoicesPost(ctx, req, params)
+	res, err := c.raw.SessionsOnlineReferenceNumberInvoicesPost(ctx, req, params)
 	if err != nil {
 		return "", err
 	}
@@ -88,9 +88,9 @@ func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.
 	switch v := res.(type) {
 	case *api.SendInvoiceResponse:
 		return string(v.GetReferenceNumber()), nil
-	case *api.APIV2SessionsOnlineReferenceNumberInvoicesPostUnauthorized:
+	case *api.SessionsOnlineReferenceNumberInvoicesPostUnauthorized:
 		return "", ErrUnauthorized
-	case *api.APIV2SessionsOnlineReferenceNumberInvoicesPostForbidden:
+	case *api.SessionsOnlineReferenceNumberInvoicesPostForbidden:
 		return "", ErrForbidden
 	case *api.ExceptionResponse:
 		return "", HandleAPIError(v)
@@ -110,7 +110,7 @@ func (c *Client) OpenBatchSession(ctx context.Context, form api.FormCode, enc ap
 		OfflineMode: offline,
 	})
 
-	res, err := c.raw.APIV2SessionsBatchPost(ctx, req)
+	res, err := c.raw.SessionsBatchPost(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +120,9 @@ func (c *Client) OpenBatchSession(ctx context.Context, form api.FormCode, enc ap
 		return v, nil
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
-	case *api.APIV2SessionsBatchPostUnauthorized:
+	case *api.SessionsBatchPostUnauthorized:
 		return nil, ErrUnauthorized
-	case *api.APIV2SessionsBatchPostForbidden:
+	case *api.SessionsBatchPostForbidden:
 		return nil, ErrForbidden
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
@@ -177,22 +177,22 @@ func (c *Client) SendBatchPart(ctx context.Context, data []byte, info api.PartUp
 
 func (c *Client) CloseBatchSession(ctx context.Context, reference string) (string, error) {
 
-	req := api.APIV2SessionsBatchReferenceNumberClosePostParams{
+	req := api.SessionsBatchReferenceNumberClosePostParams{
 		ReferenceNumber: api.ReferenceNumber(reference),
 	}
 
-	res, err := c.raw.APIV2SessionsBatchReferenceNumberClosePost(ctx, req)
+	res, err := c.raw.SessionsBatchReferenceNumberClosePost(ctx, req)
 	if err != nil {
 		return "", err
 	}
 
 	switch v := res.(type) {
-	case *api.APIV2SessionsBatchReferenceNumberClosePostNoContent:
+	case *api.SessionsBatchReferenceNumberClosePostNoContent:
 		// sukces – API zwraca 204 bez treści
 		return reference, nil
-	case *api.APIV2SessionsBatchReferenceNumberClosePostUnauthorized:
+	case *api.SessionsBatchReferenceNumberClosePostUnauthorized:
 		return "", ErrUnauthorized
-	case *api.APIV2SessionsBatchReferenceNumberClosePostForbidden:
+	case *api.SessionsBatchReferenceNumberClosePostForbidden:
 		return "", ErrForbidden
 	case *api.ExceptionResponse:
 		return "", HandleAPIError(v)

@@ -421,3 +421,15 @@ BenchmarkTokenProvider_ParallelManyNipsWarmCache-28      1261300               9
 PASS
 ok      github.com/alapierre/go-ksef-client/ksef        21.349s
 ````
+
+### Regenerating client form OpenAPI
+
+Because of how ogen handles size validation for string fields with the byte format, the maxLength and minLength constraints must be removed from the Sha256HashBase64 type or set to a value of 31. Ogen validates the length of the underlying byte array rather than the length of the Base64-encoded string.
+
+````json
+      "Sha256HashBase64": {
+        "type": "string",
+        "description": "SHA-256 w Base64.",
+        "format": "byte"
+      },
+````

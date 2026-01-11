@@ -21,13 +21,13 @@ func trimTrailingSlashes(u *url.URL) {
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
-	// APIV2AuthChallengePost invokes POST /api/v2/auth/challenge operation.
+	// AuthChallengePost invokes POST /auth/challenge operation.
 	//
 	// Generuje unikalny challenge wymagany w kolejnym kroku operacji uwierzytelnienia.
 	//
-	// POST /api/v2/auth/challenge
-	APIV2AuthChallengePost(ctx context.Context) (APIV2AuthChallengePostRes, error)
-	// APIV2AuthKsefTokenPost invokes POST /api/v2/auth/ksef-token operation.
+	// POST /auth/challenge
+	AuthChallengePost(ctx context.Context) (AuthChallengePostRes, error)
+	// AuthKsefTokenPost invokes POST /auth/ksef-token operation.
 	//
 	// Rozpoczyna operację uwierzytelniania z wykorzystaniem wcześniej wygenerowanego tokena KSeF.
 	// Token KSeF wraz z timestampem ze wcześniej wygenerowanego challenge'a (w formacie
@@ -36,17 +36,17 @@ type Invoker interface {
 	// timestamp)**.
 	// - Algorytm szyfrowania: **RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu)**.
 	//
-	// POST /api/v2/auth/ksef-token
-	APIV2AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (APIV2AuthKsefTokenPostRes, error)
-	// APIV2AuthReferenceNumberGet invokes GET /api/v2/auth/{referenceNumber} operation.
+	// POST /auth/ksef-token
+	AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (AuthKsefTokenPostRes, error)
+	// AuthReferenceNumberGet invokes GET /auth/{referenceNumber} operation.
 	//
 	// Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 	// uwierzytelniania.
 	//
-	// GET /api/v2/auth/{referenceNumber}
-	APIV2AuthReferenceNumberGet(ctx context.Context, params APIV2AuthReferenceNumberGetParams) (APIV2AuthReferenceNumberGetRes, error)
-	// APIV2AuthSessionsCurrentDelete invokes DELETE /api/v2/auth/sessions/current operation.
+	// GET /auth/{referenceNumber}
+	AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error)
+	// AuthSessionsCurrentDelete invokes DELETE /auth/sessions/current operation.
 	//
 	// Unieważnia sesję powiązaną z tokenem użytym do wywołania tej operacji.
 	// Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
@@ -54,26 +54,26 @@ type Invoker interface {
 	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
 	// Sposób uwierzytelnienia: `RefreshToken` lub `AccessToken`.
 	//
-	// DELETE /api/v2/auth/sessions/current
-	APIV2AuthSessionsCurrentDelete(ctx context.Context) (APIV2AuthSessionsCurrentDeleteRes, error)
-	// APIV2AuthSessionsGet invokes GET /api/v2/auth/sessions operation.
+	// DELETE /auth/sessions/current
+	AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error)
+	// AuthSessionsGet invokes GET /auth/sessions operation.
 	//
 	// Zwraca listę aktywnych sesji uwierzytelnienia.
 	// **Sortowanie:**
 	// - startDate (Desc).
 	//
-	// GET /api/v2/auth/sessions
-	APIV2AuthSessionsGet(ctx context.Context, params APIV2AuthSessionsGetParams) (APIV2AuthSessionsGetRes, error)
-	// APIV2AuthSessionsReferenceNumberDelete invokes DELETE /api/v2/auth/sessions/{referenceNumber} operation.
+	// GET /auth/sessions
+	AuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (AuthSessionsGetRes, error)
+	// AuthSessionsReferenceNumberDelete invokes DELETE /auth/sessions/{referenceNumber} operation.
 	//
 	// Unieważnia sesję o podanym numerze referencyjnym.
 	// Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
 	// już za jego pomocą uzyskać kolejnych access tokenów.
 	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**.
 	//
-	// DELETE /api/v2/auth/sessions/{referenceNumber}
-	APIV2AuthSessionsReferenceNumberDelete(ctx context.Context, params APIV2AuthSessionsReferenceNumberDeleteParams) (APIV2AuthSessionsReferenceNumberDeleteRes, error)
-	// APIV2AuthTokenRedeemPost invokes POST /api/v2/auth/token/redeem operation.
+	// DELETE /auth/sessions/{referenceNumber}
+	AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error)
+	// AuthTokenRedeemPost invokes POST /auth/token/redeem operation.
 	//
 	// Pobiera parę tokenów (access token i refresh token) wygenerowanych w ramach pozytywnie
 	// zakończonego procesu uwierzytelniania.
@@ -81,16 +81,16 @@ type Invoker interface {
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 	// uwierzytelniania.
 	//
-	// POST /api/v2/auth/token/redeem
-	APIV2AuthTokenRedeemPost(ctx context.Context) (APIV2AuthTokenRedeemPostRes, error)
-	// APIV2AuthTokenRefreshPost invokes POST /api/v2/auth/token/refresh operation.
+	// POST /auth/token/redeem
+	AuthTokenRedeemPost(ctx context.Context) (AuthTokenRedeemPostRes, error)
+	// AuthTokenRefreshPost invokes POST /auth/token/refresh operation.
 	//
 	// Generuje nowy token dostępu na podstawie ważnego refresh tokena.
 	// Sposób uwierzytelnienia: `RefreshToken`.
 	//
-	// POST /api/v2/auth/token/refresh
-	APIV2AuthTokenRefreshPost(ctx context.Context) (APIV2AuthTokenRefreshPostRes, error)
-	// APIV2AuthXadesSignaturePost invokes POST /api/v2/auth/xades-signature operation.
+	// POST /auth/token/refresh
+	AuthTokenRefreshPost(ctx context.Context) (AuthTokenRefreshPostRes, error)
+	// AuthXadesSignaturePost invokes POST /auth/xades-signature operation.
 	//
 	// Rozpoczyna operację uwierzytelniania za pomocą dokumentu XML podpisanego podpisem elektronicznym
 	// XAdES.
@@ -101,15 +101,15 @@ type Invoker interface {
 	// md#2-podpisanie-dokumentu-xades)
 	// > - [Schemat XSD](/docs/v2/schemas/authv2.xsd).
 	//
-	// POST /api/v2/auth/xades-signature
-	APIV2AuthXadesSignaturePost(ctx context.Context, request APIV2AuthXadesSignaturePostReq, params APIV2AuthXadesSignaturePostParams) (APIV2AuthXadesSignaturePostRes, error)
-	// APIV2CertificatesCertificateSerialNumberRevokePost invokes POST /api/v2/certificates/{certificateSerialNumber}/revoke operation.
+	// POST /auth/xades-signature
+	AuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (AuthXadesSignaturePostRes, error)
+	// CertificatesCertificateSerialNumberRevokePost invokes POST /certificates/{certificateSerialNumber}/revoke operation.
 	//
 	// Unieważnia certyfikat o podanym numerze seryjnym.
 	//
-	// POST /api/v2/certificates/{certificateSerialNumber}/revoke
-	APIV2CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params APIV2CertificatesCertificateSerialNumberRevokePostParams) (APIV2CertificatesCertificateSerialNumberRevokePostRes, error)
-	// APIV2CertificatesEnrollmentsDataGet invokes GET /api/v2/certificates/enrollments/data operation.
+	// POST /certificates/{certificateSerialNumber}/revoke
+	CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (CertificatesCertificateSerialNumberRevokePostRes, error)
+	// CertificatesEnrollmentsDataGet invokes GET /certificates/enrollments/data operation.
 	//
 	// Zwraca dane wymagane do przygotowania wniosku certyfikacyjnego PKCS#10.
 	// Dane te są zwracane na podstawie certyfikatu użytego w procesie uwierzytelnienia i identyfikują
@@ -120,9 +120,9 @@ type Invoker interface {
 	// > - [Przygotowanie wniosku](https://github.com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.
 	// md#3-przygotowanie-csr-certificate-signing-request).
 	//
-	// GET /api/v2/certificates/enrollments/data
-	APIV2CertificatesEnrollmentsDataGet(ctx context.Context) (APIV2CertificatesEnrollmentsDataGetRes, error)
-	// APIV2CertificatesEnrollmentsPost invokes POST /api/v2/certificates/enrollments operation.
+	// GET /certificates/enrollments/data
+	CertificatesEnrollmentsDataGet(ctx context.Context) (CertificatesEnrollmentsDataGetRes, error)
+	// CertificatesEnrollmentsPost invokes POST /certificates/enrollments operation.
 	//
 	// Przyjmuje wniosek certyfikacyjny i rozpoczyna jego przetwarzanie.
 	// Dozwolone typy kluczy prywatnych:
@@ -143,37 +143,37 @@ type Invoker interface {
 	// > - [Wysłanie wniosku certyfikacyjnego](https://github.
 	// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego).
 	//
-	// POST /api/v2/certificates/enrollments
-	APIV2CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (APIV2CertificatesEnrollmentsPostRes, error)
-	// APIV2CertificatesEnrollmentsReferenceNumberGet invokes GET /api/v2/certificates/enrollments/{referenceNumber} operation.
+	// POST /certificates/enrollments
+	CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (CertificatesEnrollmentsPostRes, error)
+	// CertificatesEnrollmentsReferenceNumberGet invokes GET /certificates/enrollments/{referenceNumber} operation.
 	//
 	// Zwraca informacje o statusie wniosku certyfikacyjnego.
 	//
-	// GET /api/v2/certificates/enrollments/{referenceNumber}
-	APIV2CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params APIV2CertificatesEnrollmentsReferenceNumberGetParams) (APIV2CertificatesEnrollmentsReferenceNumberGetRes, error)
-	// APIV2CertificatesLimitsGet invokes GET /api/v2/certificates/limits operation.
+	// GET /certificates/enrollments/{referenceNumber}
+	CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (CertificatesEnrollmentsReferenceNumberGetRes, error)
+	// CertificatesLimitsGet invokes GET /certificates/limits operation.
 	//
 	// Zwraca informacje o limitach certyfikatów oraz informacje czy użytkownik może zawnioskować o
 	// certyfikat KSeF.
 	//
-	// GET /api/v2/certificates/limits
-	APIV2CertificatesLimitsGet(ctx context.Context) (APIV2CertificatesLimitsGetRes, error)
-	// APIV2CertificatesQueryPost invokes POST /api/v2/certificates/query operation.
+	// GET /certificates/limits
+	CertificatesLimitsGet(ctx context.Context) (CertificatesLimitsGetRes, error)
+	// CertificatesQueryPost invokes POST /certificates/query operation.
 	//
 	// Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania.
 	// W przypadku braku podania kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
 	// **Sortowanie:**
 	// - requestDate (Desc).
 	//
-	// POST /api/v2/certificates/query
-	APIV2CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params APIV2CertificatesQueryPostParams) (APIV2CertificatesQueryPostRes, error)
-	// APIV2CertificatesRetrievePost invokes POST /api/v2/certificates/retrieve operation.
+	// POST /certificates/query
+	CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params CertificatesQueryPostParams) (CertificatesQueryPostRes, error)
+	// CertificatesRetrievePost invokes POST /certificates/retrieve operation.
 	//
 	// Zwraca certyfikaty o podanych numerach seryjnych w formacie DER zakodowanym w Base64.
 	//
-	// POST /api/v2/certificates/retrieve
-	APIV2CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (APIV2CertificatesRetrievePostRes, error)
-	// APIV2InvoicesExportsPost invokes POST /api/v2/invoices/exports operation.
+	// POST /certificates/retrieve
+	CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (CertificatesRetrievePostRes, error)
+	// InvoicesExportsPost invokes POST /invoices/exports operation.
 	//
 	// Rozpoczyna asynchroniczny proces wyszukiwania faktur w systemie KSeF na podstawie przekazanych
 	// filtrów oraz przygotowania ich w formie zaszyfrowanej paczki.
@@ -181,7 +181,8 @@ type Invoker interface {
 	// zabezpieczenia przygotowanej paczki z fakturami.
 	// Maksymalnie można uruchomić 10 równoczesnych eksportów w zalogowanym kontekście.
 	// System pobiera faktury rosnąco według daty określonej w filtrze (Invoicing, Issue,
-	// PermanentStorage) i dodaje je do paczki aż do osiągnięcia jednego z poniższych limitów:
+	// PermanentStorage) i dodaje faktury(nazwa pliku: <b>{ksefNumber}.xml</b>) do paczki aż do
+	// osiągnięcia jednego z poniższych limitów:
 	// * Limit liczby faktur: 10 000 sztuk
 	// * Limit rozmiaru danych(skompresowanych): 1GB
 	// Paczka eksportu zawiera dodatkowy plik z metadanymi faktur w formacie JSON (`_metadata.json`).
@@ -194,9 +195,9 @@ type Invoker interface {
 	// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 	// **Wymagane uprawnienia**: `InvoiceRead`.
 	//
-	// POST /api/v2/invoices/exports
-	APIV2InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (APIV2InvoicesExportsPostRes, error)
-	// APIV2InvoicesExportsReferenceNumberGet invokes GET /api/v2/invoices/exports/{referenceNumber} operation.
+	// POST /invoices/exports
+	InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (InvoicesExportsPostRes, error)
+	// InvoicesExportsReferenceNumberGet invokes GET /invoices/exports/{referenceNumber} operation.
 	//
 	// Paczka faktur jest dzielona na części o maksymalnym rozmiarze 50 MB. Każda część jest
 	// zaszyfrowana algorytmem AES-256-CBC z dopełnieniem PKCS#7, przy użyciu klucza symetrycznego
@@ -208,16 +209,16 @@ type Invoker interface {
 	// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 	// **Wymagane uprawnienia**: `InvoiceRead`.
 	//
-	// GET /api/v2/invoices/exports/{referenceNumber}
-	APIV2InvoicesExportsReferenceNumberGet(ctx context.Context, params APIV2InvoicesExportsReferenceNumberGetParams) (APIV2InvoicesExportsReferenceNumberGetRes, error)
-	// APIV2InvoicesKsefKsefNumberGet invokes GET /api/v2/invoices/ksef/{ksefNumber} operation.
+	// GET /invoices/exports/{referenceNumber}
+	InvoicesExportsReferenceNumberGet(ctx context.Context, params InvoicesExportsReferenceNumberGetParams) (InvoicesExportsReferenceNumberGetRes, error)
+	// InvoicesKsefKsefNumberGet invokes GET /invoices/ksef/{ksefNumber} operation.
 	//
 	// Zwraca fakturę o podanym numerze KSeF.
 	// **Wymagane uprawnienia**: `InvoiceRead`.
 	//
-	// GET /api/v2/invoices/ksef/{ksefNumber}
-	APIV2InvoicesKsefKsefNumberGet(ctx context.Context, params APIV2InvoicesKsefKsefNumberGetParams) (APIV2InvoicesKsefKsefNumberGetRes, error)
-	// APIV2InvoicesQueryMetadataPost invokes POST /api/v2/invoices/query/metadata operation.
+	// GET /invoices/ksef/{ksefNumber}
+	InvoicesKsefKsefNumberGet(ctx context.Context, params InvoicesKsefKsefNumberGetParams) (InvoicesKsefKsefNumberGetRes, error)
+	// InvoicesQueryMetadataPost invokes POST /invoices/query/metadata operation.
 	//
 	// Zwraca metadane faktur spełniających filtry.
 	// Limit techniczny: ≤ 10 000 rekordów na zestaw filtrów, po jego osiągnięciu <b>isTruncated =
@@ -236,36 +237,37 @@ type Invoker interface {
 	// filtrów
 	// **Wymagane uprawnienia**: `InvoiceRead`.
 	//
-	// POST /api/v2/invoices/query/metadata
-	APIV2InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params APIV2InvoicesQueryMetadataPostParams) (APIV2InvoicesQueryMetadataPostRes, error)
-	// APIV2LimitsContextGet invokes GET /api/v2/limits/context operation.
+	// POST /invoices/query/metadata
+	InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params InvoicesQueryMetadataPostParams) (InvoicesQueryMetadataPostRes, error)
+	// LimitsContextGet invokes GET /limits/context operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego kontekstu.
 	//
-	// GET /api/v2/limits/context
-	APIV2LimitsContextGet(ctx context.Context) (APIV2LimitsContextGetRes, error)
-	// APIV2LimitsSubjectGet invokes GET /api/v2/limits/subject operation.
+	// GET /limits/context
+	LimitsContextGet(ctx context.Context) (LimitsContextGetRes, error)
+	// LimitsSubjectGet invokes GET /limits/subject operation.
 	//
-	// Zwraca wartoście aktualnie obowiązujących limitów dla bieżącego podmiotu.
+	// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego podmiotu.
 	//
-	// GET /api/v2/limits/subject
-	APIV2LimitsSubjectGet(ctx context.Context) (APIV2LimitsSubjectGetRes, error)
-	// APIV2PeppolQueryGet invokes GET /api/v2/peppol/query operation.
+	// GET /limits/subject
+	LimitsSubjectGet(ctx context.Context) (LimitsSubjectGetRes, error)
+	// PeppolQueryGet invokes GET /peppol/query operation.
 	//
 	// Zwraca listę dostawców usług Peppol zarejestrowanych w systemie.
 	// **Sortowanie:**
-	// - dateCreated (Desc).
+	// - dateCreated (Desc)
+	// - id (Asc).
 	//
-	// GET /api/v2/peppol/query
-	APIV2PeppolQueryGet(ctx context.Context, params APIV2PeppolQueryGetParams) (APIV2PeppolQueryGetRes, error)
-	// APIV2PermissionsAttachmentsStatusGet invokes GET /api/v2/permissions/attachments/status operation.
+	// GET /peppol/query
+	PeppolQueryGet(ctx context.Context, params PeppolQueryGetParams) (PeppolQueryGetRes, error)
+	// PermissionsAttachmentsStatusGet invokes GET /permissions/attachments/status operation.
 	//
 	// Sprawdzenie czy obecny kontekst posiada zgodę na wystawianie faktur z załącznikiem.
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
 	//
-	// GET /api/v2/permissions/attachments/status
-	APIV2PermissionsAttachmentsStatusGet(ctx context.Context) (APIV2PermissionsAttachmentsStatusGetRes, error)
-	// APIV2PermissionsAuthorizationsGrantsPermissionIdDelete invokes DELETE /api/v2/permissions/authorizations/grants/{permissionId} operation.
+	// GET /permissions/attachments/status
+	PermissionsAttachmentsStatusGet(ctx context.Context) (PermissionsAttachmentsStatusGetRes, error)
+	// PermissionsAuthorizationsGrantsPermissionIdDelete invokes DELETE /permissions/authorizations/grants/{permissionId} operation.
 	//
 	// Metoda pozwala na odebranie uprawnienia podmiotowego o wskazanym identyfikatorze.
 	// Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
@@ -275,9 +277,9 @@ type Invoker interface {
 	// md#odebranie-uprawnie%C5%84-podmiotowych)
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
-	// DELETE /api/v2/permissions/authorizations/grants/{permissionId}
-	APIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteRes, error)
-	// APIV2PermissionsAuthorizationsGrantsPost invokes POST /api/v2/permissions/authorizations/grants operation.
+	// DELETE /permissions/authorizations/grants/{permissionId}
+	PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (PermissionsAuthorizationsGrantsPermissionIdDeleteRes, error)
+	// PermissionsAuthorizationsGrantsPost invokes POST /permissions/authorizations/grants operation.
 	//
 	// Metoda pozwala na nadanie jednego z uprawnień podmiotowych do obsługi podmiotu kontekstu
 	// podmiotowi wskazanemu w żądaniu.
@@ -286,9 +288,9 @@ type Invoker interface {
 	// md#nadanie-uprawnie%C5%84-podmiotowych)
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
-	// POST /api/v2/permissions/authorizations/grants
-	APIV2PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (APIV2PermissionsAuthorizationsGrantsPostRes, error)
-	// APIV2PermissionsCommonGrantsPermissionIdDelete invokes DELETE /api/v2/permissions/common/grants/{permissionId} operation.
+	// POST /permissions/authorizations/grants
+	PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (PermissionsAuthorizationsGrantsPostRes, error)
+	// PermissionsCommonGrantsPermissionIdDelete invokes DELETE /permissions/common/grants/{permissionId} operation.
 	//
 	// Metoda pozwala na odebranie uprawnienia o wskazanym identyfikatorze.
 	// Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
@@ -298,9 +300,9 @@ type Invoker interface {
 	// md#odebranie-uprawnie%C5%84)
 	// **Wymagane uprawnienia**: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
 	//
-	// DELETE /api/v2/permissions/common/grants/{permissionId}
-	APIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params APIV2PermissionsCommonGrantsPermissionIdDeleteParams) (APIV2PermissionsCommonGrantsPermissionIdDeleteRes, error)
-	// APIV2PermissionsEntitiesGrantsPost invokes POST /api/v2/permissions/entities/grants operation.
+	// DELETE /permissions/common/grants/{permissionId}
+	PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params PermissionsCommonGrantsPermissionIdDeleteParams) (PermissionsCommonGrantsPermissionIdDeleteRes, error)
+	// PermissionsEntitiesGrantsPost invokes POST /permissions/entities/grants operation.
 	//
 	// Metoda pozwala na nadanie podmiotowi wskazanemu w żądaniu uprawnień do obsługi faktur podmiotu
 	// kontekstu.
@@ -315,9 +317,9 @@ type Invoker interface {
 	// md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur)
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
-	// POST /api/v2/permissions/entities/grants
-	APIV2PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (APIV2PermissionsEntitiesGrantsPostRes, error)
-	// APIV2PermissionsEuEntitiesAdministrationGrantsPost invokes POST /api/v2/permissions/eu-entities/administration/grants operation.
+	// POST /permissions/entities/grants
+	PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (PermissionsEntitiesGrantsPostRes, error)
+	// PermissionsEuEntitiesAdministrationGrantsPost invokes POST /permissions/eu-entities/administration/grants operation.
 	//
 	// Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 	// administratora w kontekście złożonym z identyfikatora NIP podmiotu kontekstu bieżącego oraz
@@ -341,9 +343,9 @@ type Invoker interface {
 	// md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego)
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
-	// POST /api/v2/permissions/eu-entities/administration/grants
-	APIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (APIV2PermissionsEuEntitiesAdministrationGrantsPostRes, error)
-	// APIV2PermissionsEuEntitiesGrantsPost invokes POST /api/v2/permissions/eu-entities/grants operation.
+	// POST /permissions/eu-entities/administration/grants
+	PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (PermissionsEuEntitiesAdministrationGrantsPostRes, error)
+	// PermissionsEuEntitiesGrantsPost invokes POST /permissions/eu-entities/grants operation.
 	//
 	// Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień do
 	// wystawiania i/lub przeglądania faktur w kontekście złożonym kontekstu bieżącego.
@@ -359,9 +361,9 @@ type Invoker interface {
 	// md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego)
 	// **Wymagane uprawnienia**: `VatUeManage`.
 	//
-	// POST /api/v2/permissions/eu-entities/grants
-	APIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (APIV2PermissionsEuEntitiesGrantsPostRes, error)
-	// APIV2PermissionsIndirectGrantsPost invokes POST /api/v2/permissions/indirect/grants operation.
+	// POST /permissions/eu-entities/grants
+	PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (PermissionsEuEntitiesGrantsPostRes, error)
+	// PermissionsIndirectGrantsPost invokes POST /permissions/indirect/grants operation.
 	//
 	// Metoda pozwala na nadanie w sposób pośredni osobie wskazanej w żądaniu uprawnień do obsługi
 	// faktur innego podmiotu – klienta.
@@ -370,8 +372,8 @@ type Invoker interface {
 	// - nadanie uprawnień selektywnych – do obsługi wskazanego klienta
 	// Uprawnienie selektywne może być nadane wyłącznie wtedy, gdy klient nadał wcześniej
 	// podmiotowi bieżącego kontekstu dowolne uprawnienie z prawem do jego dalszego przekazywania
-	// (patrz [POST /api/v2/permissions/entities/grants](/docs/v2/index.
-	// html#tag/Nadawanie-uprawnien/paths/~1api~1v2~1permissions~1entities~1grants/post)).
+	// (patrz [POST /v2/permissions/entities/grants](/docs/v2/index.
+	// html#tag/Nadawanie-uprawnien/paths/~1permissions~1entities~1grants/post)).
 	// W żądaniu określane są nadawane uprawnienia ze zbioru:
 	// - **InvoiceWrite** – wystawianie faktur
 	// - **InvoiceRead** – przeglądanie faktur
@@ -381,15 +383,15 @@ type Invoker interface {
 	// md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni)
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
-	// POST /api/v2/permissions/indirect/grants
-	APIV2PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (APIV2PermissionsIndirectGrantsPostRes, error)
-	// APIV2PermissionsOperationsReferenceNumberGet invokes GET /api/v2/permissions/operations/{referenceNumber} operation.
+	// POST /permissions/indirect/grants
+	PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (PermissionsIndirectGrantsPostRes, error)
+	// PermissionsOperationsReferenceNumberGet invokes GET /permissions/operations/{referenceNumber} operation.
 	//
 	// Zwraca status operacji asynchronicznej związanej z nadaniem lub odebraniem uprawnień.
 	//
-	// GET /api/v2/permissions/operations/{referenceNumber}
-	APIV2PermissionsOperationsReferenceNumberGet(ctx context.Context, params APIV2PermissionsOperationsReferenceNumberGetParams) (APIV2PermissionsOperationsReferenceNumberGetRes, error)
-	// APIV2PermissionsPersonsGrantsPost invokes POST /api/v2/permissions/persons/grants operation.
+	// GET /permissions/operations/{referenceNumber}
+	PermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (PermissionsOperationsReferenceNumberGetRes, error)
+	// PermissionsPersonsGrantsPost invokes POST /permissions/persons/grants operation.
 	//
 	// Metoda pozwala na nadanie osobie wskazanej w żądaniu uprawnień do pracy w KSeF
 	// w kontekście bieżącym.
@@ -410,9 +412,9 @@ type Invoker interface {
 	// md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef)
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
-	// POST /api/v2/permissions/persons/grants
-	APIV2PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (APIV2PermissionsPersonsGrantsPostRes, error)
-	// APIV2PermissionsQueryAuthorizationsGrantsPost invokes POST /api/v2/permissions/query/authorizations/grants operation.
+	// POST /permissions/persons/grants
+	PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (PermissionsPersonsGrantsPostRes, error)
+	// PermissionsQueryAuthorizationsGrantsPost invokes POST /permissions/query/authorizations/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień podmiotowych:
 	// - otrzymanych przez podmiot bieżącego kontekstu
@@ -439,11 +441,12 @@ type Invoker interface {
 	// md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur)
 	// **Sortowanie:**
 	// - startDate (Desc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+	// - id (Asc)
+	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `PefInvoiceWrite`.
 	//
-	// POST /api/v2/permissions/query/authorizations/grants
-	APIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params APIV2PermissionsQueryAuthorizationsGrantsPostParams) (APIV2PermissionsQueryAuthorizationsGrantsPostRes, error)
-	// APIV2PermissionsQueryEntitiesRolesGet invokes GET /api/v2/permissions/query/entities/roles operation.
+	// POST /permissions/query/authorizations/grants
+	PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error)
+	// PermissionsQueryEntitiesRolesGet invokes GET /permissions/query/entities/roles operation.
 	//
 	// Metoda pozwala na **odczytanie listy ról podmiotu bieżącego kontekstu logowania**.
 	// #### Role podmiotów zwracane przez operację:
@@ -463,11 +466,12 @@ type Invoker interface {
 	// md#pobranie-listy-r%C3%B3l-podmiotu)
 	// **Sortowanie:**
 	// - startDate (Desc)
+	// - id (Asc)
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
 	//
-	// GET /api/v2/permissions/query/entities/roles
-	APIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, params APIV2PermissionsQueryEntitiesRolesGetParams) (APIV2PermissionsQueryEntitiesRolesGetRes, error)
-	// APIV2PermissionsQueryEuEntitiesGrantsPost invokes POST /api/v2/permissions/query/eu-entities/grants operation.
+	// GET /permissions/query/entities/roles
+	PermissionsQueryEntitiesRolesGet(ctx context.Context, params PermissionsQueryEntitiesRolesGetParams) (PermissionsQueryEntitiesRolesGetRes, error)
+	// PermissionsQueryEuEntitiesGrantsPost invokes POST /permissions/query/eu-entities/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień administratorów lub reprezentantów podmiotów unijnych:
 	// - Jeżeli kontekstem logowania jest NIP, możliwe jest odczytanie uprawnień administratorów
@@ -494,11 +498,12 @@ type Invoker interface {
 	// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania)
 	// **Sortowanie:**
 	// - startDate (Desc)
+	// - id (Asc)
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `VatUeManage`.
 	//
-	// POST /api/v2/permissions/query/eu-entities/grants
-	APIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params APIV2PermissionsQueryEuEntitiesGrantsPostParams) (APIV2PermissionsQueryEuEntitiesGrantsPostRes, error)
-	// APIV2PermissionsQueryPersonalGrantsPost invokes POST /api/v2/permissions/query/personal/grants operation.
+	// POST /permissions/query/eu-entities/grants
+	PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params PermissionsQueryEuEntitiesGrantsPostParams) (PermissionsQueryEuEntitiesGrantsPostRes, error)
+	// PermissionsQueryPersonalGrantsPost invokes POST /permissions/query/personal/grants operation.
 	//
 	// Metoda pozwala na odczytanie własnych uprawnień uwierzytelnionego klienta API w bieżącym
 	// kontekście logowania.
@@ -532,11 +537,12 @@ type Invoker interface {
 	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84)
 	// **Sortowanie:**
-	// - startDate (Desc).
+	// - startDate (Desc)
+	// - id (Asc).
 	//
-	// POST /api/v2/permissions/query/personal/grants
-	APIV2PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params APIV2PermissionsQueryPersonalGrantsPostParams) (APIV2PermissionsQueryPersonalGrantsPostRes, error)
-	// APIV2PermissionsQueryPersonsGrantsPost invokes POST /api/v2/permissions/query/persons/grants operation.
+	// POST /permissions/query/personal/grants
+	PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params PermissionsQueryPersonalGrantsPostParams) (PermissionsQueryPersonalGrantsPostRes, error)
+	// PermissionsQueryPersonsGrantsPost invokes POST /permissions/query/persons/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień nadanych osobie fizycznej lub podmiotowi.
 	// Lista pobranych uprawnień może być dwóch rodzajów:
@@ -578,11 +584,12 @@ type Invoker interface {
 	// md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom)
 	// **Sortowanie:**
 	// - startDate (Desc)
+	// - id (Asc)
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 	//
-	// POST /api/v2/permissions/query/persons/grants
-	APIV2PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params APIV2PermissionsQueryPersonsGrantsPostParams) (APIV2PermissionsQueryPersonsGrantsPostRes, error)
-	// APIV2PermissionsQuerySubordinateEntitiesRolesPost invokes POST /api/v2/permissions/query/subordinate-entities/roles operation.
+	// POST /permissions/query/persons/grants
+	PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params PermissionsQueryPersonsGrantsPostParams) (PermissionsQueryPersonsGrantsPostRes, error)
+	// PermissionsQuerySubordinateEntitiesRolesPost invokes POST /permissions/query/subordinate-entities/roles operation.
 	//
 	// Metoda pozwala na odczytanie listy podmiotów podrzędnych,
 	// jeżeli podmiot bieżącego kontekstu ma rolę podmiotu nadrzędnego:
@@ -603,11 +610,12 @@ type Invoker interface {
 	// com/CIRFMF/ksef-docs/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych)
 	// **Sortowanie:**
 	// - startDate (Desc)
+	// - id (Asc)
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 	//
-	// POST /api/v2/permissions/query/subordinate-entities/roles
-	APIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params APIV2PermissionsQuerySubordinateEntitiesRolesPostParams) (APIV2PermissionsQuerySubordinateEntitiesRolesPostRes, error)
-	// APIV2PermissionsQuerySubunitsGrantsPost invokes POST /api/v2/permissions/query/subunits/grants operation.
+	// POST /permissions/query/subordinate-entities/roles
+	PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params PermissionsQuerySubordinateEntitiesRolesPostParams) (PermissionsQuerySubordinateEntitiesRolesPostRes, error)
+	// PermissionsQuerySubunitsGrantsPost invokes POST /permissions/query/subunits/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień do zarządzania uprawnieniami nadanych administratorom:
 	// - jednostek podrzędnych identyfikowanych identyfikatorem wewnętrznym
@@ -628,11 +636,12 @@ type Invoker interface {
 	// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych)
 	// **Sortowanie:**
 	// - startDate (Desc)
+	// - id (Asc)
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 	//
-	// POST /api/v2/permissions/query/subunits/grants
-	APIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params APIV2PermissionsQuerySubunitsGrantsPostParams) (APIV2PermissionsQuerySubunitsGrantsPostRes, error)
-	// APIV2PermissionsSubunitsGrantsPost invokes POST /api/v2/permissions/subunits/grants operation.
+	// POST /permissions/query/subunits/grants
+	PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params PermissionsQuerySubunitsGrantsPostParams) (PermissionsQuerySubunitsGrantsPostRes, error)
+	// PermissionsSubunitsGrantsPost invokes POST /permissions/subunits/grants operation.
 	//
 	// Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 	// administratora w kontekście:
@@ -644,6 +653,28 @@ type Invoker interface {
 	// Wraz z utworzeniem administratora jednostki podrzędnej tworzony jest identyfikator wewnętrzny
 	// składający się z numeru NIP podmiotu kontekstu logowania oraz 5 cyfr unikalnie
 	// identyfikujących jednostkę wewnętrzną.
+	// Ostatnia cyfra musi być poprawną sumą kontrolną, która jest obliczana według poniższego
+	// algorytmu.
+	// Algorytm używa naprzemiennych wag (1×, 3×, 1×, 3×, ...), sumuje wyniki i zwraca resztę z
+	// dzielenia przez 10.
+	// Przykład:
+	// - Wejście: "6824515772-1234" (bez cyfry kontrolnej)
+	// - Pozycja 0 (1. cyfra): 6 × 1 = 6
+	// - Pozycja 1 (2. cyfra): 8 × 3 = 24
+	// - Pozycja 2 (3. cyfra): 2 × 1 = 2
+	// - Pozycja 3 (4. cyfra): 4 × 3 = 12
+	// - Pozycja 4 (5. cyfra): 5 × 1 = 5
+	// - Pozycja 5 (6. cyfra): 1 × 3 = 3
+	// - Pozycja 6 (7. cyfra): 5 × 1 = 5
+	// - Pozycja 7 (8. cyfra): 7 × 3 = 21
+	// - Pozycja 8 (9. cyfra): 7 × 1 = 7
+	// - Pozycja 9 (10. cyfra): 2 × 3 = 6
+	// - Pozycja 10 (11. cyfra): 1 × 1 = 1
+	// - Pozycja 11 (12. cyfra): 2 × 3 = 6
+	// - Pozycja 12 (13. cyfra): 3 × 1 = 3
+	// - Pozycja 13 (14. cyfra): 4 × 3 = 12
+	// - Suma: 6 + 24 + 2 + 12 + 5 + 3 + 5 + 21 + 7 + 6 + 1 + 6 + 3 + 12 = 113
+	// - Cyfra kontrolna (15. cyfra): 113 % 10 = 3
 	// W żądaniu podaje się również nazwę tej jednostki.
 	// Uprawnienia administratora jednostki podrzędnej obejmują:
 	// - **CredentialsManage** – zarządzanie uprawnieniami
@@ -653,256 +684,279 @@ type Invoker interface {
 	// md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego)
 	// **Wymagane uprawnienia**: `SubunitManage`.
 	//
-	// POST /api/v2/permissions/subunits/grants
-	APIV2PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (APIV2PermissionsSubunitsGrantsPostRes, error)
-	// APIV2RateLimitsGet invokes GET /api/v2/rate-limits operation.
+	// POST /permissions/subunits/grants
+	PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (PermissionsSubunitsGrantsPostRes, error)
+	// RateLimitsGet invokes GET /rate-limits operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów ilości żądań przesyłanych do API.
 	//
-	// GET /api/v2/rate-limits
-	APIV2RateLimitsGet(ctx context.Context) (APIV2RateLimitsGetRes, error)
-	// APIV2SecurityPublicKeyCertificatesGet invokes GET /api/v2/security/public-key-certificates operation.
+	// GET /rate-limits
+	RateLimitsGet(ctx context.Context) (RateLimitsGetRes, error)
+	// SecurityPublicKeyCertificatesGet invokes GET /security/public-key-certificates operation.
 	//
 	// Zwraca informacje o kluczach publicznych używanych do szyfrowania danych przesyłanych do systemu
 	// KSeF.
 	//
-	// GET /api/v2/security/public-key-certificates
-	APIV2SecurityPublicKeyCertificatesGet(ctx context.Context) (APIV2SecurityPublicKeyCertificatesGetRes, error)
-	// APIV2SessionsBatchPost invokes POST /api/v2/sessions/batch operation.
+	// GET /security/public-key-certificates
+	SecurityPublicKeyCertificatesGet(ctx context.Context) (SecurityPublicKeyCertificatesGetRes, error)
+	// SessionsBatchPost invokes POST /sessions/batch operation.
 	//
 	// Otwiera sesję do wysyłki wsadowej faktur. Należy przekazać schemat wysyłanych faktur,
 	// informacje o paczce faktur oraz informacje o kluczu używanym do szyfrowania.
 	// > Więcej informacji:
-	// > - [Przygotwanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
-	// > - [Klucz publiczny Ministersta Finansów](/docs/v2/index.html#tag/Certyfikaty-klucza-publicznego)
-	// **Wymagane uprawnienia**: `InvoiceWrite`.
+	// > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
+	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
+	// html#tag/Certyfikaty-klucza-publicznego)
+	// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
+	// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
+	// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 	//
-	// POST /api/v2/sessions/batch
-	APIV2SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (APIV2SessionsBatchPostRes, error)
-	// APIV2SessionsBatchReferenceNumberClosePost invokes POST /api/v2/sessions/batch/{referenceNumber}/close operation.
+	// POST /sessions/batch
+	SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (SessionsBatchPostRes, error)
+	// SessionsBatchReferenceNumberClosePost invokes POST /sessions/batch/{referenceNumber}/close operation.
 	//
 	// Zamyka sesję wsadową, rozpoczyna procesowanie paczki faktur i generowanie UPO dla prawidłowych
 	// faktur oraz zbiorczego UPO dla sesji.
-	// **Wymagane uprawnienia**: `InvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 	//
-	// POST /api/v2/sessions/batch/{referenceNumber}/close
-	APIV2SessionsBatchReferenceNumberClosePost(ctx context.Context, params APIV2SessionsBatchReferenceNumberClosePostParams) (APIV2SessionsBatchReferenceNumberClosePostRes, error)
-	// APIV2SessionsGet invokes GET /api/v2/sessions operation.
+	// POST /sessions/batch/{referenceNumber}/close
+	SessionsBatchReferenceNumberClosePost(ctx context.Context, params SessionsBatchReferenceNumberClosePostParams) (SessionsBatchReferenceNumberClosePostRes, error)
+	// SessionsGet invokes GET /sessions operation.
 	//
 	// Zwraca listę sesji spełniających podane kryteria wyszukiwania.
 	// **Sortowanie:**
 	// - dateCreated (Desc)
 	// **Wymagane uprawnienia**:
-	// - `Introspection` – pozwala pobrać wszystkie sesje w bieżącym kontekście uwierzytelnienia
-	// `(ContextIdentifier)`.
+	// - `Introspection`/`EnforcementOperations` – pozwala pobrać wszystkie sesje w bieżącym
+	// kontekście uwierzytelnienia `(ContextIdentifier)`.
 	// - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
 	// czyli podmiot inicjujący uwierzytelnienie.
 	//
-	// GET /api/v2/sessions
-	APIV2SessionsGet(ctx context.Context, params APIV2SessionsGetParams) (APIV2SessionsGetRes, error)
-	// APIV2SessionsOnlinePost invokes POST /api/v2/sessions/online operation.
+	// GET /sessions
+	SessionsGet(ctx context.Context, params SessionsGetParams) (SessionsGetRes, error)
+	// SessionsOnlinePost invokes POST /sessions/online operation.
 	//
 	// Otwiera sesję do wysyłki pojedynczych faktur. Należy przekazać schemat wysyłanych faktur oraz
 	// informacje o kluczu używanym do szyfrowania.
 	// > Więcej informacji:
 	// > - [Otwarcie sesji interaktywnej](https://github.
 	// com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
-	// > - [Klucz publiczny Ministersta Finansów](/docs/v2/index.html#tag/Certyfikaty-klucza-publicznego)
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`.
+	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
+	// html#tag/Certyfikaty-klucza-publicznego)
+	// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
+	// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
+	// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
-	// POST /api/v2/sessions/online
-	APIV2SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (APIV2SessionsOnlinePostRes, error)
-	// APIV2SessionsOnlineReferenceNumberClosePost invokes POST /api/v2/sessions/online/{referenceNumber}/close operation.
+	// POST /sessions/online
+	SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (SessionsOnlinePostRes, error)
+	// SessionsOnlineReferenceNumberClosePost invokes POST /sessions/online/{referenceNumber}/close operation.
 	//
 	// Zamyka sesję interaktywną i rozpoczyna generowanie zbiorczego UPO dla sesji.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
-	// POST /api/v2/sessions/online/{referenceNumber}/close
-	APIV2SessionsOnlineReferenceNumberClosePost(ctx context.Context, params APIV2SessionsOnlineReferenceNumberClosePostParams) (APIV2SessionsOnlineReferenceNumberClosePostRes, error)
-	// APIV2SessionsOnlineReferenceNumberInvoicesPost invokes POST /api/v2/sessions/online/{referenceNumber}/invoices operation.
+	// POST /sessions/online/{referenceNumber}/close
+	SessionsOnlineReferenceNumberClosePost(ctx context.Context, params SessionsOnlineReferenceNumberClosePostParams) (SessionsOnlineReferenceNumberClosePostRes, error)
+	// SessionsOnlineReferenceNumberInvoicesPost invokes POST /sessions/online/{referenceNumber}/invoices operation.
 	//
 	// Przyjmuje zaszyfrowaną fakturę oraz jej metadane i rozpoczyna jej przetwarzanie.
 	// > Więcej informacji:
 	// > - [Wysłanie faktury](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.
 	// md#2-wys%C5%82anie-faktury)
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
-	// POST /api/v2/sessions/online/{referenceNumber}/invoices
-	APIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params APIV2SessionsOnlineReferenceNumberInvoicesPostParams) (APIV2SessionsOnlineReferenceNumberInvoicesPostRes, error)
-	// APIV2SessionsReferenceNumberGet invokes GET /api/v2/sessions/{referenceNumber} operation.
+	// POST /sessions/online/{referenceNumber}/invoices
+	SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params SessionsOnlineReferenceNumberInvoicesPostParams) (SessionsOnlineReferenceNumberInvoicesPostRes, error)
+	// SessionsReferenceNumberGet invokes GET /sessions/{referenceNumber} operation.
 	//
 	// Sprawdza bieżący status sesji o podanym numerze referencyjnym.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
 	//
-	// GET /api/v2/sessions/{referenceNumber}
-	APIV2SessionsReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberGetParams) (APIV2SessionsReferenceNumberGetRes, error)
-	// APIV2SessionsReferenceNumberInvoicesFailedGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/failed operation.
+	// GET /sessions/{referenceNumber}
+	SessionsReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberGetParams) (SessionsReferenceNumberGetRes, error)
+	// SessionsReferenceNumberInvoicesFailedGet invokes GET /sessions/{referenceNumber}/invoices/failed operation.
 	//
 	// Zwraca listę niepoprawnie przetworzonych faktur przesłanych w sesji wraz z ich statusami.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
 	//
-	// GET /api/v2/sessions/{referenceNumber}/invoices/failed
-	APIV2SessionsReferenceNumberInvoicesFailedGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesFailedGetParams) (APIV2SessionsReferenceNumberInvoicesFailedGetRes, error)
-	// APIV2SessionsReferenceNumberInvoicesGet invokes GET /api/v2/sessions/{referenceNumber}/invoices operation.
+	// GET /sessions/{referenceNumber}/invoices/failed
+	SessionsReferenceNumberInvoicesFailedGet(ctx context.Context, params SessionsReferenceNumberInvoicesFailedGetParams) (SessionsReferenceNumberInvoicesFailedGetRes, error)
+	// SessionsReferenceNumberInvoicesGet invokes GET /sessions/{referenceNumber}/invoices operation.
 	//
 	// Zwraca listę faktur przesłanych w sesji wraz z ich statusami, oraz informacje na temat ilości
 	// poprawnie i niepoprawnie przetworzonych faktur.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
 	//
-	// GET /api/v2/sessions/{referenceNumber}/invoices
-	APIV2SessionsReferenceNumberInvoicesGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesGetParams) (APIV2SessionsReferenceNumberInvoicesGetRes, error)
-	// APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
+	// GET /sessions/{referenceNumber}/invoices
+	SessionsReferenceNumberInvoicesGet(ctx context.Context, params SessionsReferenceNumberInvoicesGetParams) (SessionsReferenceNumberInvoicesGetRes, error)
+	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
 	//
 	// Zwraca fakturę przesłaną w sesji wraz ze statusem.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
 	//
-	// GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}
-	APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, error)
-	// APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
-	//
-	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
-	//
-	// GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
-	APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, error)
-	// APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
+	// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}
+	SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, error)
+	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 	//
 	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
 	//
-	// GET /api/v2/sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
-	APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, error)
-	// APIV2SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /api/v2/sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
+	// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
+	SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, error)
+	// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
+	//
+	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
+	//
+	// GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
+	SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, error)
+	// SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
 	//
 	// Zwraca XML zawierający zbiorcze UPO dla sesji.
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// `EnforcementOperations`.
 	//
-	// GET /api/v2/sessions/{referenceNumber}/upo/{upoReferenceNumber}
-	APIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error)
-	// APIV2TestdataAttachmentPost invokes POST /api/v2/testdata/attachment operation.
+	// GET /sessions/{referenceNumber}/upo/{upoReferenceNumber}
+	SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error)
+	// TestdataAttachmentPost invokes POST /testdata/attachment operation.
 	//
 	// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
 	//
-	// POST /api/v2/testdata/attachment
-	APIV2TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (APIV2TestdataAttachmentPostRes, error)
-	// APIV2TestdataAttachmentRevokePost invokes POST /api/v2/testdata/attachment/revoke operation.
+	// POST /testdata/attachment
+	TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (TestdataAttachmentPostRes, error)
+	// TestdataAttachmentRevokePost invokes POST /testdata/attachment/revoke operation.
 	//
 	// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
 	//
-	// POST /api/v2/testdata/attachment/revoke
-	APIV2TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (APIV2TestdataAttachmentRevokePostRes, error)
-	// APIV2TestdataLimitsContextSessionDelete invokes DELETE /api/v2/testdata/limits/context/session operation.
+	// POST /testdata/attachment/revoke
+	TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error)
+	// TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
 	// wartości domyślnych. **Tylko na środowiskach testowych.**.
 	//
-	// DELETE /api/v2/testdata/limits/context/session
-	APIV2TestdataLimitsContextSessionDelete(ctx context.Context) (APIV2TestdataLimitsContextSessionDeleteRes, error)
-	// APIV2TestdataLimitsContextSessionPost invokes POST /api/v2/testdata/limits/context/session operation.
+	// DELETE /testdata/limits/context/session
+	TestdataLimitsContextSessionDelete(ctx context.Context) (TestdataLimitsContextSessionDeleteRes, error)
+	// TestdataLimitsContextSessionPost invokes POST /testdata/limits/context/session operation.
 	//
 	// Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. **Tylko na
 	// środowiskach testowych.**.
 	//
-	// POST /api/v2/testdata/limits/context/session
-	APIV2TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (APIV2TestdataLimitsContextSessionPostRes, error)
-	// APIV2TestdataLimitsSubjectCertificateDelete invokes DELETE /api/v2/testdata/limits/subject/certificate operation.
+	// POST /testdata/limits/context/session
+	TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (TestdataLimitsContextSessionPostRes, error)
+	// TestdataLimitsSubjectCertificateDelete invokes DELETE /testdata/limits/subject/certificate operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu do
 	// wartości domyślnych. **Tylko na środowiskach testowych.**.
 	//
-	// DELETE /api/v2/testdata/limits/subject/certificate
-	APIV2TestdataLimitsSubjectCertificateDelete(ctx context.Context) (APIV2TestdataLimitsSubjectCertificateDeleteRes, error)
-	// APIV2TestdataLimitsSubjectCertificatePost invokes POST /api/v2/testdata/limits/subject/certificate operation.
+	// DELETE /testdata/limits/subject/certificate
+	TestdataLimitsSubjectCertificateDelete(ctx context.Context) (TestdataLimitsSubjectCertificateDeleteRes, error)
+	// TestdataLimitsSubjectCertificatePost invokes POST /testdata/limits/subject/certificate operation.
 	//
 	// Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu.
 	// **Tylko na środowiskach testowych.**.
 	//
-	// POST /api/v2/testdata/limits/subject/certificate
-	APIV2TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (APIV2TestdataLimitsSubjectCertificatePostRes, error)
-	// APIV2TestdataPermissionsPost invokes POST /api/v2/testdata/permissions operation.
+	// POST /testdata/limits/subject/certificate
+	TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (TestdataLimitsSubjectCertificatePostRes, error)
+	// TestdataPermissionsPost invokes POST /testdata/permissions operation.
 	//
 	// Nadawanie uprawnień testowemu podmiotowi lub osobie fizycznej, a także w ich kontekście.
 	//
-	// POST /api/v2/testdata/permissions
-	APIV2TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (APIV2TestdataPermissionsPostRes, error)
-	// APIV2TestdataPermissionsRevokePost invokes POST /api/v2/testdata/permissions/revoke operation.
+	// POST /testdata/permissions
+	TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (TestdataPermissionsPostRes, error)
+	// TestdataPermissionsRevokePost invokes POST /testdata/permissions/revoke operation.
 	//
 	// Odbieranie uprawnień nadanych testowemu podmiotowi lub osobie fizycznej, a także w ich
 	// kontekście.
 	//
-	// POST /api/v2/testdata/permissions/revoke
-	APIV2TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (APIV2TestdataPermissionsRevokePostRes, error)
-	// APIV2TestdataPersonPost invokes POST /api/v2/testdata/person operation.
+	// POST /testdata/permissions/revoke
+	TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (TestdataPermissionsRevokePostRes, error)
+	// TestdataPersonPost invokes POST /testdata/person operation.
 	//
 	// Tworzenie nowej osoby fizycznej, której system nadaje uprawnienia właścicielskie. Można
 	// również określić, czy osoba ta jest komornikiem – wówczas otrzyma odpowiednie uprawnienie
 	// egzekucyjne.
 	//
-	// POST /api/v2/testdata/person
-	APIV2TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (APIV2TestdataPersonPostRes, error)
-	// APIV2TestdataPersonRemovePost invokes POST /api/v2/testdata/person/remove operation.
+	// POST /testdata/person
+	TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (TestdataPersonPostRes, error)
+	// TestdataPersonRemovePost invokes POST /testdata/person/remove operation.
 	//
 	// Usuwanie testowej osoby fizycznej. System automatycznie odbierze jej wszystkie uprawnienia.
 	//
-	// POST /api/v2/testdata/person/remove
-	APIV2TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (APIV2TestdataPersonRemovePostRes, error)
-	// APIV2TestdataRateLimitsDelete invokes DELETE /api/v2/testdata/rate-limits operation.
+	// POST /testdata/person/remove
+	TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (TestdataPersonRemovePostRes, error)
+	// TestdataRateLimitsDelete invokes DELETE /testdata/rate-limits operation.
 	//
-	// Przywraca wartości aktualnie obowiązujących limitów żądań przesyłąnych do API dla
+	// Przywraca wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
 	// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**.
 	//
-	// DELETE /api/v2/testdata/rate-limits
-	APIV2TestdataRateLimitsDelete(ctx context.Context) (APIV2TestdataRateLimitsDeleteRes, error)
-	// APIV2TestdataRateLimitsPost invokes POST /api/v2/testdata/rate-limits operation.
+	// DELETE /testdata/rate-limits
+	TestdataRateLimitsDelete(ctx context.Context) (TestdataRateLimitsDeleteRes, error)
+	// TestdataRateLimitsPost invokes POST /testdata/rate-limits operation.
 	//
-	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłąnych do API dla
+	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
 	// bieżącego kontekstu. **Tylko na środowiskach testowych.**.
 	//
-	// POST /api/v2/testdata/rate-limits
-	APIV2TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (APIV2TestdataRateLimitsPostRes, error)
-	// APIV2TestdataSubjectPost invokes POST /api/v2/testdata/subject operation.
+	// POST /testdata/rate-limits
+	TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (TestdataRateLimitsPostRes, error)
+	// TestdataRateLimitsProductionPost invokes POST /testdata/rate-limits/production operation.
+	//
+	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
+	// bieżącego kontekstu na wartości takie jakie będą na środowisku produkcyjnym. **Tylko na
+	// środowiskach testowych.**.
+	//
+	// POST /testdata/rate-limits/production
+	TestdataRateLimitsProductionPost(ctx context.Context) (TestdataRateLimitsProductionPostRes, error)
+	// TestdataSubjectPost invokes POST /testdata/subject operation.
 	//
 	// Tworzenie nowego podmiotu testowego. W przypadku grupy VAT i JST istnieje możliwość stworzenia
 	// jednostek podrzędnych. W wyniku takiego działania w systemie powstanie powiązanie między tymi
 	// podmiotami.
 	//
-	// POST /api/v2/testdata/subject
-	APIV2TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (APIV2TestdataSubjectPostRes, error)
-	// APIV2TestdataSubjectRemovePost invokes POST /api/v2/testdata/subject/remove operation.
+	// POST /testdata/subject
+	TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (TestdataSubjectPostRes, error)
+	// TestdataSubjectRemovePost invokes POST /testdata/subject/remove operation.
 	//
 	// Usuwanie podmiotu testowego. W przypadku grupy VAT i JST usunięte zostaną również jednostki
 	// podrzędne.
 	//
-	// POST /api/v2/testdata/subject/remove
-	APIV2TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (APIV2TestdataSubjectRemovePostRes, error)
-	// APIV2TokensGet invokes GET /api/v2/tokens operation.
+	// POST /testdata/subject/remove
+	TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (TestdataSubjectRemovePostRes, error)
+	// TokensGet invokes GET /tokens operation.
 	//
 	// **Sortowanie:**
 	// - dateCreated (Desc).
 	//
-	// GET /api/v2/tokens
-	APIV2TokensGet(ctx context.Context, params APIV2TokensGetParams) (APIV2TokensGetRes, error)
-	// APIV2TokensPost invokes POST /api/v2/tokens operation.
+	// GET /tokens
+	TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error)
+	// TokensPost invokes POST /tokens operation.
 	//
 	// Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
 	// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest
 	// zwracany tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
 	//
-	// POST /api/v2/tokens
-	APIV2TokensPost(ctx context.Context, request OptGenerateTokenRequest) (APIV2TokensPostRes, error)
-	// APIV2TokensReferenceNumberDelete invokes DELETE /api/v2/tokens/{referenceNumber} operation.
+	// POST /tokens
+	TokensPost(ctx context.Context, request OptGenerateTokenRequest) (TokensPostRes, error)
+	// TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
 	//
 	// Unieważniony token nie pozwoli już na uwierzytelnienie się za jego pomocą. Unieważnienie nie
 	// może zostać cofnięte.
 	//
-	// DELETE /api/v2/tokens/{referenceNumber}
-	APIV2TokensReferenceNumberDelete(ctx context.Context, params APIV2TokensReferenceNumberDeleteParams) (APIV2TokensReferenceNumberDeleteRes, error)
-	// APIV2TokensReferenceNumberGet invokes GET /api/v2/tokens/{referenceNumber} operation.
+	// DELETE /tokens/{referenceNumber}
+	TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error)
+	// TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 	//
 	// Pobranie statusu tokena.
 	//
-	// GET /api/v2/tokens/{referenceNumber}
-	APIV2TokensReferenceNumberGet(ctx context.Context, params APIV2TokensReferenceNumberGetParams) (APIV2TokensReferenceNumberGetRes, error)
+	// GET /tokens/{referenceNumber}
+	TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error)
 }
 
 // Client implements OAS client.
@@ -946,21 +1000,21 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
-// APIV2AuthChallengePost invokes POST /api/v2/auth/challenge operation.
+// AuthChallengePost invokes POST /auth/challenge operation.
 //
 // Generuje unikalny challenge wymagany w kolejnym kroku operacji uwierzytelnienia.
 //
-// POST /api/v2/auth/challenge
-func (c *Client) APIV2AuthChallengePost(ctx context.Context) (APIV2AuthChallengePostRes, error) {
-	res, err := c.sendAPIV2AuthChallengePost(ctx)
+// POST /auth/challenge
+func (c *Client) AuthChallengePost(ctx context.Context) (AuthChallengePostRes, error) {
+	res, err := c.sendAuthChallengePost(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthChallengePost(ctx context.Context) (res APIV2AuthChallengePostRes, err error) {
+func (c *Client) sendAuthChallengePost(ctx context.Context) (res AuthChallengePostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/challenge"
+	pathParts[0] = "/auth/challenge"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
@@ -974,7 +1028,7 @@ func (c *Client) sendAPIV2AuthChallengePost(ctx context.Context) (res APIV2AuthC
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthChallengePostResponse(resp)
+	result, err := decodeAuthChallengePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -982,7 +1036,7 @@ func (c *Client) sendAPIV2AuthChallengePost(ctx context.Context) (res APIV2AuthC
 	return result, nil
 }
 
-// APIV2AuthKsefTokenPost invokes POST /api/v2/auth/ksef-token operation.
+// AuthKsefTokenPost invokes POST /auth/ksef-token operation.
 //
 // Rozpoczyna operację uwierzytelniania z wykorzystaniem wcześniej wygenerowanego tokena KSeF.
 // Token KSeF wraz z timestampem ze wcześniej wygenerowanego challenge'a (w formacie
@@ -991,13 +1045,13 @@ func (c *Client) sendAPIV2AuthChallengePost(ctx context.Context) (res APIV2AuthC
 // timestamp)**.
 // - Algorytm szyfrowania: **RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu)**.
 //
-// POST /api/v2/auth/ksef-token
-func (c *Client) APIV2AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (APIV2AuthKsefTokenPostRes, error) {
-	res, err := c.sendAPIV2AuthKsefTokenPost(ctx, request)
+// POST /auth/ksef-token
+func (c *Client) AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (AuthKsefTokenPostRes, error) {
+	res, err := c.sendAuthKsefTokenPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (res APIV2AuthKsefTokenPostRes, err error) {
+func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (res AuthKsefTokenPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -1017,14 +1071,14 @@ func (c *Client) sendAPIV2AuthKsefTokenPost(ctx context.Context, request OptInit
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/ksef-token"
+	pathParts[0] = "/auth/ksef-token"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2AuthKsefTokenPostRequest(request, r); err != nil {
+	if err := encodeAuthKsefTokenPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1034,7 +1088,7 @@ func (c *Client) sendAPIV2AuthKsefTokenPost(ctx context.Context, request OptInit
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthKsefTokenPostResponse(resp)
+	result, err := decodeAuthKsefTokenPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1042,23 +1096,23 @@ func (c *Client) sendAPIV2AuthKsefTokenPost(ctx context.Context, request OptInit
 	return result, nil
 }
 
-// APIV2AuthReferenceNumberGet invokes GET /api/v2/auth/{referenceNumber} operation.
+// AuthReferenceNumberGet invokes GET /auth/{referenceNumber} operation.
 //
 // Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 // uwierzytelniania.
 //
-// GET /api/v2/auth/{referenceNumber}
-func (c *Client) APIV2AuthReferenceNumberGet(ctx context.Context, params APIV2AuthReferenceNumberGetParams) (APIV2AuthReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2AuthReferenceNumberGet(ctx, params)
+// GET /auth/{referenceNumber}
+func (c *Client) AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error) {
+	res, err := c.sendAuthReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthReferenceNumberGet(ctx context.Context, params APIV2AuthReferenceNumberGetParams) (res APIV2AuthReferenceNumberGetRes, err error) {
+func (c *Client) sendAuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (res AuthReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/auth/"
+	pathParts[0] = "/auth/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1092,7 +1146,7 @@ func (c *Client) sendAPIV2AuthReferenceNumberGet(ctx context.Context, params API
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2AuthReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, AuthReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1126,7 +1180,7 @@ func (c *Client) sendAPIV2AuthReferenceNumberGet(ctx context.Context, params API
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthReferenceNumberGetResponse(resp)
+	result, err := decodeAuthReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1134,7 +1188,7 @@ func (c *Client) sendAPIV2AuthReferenceNumberGet(ctx context.Context, params API
 	return result, nil
 }
 
-// APIV2AuthSessionsCurrentDelete invokes DELETE /api/v2/auth/sessions/current operation.
+// AuthSessionsCurrentDelete invokes DELETE /auth/sessions/current operation.
 //
 // Unieważnia sesję powiązaną z tokenem użytym do wywołania tej operacji.
 // Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
@@ -1142,17 +1196,17 @@ func (c *Client) sendAPIV2AuthReferenceNumberGet(ctx context.Context, params API
 // **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
 // Sposób uwierzytelnienia: `RefreshToken` lub `AccessToken`.
 //
-// DELETE /api/v2/auth/sessions/current
-func (c *Client) APIV2AuthSessionsCurrentDelete(ctx context.Context) (APIV2AuthSessionsCurrentDeleteRes, error) {
-	res, err := c.sendAPIV2AuthSessionsCurrentDelete(ctx)
+// DELETE /auth/sessions/current
+func (c *Client) AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error) {
+	res, err := c.sendAuthSessionsCurrentDelete(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthSessionsCurrentDelete(ctx context.Context) (res APIV2AuthSessionsCurrentDeleteRes, err error) {
+func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSessionsCurrentDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/sessions/current"
+	pathParts[0] = "/auth/sessions/current"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "DELETE", u)
@@ -1165,7 +1219,7 @@ func (c *Client) sendAPIV2AuthSessionsCurrentDelete(ctx context.Context) (res AP
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2AuthSessionsCurrentDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, AuthSessionsCurrentDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1199,7 +1253,7 @@ func (c *Client) sendAPIV2AuthSessionsCurrentDelete(ctx context.Context) (res AP
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthSessionsCurrentDeleteResponse(resp)
+	result, err := decodeAuthSessionsCurrentDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1207,23 +1261,23 @@ func (c *Client) sendAPIV2AuthSessionsCurrentDelete(ctx context.Context) (res AP
 	return result, nil
 }
 
-// APIV2AuthSessionsGet invokes GET /api/v2/auth/sessions operation.
+// AuthSessionsGet invokes GET /auth/sessions operation.
 //
 // Zwraca listę aktywnych sesji uwierzytelnienia.
 // **Sortowanie:**
 // - startDate (Desc).
 //
-// GET /api/v2/auth/sessions
-func (c *Client) APIV2AuthSessionsGet(ctx context.Context, params APIV2AuthSessionsGetParams) (APIV2AuthSessionsGetRes, error) {
-	res, err := c.sendAPIV2AuthSessionsGet(ctx, params)
+// GET /auth/sessions
+func (c *Client) AuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (AuthSessionsGetRes, error) {
+	res, err := c.sendAuthSessionsGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthSessionsGet(ctx context.Context, params APIV2AuthSessionsGetParams) (res APIV2AuthSessionsGetRes, err error) {
+func (c *Client) sendAuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (res AuthSessionsGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/sessions"
+	pathParts[0] = "/auth/sessions"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -1272,7 +1326,7 @@ func (c *Client) sendAPIV2AuthSessionsGet(ctx context.Context, params APIV2AuthS
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2AuthSessionsGetOperation, r); {
+			switch err := c.securityBearer(ctx, AuthSessionsGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1306,7 +1360,7 @@ func (c *Client) sendAPIV2AuthSessionsGet(ctx context.Context, params APIV2AuthS
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthSessionsGetResponse(resp)
+	result, err := decodeAuthSessionsGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1314,24 +1368,24 @@ func (c *Client) sendAPIV2AuthSessionsGet(ctx context.Context, params APIV2AuthS
 	return result, nil
 }
 
-// APIV2AuthSessionsReferenceNumberDelete invokes DELETE /api/v2/auth/sessions/{referenceNumber} operation.
+// AuthSessionsReferenceNumberDelete invokes DELETE /auth/sessions/{referenceNumber} operation.
 //
 // Unieważnia sesję o podanym numerze referencyjnym.
 // Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
 // już za jego pomocą uzyskać kolejnych access tokenów.
 // **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**.
 //
-// DELETE /api/v2/auth/sessions/{referenceNumber}
-func (c *Client) APIV2AuthSessionsReferenceNumberDelete(ctx context.Context, params APIV2AuthSessionsReferenceNumberDeleteParams) (APIV2AuthSessionsReferenceNumberDeleteRes, error) {
-	res, err := c.sendAPIV2AuthSessionsReferenceNumberDelete(ctx, params)
+// DELETE /auth/sessions/{referenceNumber}
+func (c *Client) AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error) {
+	res, err := c.sendAuthSessionsReferenceNumberDelete(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthSessionsReferenceNumberDelete(ctx context.Context, params APIV2AuthSessionsReferenceNumberDeleteParams) (res APIV2AuthSessionsReferenceNumberDeleteRes, err error) {
+func (c *Client) sendAuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (res AuthSessionsReferenceNumberDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/auth/sessions/"
+	pathParts[0] = "/auth/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1365,7 +1419,7 @@ func (c *Client) sendAPIV2AuthSessionsReferenceNumberDelete(ctx context.Context,
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2AuthSessionsReferenceNumberDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, AuthSessionsReferenceNumberDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1399,7 +1453,7 @@ func (c *Client) sendAPIV2AuthSessionsReferenceNumberDelete(ctx context.Context,
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthSessionsReferenceNumberDeleteResponse(resp)
+	result, err := decodeAuthSessionsReferenceNumberDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1407,7 +1461,7 @@ func (c *Client) sendAPIV2AuthSessionsReferenceNumberDelete(ctx context.Context,
 	return result, nil
 }
 
-// APIV2AuthTokenRedeemPost invokes POST /api/v2/auth/token/redeem operation.
+// AuthTokenRedeemPost invokes POST /auth/token/redeem operation.
 //
 // Pobiera parę tokenów (access token i refresh token) wygenerowanych w ramach pozytywnie
 // zakończonego procesu uwierzytelniania.
@@ -1415,17 +1469,17 @@ func (c *Client) sendAPIV2AuthSessionsReferenceNumberDelete(ctx context.Context,
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 // uwierzytelniania.
 //
-// POST /api/v2/auth/token/redeem
-func (c *Client) APIV2AuthTokenRedeemPost(ctx context.Context) (APIV2AuthTokenRedeemPostRes, error) {
-	res, err := c.sendAPIV2AuthTokenRedeemPost(ctx)
+// POST /auth/token/redeem
+func (c *Client) AuthTokenRedeemPost(ctx context.Context) (AuthTokenRedeemPostRes, error) {
+	res, err := c.sendAuthTokenRedeemPost(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthTokenRedeemPost(ctx context.Context) (res APIV2AuthTokenRedeemPostRes, err error) {
+func (c *Client) sendAuthTokenRedeemPost(ctx context.Context) (res AuthTokenRedeemPostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/token/redeem"
+	pathParts[0] = "/auth/token/redeem"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
@@ -1438,7 +1492,7 @@ func (c *Client) sendAPIV2AuthTokenRedeemPost(ctx context.Context) (res APIV2Aut
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2AuthTokenRedeemPostOperation, r); {
+			switch err := c.securityBearer(ctx, AuthTokenRedeemPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1472,7 +1526,7 @@ func (c *Client) sendAPIV2AuthTokenRedeemPost(ctx context.Context) (res APIV2Aut
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthTokenRedeemPostResponse(resp)
+	result, err := decodeAuthTokenRedeemPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1480,22 +1534,22 @@ func (c *Client) sendAPIV2AuthTokenRedeemPost(ctx context.Context) (res APIV2Aut
 	return result, nil
 }
 
-// APIV2AuthTokenRefreshPost invokes POST /api/v2/auth/token/refresh operation.
+// AuthTokenRefreshPost invokes POST /auth/token/refresh operation.
 //
 // Generuje nowy token dostępu na podstawie ważnego refresh tokena.
 // Sposób uwierzytelnienia: `RefreshToken`.
 //
-// POST /api/v2/auth/token/refresh
-func (c *Client) APIV2AuthTokenRefreshPost(ctx context.Context) (APIV2AuthTokenRefreshPostRes, error) {
-	res, err := c.sendAPIV2AuthTokenRefreshPost(ctx)
+// POST /auth/token/refresh
+func (c *Client) AuthTokenRefreshPost(ctx context.Context) (AuthTokenRefreshPostRes, error) {
+	res, err := c.sendAuthTokenRefreshPost(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthTokenRefreshPost(ctx context.Context) (res APIV2AuthTokenRefreshPostRes, err error) {
+func (c *Client) sendAuthTokenRefreshPost(ctx context.Context) (res AuthTokenRefreshPostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/token/refresh"
+	pathParts[0] = "/auth/token/refresh"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
@@ -1508,7 +1562,7 @@ func (c *Client) sendAPIV2AuthTokenRefreshPost(ctx context.Context) (res APIV2Au
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2AuthTokenRefreshPostOperation, r); {
+			switch err := c.securityBearer(ctx, AuthTokenRefreshPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1542,7 +1596,7 @@ func (c *Client) sendAPIV2AuthTokenRefreshPost(ctx context.Context) (res APIV2Au
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthTokenRefreshPostResponse(resp)
+	result, err := decodeAuthTokenRefreshPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1550,7 +1604,7 @@ func (c *Client) sendAPIV2AuthTokenRefreshPost(ctx context.Context) (res APIV2Au
 	return result, nil
 }
 
-// APIV2AuthXadesSignaturePost invokes POST /api/v2/auth/xades-signature operation.
+// AuthXadesSignaturePost invokes POST /auth/xades-signature operation.
 //
 // Rozpoczyna operację uwierzytelniania za pomocą dokumentu XML podpisanego podpisem elektronicznym
 // XAdES.
@@ -1561,17 +1615,17 @@ func (c *Client) sendAPIV2AuthTokenRefreshPost(ctx context.Context) (res APIV2Au
 // md#2-podpisanie-dokumentu-xades)
 // > - [Schemat XSD](/docs/v2/schemas/authv2.xsd).
 //
-// POST /api/v2/auth/xades-signature
-func (c *Client) APIV2AuthXadesSignaturePost(ctx context.Context, request APIV2AuthXadesSignaturePostReq, params APIV2AuthXadesSignaturePostParams) (APIV2AuthXadesSignaturePostRes, error) {
-	res, err := c.sendAPIV2AuthXadesSignaturePost(ctx, request, params)
+// POST /auth/xades-signature
+func (c *Client) AuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (AuthXadesSignaturePostRes, error) {
+	res, err := c.sendAuthXadesSignaturePost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2AuthXadesSignaturePost(ctx context.Context, request APIV2AuthXadesSignaturePostReq, params APIV2AuthXadesSignaturePostParams) (res APIV2AuthXadesSignaturePostRes, err error) {
+func (c *Client) sendAuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (res AuthXadesSignaturePostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/auth/xades-signature"
+	pathParts[0] = "/auth/xades-signature"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -1598,7 +1652,7 @@ func (c *Client) sendAPIV2AuthXadesSignaturePost(ctx context.Context, request AP
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2AuthXadesSignaturePostRequest(request, r); err != nil {
+	if err := encodeAuthXadesSignaturePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1608,7 +1662,7 @@ func (c *Client) sendAPIV2AuthXadesSignaturePost(ctx context.Context, request AP
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2AuthXadesSignaturePostResponse(resp)
+	result, err := decodeAuthXadesSignaturePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1616,17 +1670,17 @@ func (c *Client) sendAPIV2AuthXadesSignaturePost(ctx context.Context, request AP
 	return result, nil
 }
 
-// APIV2CertificatesCertificateSerialNumberRevokePost invokes POST /api/v2/certificates/{certificateSerialNumber}/revoke operation.
+// CertificatesCertificateSerialNumberRevokePost invokes POST /certificates/{certificateSerialNumber}/revoke operation.
 //
 // Unieważnia certyfikat o podanym numerze seryjnym.
 //
-// POST /api/v2/certificates/{certificateSerialNumber}/revoke
-func (c *Client) APIV2CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params APIV2CertificatesCertificateSerialNumberRevokePostParams) (APIV2CertificatesCertificateSerialNumberRevokePostRes, error) {
-	res, err := c.sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx, request, params)
+// POST /certificates/{certificateSerialNumber}/revoke
+func (c *Client) CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (CertificatesCertificateSerialNumberRevokePostRes, error) {
+	res, err := c.sendCertificatesCertificateSerialNumberRevokePost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params APIV2CertificatesCertificateSerialNumberRevokePostParams) (res APIV2CertificatesCertificateSerialNumberRevokePostRes, err error) {
+func (c *Client) sendCertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (res CertificatesCertificateSerialNumberRevokePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -1646,7 +1700,7 @@ func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx cont
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/api/v2/certificates/"
+	pathParts[0] = "/certificates/"
 	{
 		// Encode "certificateSerialNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1672,7 +1726,7 @@ func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx cont
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2CertificatesCertificateSerialNumberRevokePostRequest(request, r); err != nil {
+	if err := encodeCertificatesCertificateSerialNumberRevokePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1681,7 +1735,7 @@ func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx cont
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesCertificateSerialNumberRevokePostOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesCertificateSerialNumberRevokePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1715,7 +1769,7 @@ func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx cont
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesCertificateSerialNumberRevokePostResponse(resp)
+	result, err := decodeCertificatesCertificateSerialNumberRevokePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1723,7 +1777,7 @@ func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx cont
 	return result, nil
 }
 
-// APIV2CertificatesEnrollmentsDataGet invokes GET /api/v2/certificates/enrollments/data operation.
+// CertificatesEnrollmentsDataGet invokes GET /certificates/enrollments/data operation.
 //
 // Zwraca dane wymagane do przygotowania wniosku certyfikacyjnego PKCS#10.
 // Dane te są zwracane na podstawie certyfikatu użytego w procesie uwierzytelnienia i identyfikują
@@ -1734,17 +1788,17 @@ func (c *Client) sendAPIV2CertificatesCertificateSerialNumberRevokePost(ctx cont
 // > - [Przygotowanie wniosku](https://github.com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.
 // md#3-przygotowanie-csr-certificate-signing-request).
 //
-// GET /api/v2/certificates/enrollments/data
-func (c *Client) APIV2CertificatesEnrollmentsDataGet(ctx context.Context) (APIV2CertificatesEnrollmentsDataGetRes, error) {
-	res, err := c.sendAPIV2CertificatesEnrollmentsDataGet(ctx)
+// GET /certificates/enrollments/data
+func (c *Client) CertificatesEnrollmentsDataGet(ctx context.Context) (CertificatesEnrollmentsDataGetRes, error) {
+	res, err := c.sendCertificatesEnrollmentsDataGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesEnrollmentsDataGet(ctx context.Context) (res APIV2CertificatesEnrollmentsDataGetRes, err error) {
+func (c *Client) sendCertificatesEnrollmentsDataGet(ctx context.Context) (res CertificatesEnrollmentsDataGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/certificates/enrollments/data"
+	pathParts[0] = "/certificates/enrollments/data"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -1757,7 +1811,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsDataGet(ctx context.Context) (r
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesEnrollmentsDataGetOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesEnrollmentsDataGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1791,7 +1845,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsDataGet(ctx context.Context) (r
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesEnrollmentsDataGetResponse(resp)
+	result, err := decodeCertificatesEnrollmentsDataGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1799,7 +1853,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsDataGet(ctx context.Context) (r
 	return result, nil
 }
 
-// APIV2CertificatesEnrollmentsPost invokes POST /api/v2/certificates/enrollments operation.
+// CertificatesEnrollmentsPost invokes POST /certificates/enrollments operation.
 //
 // Przyjmuje wniosek certyfikacyjny i rozpoczyna jego przetwarzanie.
 // Dozwolone typy kluczy prywatnych:
@@ -1820,13 +1874,13 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsDataGet(ctx context.Context) (r
 // > - [Wysłanie wniosku certyfikacyjnego](https://github.
 // com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego).
 //
-// POST /api/v2/certificates/enrollments
-func (c *Client) APIV2CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (APIV2CertificatesEnrollmentsPostRes, error) {
-	res, err := c.sendAPIV2CertificatesEnrollmentsPost(ctx, request)
+// POST /certificates/enrollments
+func (c *Client) CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (CertificatesEnrollmentsPostRes, error) {
+	res, err := c.sendCertificatesEnrollmentsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (res APIV2CertificatesEnrollmentsPostRes, err error) {
+func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (res CertificatesEnrollmentsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -1846,14 +1900,14 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsPost(ctx context.Context, reque
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/certificates/enrollments"
+	pathParts[0] = "/certificates/enrollments"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2CertificatesEnrollmentsPostRequest(request, r); err != nil {
+	if err := encodeCertificatesEnrollmentsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1862,7 +1916,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsPost(ctx context.Context, reque
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesEnrollmentsPostOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesEnrollmentsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1896,7 +1950,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsPost(ctx context.Context, reque
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesEnrollmentsPostResponse(resp)
+	result, err := decodeCertificatesEnrollmentsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1904,21 +1958,21 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsPost(ctx context.Context, reque
 	return result, nil
 }
 
-// APIV2CertificatesEnrollmentsReferenceNumberGet invokes GET /api/v2/certificates/enrollments/{referenceNumber} operation.
+// CertificatesEnrollmentsReferenceNumberGet invokes GET /certificates/enrollments/{referenceNumber} operation.
 //
 // Zwraca informacje o statusie wniosku certyfikacyjnego.
 //
-// GET /api/v2/certificates/enrollments/{referenceNumber}
-func (c *Client) APIV2CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params APIV2CertificatesEnrollmentsReferenceNumberGetParams) (APIV2CertificatesEnrollmentsReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2CertificatesEnrollmentsReferenceNumberGet(ctx, params)
+// GET /certificates/enrollments/{referenceNumber}
+func (c *Client) CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (CertificatesEnrollmentsReferenceNumberGetRes, error) {
+	res, err := c.sendCertificatesEnrollmentsReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params APIV2CertificatesEnrollmentsReferenceNumberGetParams) (res APIV2CertificatesEnrollmentsReferenceNumberGetRes, err error) {
+func (c *Client) sendCertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (res CertificatesEnrollmentsReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/certificates/enrollments/"
+	pathParts[0] = "/certificates/enrollments/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1952,7 +2006,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsReferenceNumberGet(ctx context.
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesEnrollmentsReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesEnrollmentsReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1986,7 +2040,7 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsReferenceNumberGet(ctx context.
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesEnrollmentsReferenceNumberGetResponse(resp)
+	result, err := decodeCertificatesEnrollmentsReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1994,22 +2048,22 @@ func (c *Client) sendAPIV2CertificatesEnrollmentsReferenceNumberGet(ctx context.
 	return result, nil
 }
 
-// APIV2CertificatesLimitsGet invokes GET /api/v2/certificates/limits operation.
+// CertificatesLimitsGet invokes GET /certificates/limits operation.
 //
 // Zwraca informacje o limitach certyfikatów oraz informacje czy użytkownik może zawnioskować o
 // certyfikat KSeF.
 //
-// GET /api/v2/certificates/limits
-func (c *Client) APIV2CertificatesLimitsGet(ctx context.Context) (APIV2CertificatesLimitsGetRes, error) {
-	res, err := c.sendAPIV2CertificatesLimitsGet(ctx)
+// GET /certificates/limits
+func (c *Client) CertificatesLimitsGet(ctx context.Context) (CertificatesLimitsGetRes, error) {
+	res, err := c.sendCertificatesLimitsGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesLimitsGet(ctx context.Context) (res APIV2CertificatesLimitsGetRes, err error) {
+func (c *Client) sendCertificatesLimitsGet(ctx context.Context) (res CertificatesLimitsGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/certificates/limits"
+	pathParts[0] = "/certificates/limits"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -2022,7 +2076,7 @@ func (c *Client) sendAPIV2CertificatesLimitsGet(ctx context.Context) (res APIV2C
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesLimitsGetOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesLimitsGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2056,7 +2110,7 @@ func (c *Client) sendAPIV2CertificatesLimitsGet(ctx context.Context) (res APIV2C
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesLimitsGetResponse(resp)
+	result, err := decodeCertificatesLimitsGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2064,20 +2118,20 @@ func (c *Client) sendAPIV2CertificatesLimitsGet(ctx context.Context) (res APIV2C
 	return result, nil
 }
 
-// APIV2CertificatesQueryPost invokes POST /api/v2/certificates/query operation.
+// CertificatesQueryPost invokes POST /certificates/query operation.
 //
 // Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania.
 // W przypadku braku podania kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
 // **Sortowanie:**
 // - requestDate (Desc).
 //
-// POST /api/v2/certificates/query
-func (c *Client) APIV2CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params APIV2CertificatesQueryPostParams) (APIV2CertificatesQueryPostRes, error) {
-	res, err := c.sendAPIV2CertificatesQueryPost(ctx, request, params)
+// POST /certificates/query
+func (c *Client) CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params CertificatesQueryPostParams) (CertificatesQueryPostRes, error) {
+	res, err := c.sendCertificatesQueryPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params APIV2CertificatesQueryPostParams) (res APIV2CertificatesQueryPostRes, err error) {
+func (c *Client) sendCertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params CertificatesQueryPostParams) (res CertificatesQueryPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2097,7 +2151,7 @@ func (c *Client) sendAPIV2CertificatesQueryPost(ctx context.Context, request Opt
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/certificates/query"
+	pathParts[0] = "/certificates/query"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -2141,7 +2195,7 @@ func (c *Client) sendAPIV2CertificatesQueryPost(ctx context.Context, request Opt
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2CertificatesQueryPostRequest(request, r); err != nil {
+	if err := encodeCertificatesQueryPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2150,7 +2204,7 @@ func (c *Client) sendAPIV2CertificatesQueryPost(ctx context.Context, request Opt
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesQueryPostOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesQueryPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2184,7 +2238,7 @@ func (c *Client) sendAPIV2CertificatesQueryPost(ctx context.Context, request Opt
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesQueryPostResponse(resp)
+	result, err := decodeCertificatesQueryPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2192,17 +2246,17 @@ func (c *Client) sendAPIV2CertificatesQueryPost(ctx context.Context, request Opt
 	return result, nil
 }
 
-// APIV2CertificatesRetrievePost invokes POST /api/v2/certificates/retrieve operation.
+// CertificatesRetrievePost invokes POST /certificates/retrieve operation.
 //
 // Zwraca certyfikaty o podanych numerach seryjnych w formacie DER zakodowanym w Base64.
 //
-// POST /api/v2/certificates/retrieve
-func (c *Client) APIV2CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (APIV2CertificatesRetrievePostRes, error) {
-	res, err := c.sendAPIV2CertificatesRetrievePost(ctx, request)
+// POST /certificates/retrieve
+func (c *Client) CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (CertificatesRetrievePostRes, error) {
+	res, err := c.sendCertificatesRetrievePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (res APIV2CertificatesRetrievePostRes, err error) {
+func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (res CertificatesRetrievePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2222,14 +2276,14 @@ func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request 
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/certificates/retrieve"
+	pathParts[0] = "/certificates/retrieve"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2CertificatesRetrievePostRequest(request, r); err != nil {
+	if err := encodeCertificatesRetrievePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2238,7 +2292,7 @@ func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request 
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2CertificatesRetrievePostOperation, r); {
+			switch err := c.securityBearer(ctx, CertificatesRetrievePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2272,7 +2326,7 @@ func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2CertificatesRetrievePostResponse(resp)
+	result, err := decodeCertificatesRetrievePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2280,7 +2334,7 @@ func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request 
 	return result, nil
 }
 
-// APIV2InvoicesExportsPost invokes POST /api/v2/invoices/exports operation.
+// InvoicesExportsPost invokes POST /invoices/exports operation.
 //
 // Rozpoczyna asynchroniczny proces wyszukiwania faktur w systemie KSeF na podstawie przekazanych
 // filtrów oraz przygotowania ich w formie zaszyfrowanej paczki.
@@ -2288,7 +2342,8 @@ func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request 
 // zabezpieczenia przygotowanej paczki z fakturami.
 // Maksymalnie można uruchomić 10 równoczesnych eksportów w zalogowanym kontekście.
 // System pobiera faktury rosnąco według daty określonej w filtrze (Invoicing, Issue,
-// PermanentStorage) i dodaje je do paczki aż do osiągnięcia jednego z poniższych limitów:
+// PermanentStorage) i dodaje faktury(nazwa pliku: <b>{ksefNumber}.xml</b>) do paczki aż do
+// osiągnięcia jednego z poniższych limitów:
 // * Limit liczby faktur: 10 000 sztuk
 // * Limit rozmiaru danych(skompresowanych): 1GB
 // Paczka eksportu zawiera dodatkowy plik z metadanymi faktur w formacie JSON (`_metadata.json`).
@@ -2301,13 +2356,13 @@ func (c *Client) sendAPIV2CertificatesRetrievePost(ctx context.Context, request 
 // - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 // **Wymagane uprawnienia**: `InvoiceRead`.
 //
-// POST /api/v2/invoices/exports
-func (c *Client) APIV2InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (APIV2InvoicesExportsPostRes, error) {
-	res, err := c.sendAPIV2InvoicesExportsPost(ctx, request)
+// POST /invoices/exports
+func (c *Client) InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (InvoicesExportsPostRes, error) {
+	res, err := c.sendInvoicesExportsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (res APIV2InvoicesExportsPostRes, err error) {
+func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (res InvoicesExportsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2327,14 +2382,14 @@ func (c *Client) sendAPIV2InvoicesExportsPost(ctx context.Context, request OptIn
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/invoices/exports"
+	pathParts[0] = "/invoices/exports"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2InvoicesExportsPostRequest(request, r); err != nil {
+	if err := encodeInvoicesExportsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2343,7 +2398,7 @@ func (c *Client) sendAPIV2InvoicesExportsPost(ctx context.Context, request OptIn
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2InvoicesExportsPostOperation, r); {
+			switch err := c.securityBearer(ctx, InvoicesExportsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2377,7 +2432,7 @@ func (c *Client) sendAPIV2InvoicesExportsPost(ctx context.Context, request OptIn
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2InvoicesExportsPostResponse(resp)
+	result, err := decodeInvoicesExportsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2385,7 +2440,7 @@ func (c *Client) sendAPIV2InvoicesExportsPost(ctx context.Context, request OptIn
 	return result, nil
 }
 
-// APIV2InvoicesExportsReferenceNumberGet invokes GET /api/v2/invoices/exports/{referenceNumber} operation.
+// InvoicesExportsReferenceNumberGet invokes GET /invoices/exports/{referenceNumber} operation.
 //
 // Paczka faktur jest dzielona na części o maksymalnym rozmiarze 50 MB. Każda część jest
 // zaszyfrowana algorytmem AES-256-CBC z dopełnieniem PKCS#7, przy użyciu klucza symetrycznego
@@ -2397,17 +2452,17 @@ func (c *Client) sendAPIV2InvoicesExportsPost(ctx context.Context, request OptIn
 // - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 // **Wymagane uprawnienia**: `InvoiceRead`.
 //
-// GET /api/v2/invoices/exports/{referenceNumber}
-func (c *Client) APIV2InvoicesExportsReferenceNumberGet(ctx context.Context, params APIV2InvoicesExportsReferenceNumberGetParams) (APIV2InvoicesExportsReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2InvoicesExportsReferenceNumberGet(ctx, params)
+// GET /invoices/exports/{referenceNumber}
+func (c *Client) InvoicesExportsReferenceNumberGet(ctx context.Context, params InvoicesExportsReferenceNumberGetParams) (InvoicesExportsReferenceNumberGetRes, error) {
+	res, err := c.sendInvoicesExportsReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2InvoicesExportsReferenceNumberGet(ctx context.Context, params APIV2InvoicesExportsReferenceNumberGetParams) (res APIV2InvoicesExportsReferenceNumberGetRes, err error) {
+func (c *Client) sendInvoicesExportsReferenceNumberGet(ctx context.Context, params InvoicesExportsReferenceNumberGetParams) (res InvoicesExportsReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/invoices/exports/"
+	pathParts[0] = "/invoices/exports/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2441,7 +2496,7 @@ func (c *Client) sendAPIV2InvoicesExportsReferenceNumberGet(ctx context.Context,
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2InvoicesExportsReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, InvoicesExportsReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2475,7 +2530,7 @@ func (c *Client) sendAPIV2InvoicesExportsReferenceNumberGet(ctx context.Context,
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2InvoicesExportsReferenceNumberGetResponse(resp)
+	result, err := decodeInvoicesExportsReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2483,22 +2538,22 @@ func (c *Client) sendAPIV2InvoicesExportsReferenceNumberGet(ctx context.Context,
 	return result, nil
 }
 
-// APIV2InvoicesKsefKsefNumberGet invokes GET /api/v2/invoices/ksef/{ksefNumber} operation.
+// InvoicesKsefKsefNumberGet invokes GET /invoices/ksef/{ksefNumber} operation.
 //
 // Zwraca fakturę o podanym numerze KSeF.
 // **Wymagane uprawnienia**: `InvoiceRead`.
 //
-// GET /api/v2/invoices/ksef/{ksefNumber}
-func (c *Client) APIV2InvoicesKsefKsefNumberGet(ctx context.Context, params APIV2InvoicesKsefKsefNumberGetParams) (APIV2InvoicesKsefKsefNumberGetRes, error) {
-	res, err := c.sendAPIV2InvoicesKsefKsefNumberGet(ctx, params)
+// GET /invoices/ksef/{ksefNumber}
+func (c *Client) InvoicesKsefKsefNumberGet(ctx context.Context, params InvoicesKsefKsefNumberGetParams) (InvoicesKsefKsefNumberGetRes, error) {
+	res, err := c.sendInvoicesKsefKsefNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2InvoicesKsefKsefNumberGet(ctx context.Context, params APIV2InvoicesKsefKsefNumberGetParams) (res APIV2InvoicesKsefKsefNumberGetRes, err error) {
+func (c *Client) sendInvoicesKsefKsefNumberGet(ctx context.Context, params InvoicesKsefKsefNumberGetParams) (res InvoicesKsefKsefNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/invoices/ksef/"
+	pathParts[0] = "/invoices/ksef/"
 	{
 		// Encode "ksefNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2532,7 +2587,7 @@ func (c *Client) sendAPIV2InvoicesKsefKsefNumberGet(ctx context.Context, params 
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2InvoicesKsefKsefNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, InvoicesKsefKsefNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2566,7 +2621,7 @@ func (c *Client) sendAPIV2InvoicesKsefKsefNumberGet(ctx context.Context, params 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2InvoicesKsefKsefNumberGetResponse(resp)
+	result, err := decodeInvoicesKsefKsefNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2574,7 +2629,7 @@ func (c *Client) sendAPIV2InvoicesKsefKsefNumberGet(ctx context.Context, params 
 	return result, nil
 }
 
-// APIV2InvoicesQueryMetadataPost invokes POST /api/v2/invoices/query/metadata operation.
+// InvoicesQueryMetadataPost invokes POST /invoices/query/metadata operation.
 //
 // Zwraca metadane faktur spełniających filtry.
 // Limit techniczny: ≤ 10 000 rekordów na zestaw filtrów, po jego osiągnięciu <b>isTruncated =
@@ -2593,13 +2648,13 @@ func (c *Client) sendAPIV2InvoicesKsefKsefNumberGet(ctx context.Context, params 
 // filtrów
 // **Wymagane uprawnienia**: `InvoiceRead`.
 //
-// POST /api/v2/invoices/query/metadata
-func (c *Client) APIV2InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params APIV2InvoicesQueryMetadataPostParams) (APIV2InvoicesQueryMetadataPostRes, error) {
-	res, err := c.sendAPIV2InvoicesQueryMetadataPost(ctx, request, params)
+// POST /invoices/query/metadata
+func (c *Client) InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params InvoicesQueryMetadataPostParams) (InvoicesQueryMetadataPostRes, error) {
+	res, err := c.sendInvoicesQueryMetadataPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params APIV2InvoicesQueryMetadataPostParams) (res APIV2InvoicesQueryMetadataPostRes, err error) {
+func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params InvoicesQueryMetadataPostParams) (res InvoicesQueryMetadataPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2619,7 +2674,7 @@ func (c *Client) sendAPIV2InvoicesQueryMetadataPost(ctx context.Context, request
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/invoices/query/metadata"
+	pathParts[0] = "/invoices/query/metadata"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -2680,7 +2735,7 @@ func (c *Client) sendAPIV2InvoicesQueryMetadataPost(ctx context.Context, request
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2InvoicesQueryMetadataPostRequest(request, r); err != nil {
+	if err := encodeInvoicesQueryMetadataPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2689,7 +2744,7 @@ func (c *Client) sendAPIV2InvoicesQueryMetadataPost(ctx context.Context, request
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2InvoicesQueryMetadataPostOperation, r); {
+			switch err := c.securityBearer(ctx, InvoicesQueryMetadataPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2723,7 +2778,7 @@ func (c *Client) sendAPIV2InvoicesQueryMetadataPost(ctx context.Context, request
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2InvoicesQueryMetadataPostResponse(resp)
+	result, err := decodeInvoicesQueryMetadataPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2731,21 +2786,21 @@ func (c *Client) sendAPIV2InvoicesQueryMetadataPost(ctx context.Context, request
 	return result, nil
 }
 
-// APIV2LimitsContextGet invokes GET /api/v2/limits/context operation.
+// LimitsContextGet invokes GET /limits/context operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów dla bieżącego kontekstu.
 //
-// GET /api/v2/limits/context
-func (c *Client) APIV2LimitsContextGet(ctx context.Context) (APIV2LimitsContextGetRes, error) {
-	res, err := c.sendAPIV2LimitsContextGet(ctx)
+// GET /limits/context
+func (c *Client) LimitsContextGet(ctx context.Context) (LimitsContextGetRes, error) {
+	res, err := c.sendLimitsContextGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2LimitsContextGet(ctx context.Context) (res APIV2LimitsContextGetRes, err error) {
+func (c *Client) sendLimitsContextGet(ctx context.Context) (res LimitsContextGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/limits/context"
+	pathParts[0] = "/limits/context"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -2758,7 +2813,7 @@ func (c *Client) sendAPIV2LimitsContextGet(ctx context.Context) (res APIV2Limits
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2LimitsContextGetOperation, r); {
+			switch err := c.securityBearer(ctx, LimitsContextGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2792,7 +2847,7 @@ func (c *Client) sendAPIV2LimitsContextGet(ctx context.Context) (res APIV2Limits
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2LimitsContextGetResponse(resp)
+	result, err := decodeLimitsContextGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2800,21 +2855,21 @@ func (c *Client) sendAPIV2LimitsContextGet(ctx context.Context) (res APIV2Limits
 	return result, nil
 }
 
-// APIV2LimitsSubjectGet invokes GET /api/v2/limits/subject operation.
+// LimitsSubjectGet invokes GET /limits/subject operation.
 //
-// Zwraca wartoście aktualnie obowiązujących limitów dla bieżącego podmiotu.
+// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego podmiotu.
 //
-// GET /api/v2/limits/subject
-func (c *Client) APIV2LimitsSubjectGet(ctx context.Context) (APIV2LimitsSubjectGetRes, error) {
-	res, err := c.sendAPIV2LimitsSubjectGet(ctx)
+// GET /limits/subject
+func (c *Client) LimitsSubjectGet(ctx context.Context) (LimitsSubjectGetRes, error) {
+	res, err := c.sendLimitsSubjectGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2LimitsSubjectGet(ctx context.Context) (res APIV2LimitsSubjectGetRes, err error) {
+func (c *Client) sendLimitsSubjectGet(ctx context.Context) (res LimitsSubjectGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/limits/subject"
+	pathParts[0] = "/limits/subject"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -2827,7 +2882,7 @@ func (c *Client) sendAPIV2LimitsSubjectGet(ctx context.Context) (res APIV2Limits
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2LimitsSubjectGetOperation, r); {
+			switch err := c.securityBearer(ctx, LimitsSubjectGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2861,7 +2916,7 @@ func (c *Client) sendAPIV2LimitsSubjectGet(ctx context.Context) (res APIV2Limits
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2LimitsSubjectGetResponse(resp)
+	result, err := decodeLimitsSubjectGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2869,23 +2924,24 @@ func (c *Client) sendAPIV2LimitsSubjectGet(ctx context.Context) (res APIV2Limits
 	return result, nil
 }
 
-// APIV2PeppolQueryGet invokes GET /api/v2/peppol/query operation.
+// PeppolQueryGet invokes GET /peppol/query operation.
 //
 // Zwraca listę dostawców usług Peppol zarejestrowanych w systemie.
 // **Sortowanie:**
-// - dateCreated (Desc).
+// - dateCreated (Desc)
+// - id (Asc).
 //
-// GET /api/v2/peppol/query
-func (c *Client) APIV2PeppolQueryGet(ctx context.Context, params APIV2PeppolQueryGetParams) (APIV2PeppolQueryGetRes, error) {
-	res, err := c.sendAPIV2PeppolQueryGet(ctx, params)
+// GET /peppol/query
+func (c *Client) PeppolQueryGet(ctx context.Context, params PeppolQueryGetParams) (PeppolQueryGetRes, error) {
+	res, err := c.sendPeppolQueryGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PeppolQueryGet(ctx context.Context, params APIV2PeppolQueryGetParams) (res APIV2PeppolQueryGetRes, err error) {
+func (c *Client) sendPeppolQueryGet(ctx context.Context, params PeppolQueryGetParams) (res PeppolQueryGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/peppol/query"
+	pathParts[0] = "/peppol/query"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -2936,7 +2992,7 @@ func (c *Client) sendAPIV2PeppolQueryGet(ctx context.Context, params APIV2Peppol
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PeppolQueryGetResponse(resp)
+	result, err := decodePeppolQueryGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2944,22 +3000,22 @@ func (c *Client) sendAPIV2PeppolQueryGet(ctx context.Context, params APIV2Peppol
 	return result, nil
 }
 
-// APIV2PermissionsAttachmentsStatusGet invokes GET /api/v2/permissions/attachments/status operation.
+// PermissionsAttachmentsStatusGet invokes GET /permissions/attachments/status operation.
 //
 // Sprawdzenie czy obecny kontekst posiada zgodę na wystawianie faktur z załącznikiem.
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
 //
-// GET /api/v2/permissions/attachments/status
-func (c *Client) APIV2PermissionsAttachmentsStatusGet(ctx context.Context) (APIV2PermissionsAttachmentsStatusGetRes, error) {
-	res, err := c.sendAPIV2PermissionsAttachmentsStatusGet(ctx)
+// GET /permissions/attachments/status
+func (c *Client) PermissionsAttachmentsStatusGet(ctx context.Context) (PermissionsAttachmentsStatusGetRes, error) {
+	res, err := c.sendPermissionsAttachmentsStatusGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsAttachmentsStatusGet(ctx context.Context) (res APIV2PermissionsAttachmentsStatusGetRes, err error) {
+func (c *Client) sendPermissionsAttachmentsStatusGet(ctx context.Context) (res PermissionsAttachmentsStatusGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/attachments/status"
+	pathParts[0] = "/permissions/attachments/status"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -2972,7 +3028,7 @@ func (c *Client) sendAPIV2PermissionsAttachmentsStatusGet(ctx context.Context) (
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsAttachmentsStatusGetOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsAttachmentsStatusGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3006,7 +3062,7 @@ func (c *Client) sendAPIV2PermissionsAttachmentsStatusGet(ctx context.Context) (
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsAttachmentsStatusGetResponse(resp)
+	result, err := decodePermissionsAttachmentsStatusGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3014,7 +3070,7 @@ func (c *Client) sendAPIV2PermissionsAttachmentsStatusGet(ctx context.Context) (
 	return result, nil
 }
 
-// APIV2PermissionsAuthorizationsGrantsPermissionIdDelete invokes DELETE /api/v2/permissions/authorizations/grants/{permissionId} operation.
+// PermissionsAuthorizationsGrantsPermissionIdDelete invokes DELETE /permissions/authorizations/grants/{permissionId} operation.
 //
 // Metoda pozwala na odebranie uprawnienia podmiotowego o wskazanym identyfikatorze.
 // Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
@@ -3024,17 +3080,17 @@ func (c *Client) sendAPIV2PermissionsAttachmentsStatusGet(ctx context.Context) (
 // md#odebranie-uprawnie%C5%84-podmiotowych)
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
-// DELETE /api/v2/permissions/authorizations/grants/{permissionId}
-func (c *Client) APIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteRes, error) {
-	res, err := c.sendAPIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx, params)
+// DELETE /permissions/authorizations/grants/{permissionId}
+func (c *Client) PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (PermissionsAuthorizationsGrantsPermissionIdDeleteRes, error) {
+	res, err := c.sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (res APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteRes, err error) {
+func (c *Client) sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (res PermissionsAuthorizationsGrantsPermissionIdDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/permissions/authorizations/grants/"
+	pathParts[0] = "/permissions/authorizations/grants/"
 	{
 		// Encode "permissionId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3068,7 +3124,7 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx 
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsAuthorizationsGrantsPermissionIdDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsAuthorizationsGrantsPermissionIdDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3102,7 +3158,7 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp)
+	result, err := decodePermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3110,7 +3166,7 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx 
 	return result, nil
 }
 
-// APIV2PermissionsAuthorizationsGrantsPost invokes POST /api/v2/permissions/authorizations/grants operation.
+// PermissionsAuthorizationsGrantsPost invokes POST /permissions/authorizations/grants operation.
 //
 // Metoda pozwala na nadanie jednego z uprawnień podmiotowych do obsługi podmiotu kontekstu
 // podmiotowi wskazanemu w żądaniu.
@@ -3119,13 +3175,13 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPermissionIdDelete(ctx 
 // md#nadanie-uprawnie%C5%84-podmiotowych)
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
-// POST /api/v2/permissions/authorizations/grants
-func (c *Client) APIV2PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (APIV2PermissionsAuthorizationsGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsAuthorizationsGrantsPost(ctx, request)
+// POST /permissions/authorizations/grants
+func (c *Client) PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (PermissionsAuthorizationsGrantsPostRes, error) {
+	res, err := c.sendPermissionsAuthorizationsGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (res APIV2PermissionsAuthorizationsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (res PermissionsAuthorizationsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3145,14 +3201,14 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPost(ctx context.Contex
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/authorizations/grants"
+	pathParts[0] = "/permissions/authorizations/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsAuthorizationsGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsAuthorizationsGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3161,7 +3217,7 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPost(ctx context.Contex
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsAuthorizationsGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsAuthorizationsGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3195,7 +3251,7 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPost(ctx context.Contex
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsAuthorizationsGrantsPostResponse(resp)
+	result, err := decodePermissionsAuthorizationsGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3203,7 +3259,7 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPost(ctx context.Contex
 	return result, nil
 }
 
-// APIV2PermissionsCommonGrantsPermissionIdDelete invokes DELETE /api/v2/permissions/common/grants/{permissionId} operation.
+// PermissionsCommonGrantsPermissionIdDelete invokes DELETE /permissions/common/grants/{permissionId} operation.
 //
 // Metoda pozwala na odebranie uprawnienia o wskazanym identyfikatorze.
 // Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
@@ -3213,17 +3269,17 @@ func (c *Client) sendAPIV2PermissionsAuthorizationsGrantsPost(ctx context.Contex
 // md#odebranie-uprawnie%C5%84)
 // **Wymagane uprawnienia**: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
 //
-// DELETE /api/v2/permissions/common/grants/{permissionId}
-func (c *Client) APIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params APIV2PermissionsCommonGrantsPermissionIdDeleteParams) (APIV2PermissionsCommonGrantsPermissionIdDeleteRes, error) {
-	res, err := c.sendAPIV2PermissionsCommonGrantsPermissionIdDelete(ctx, params)
+// DELETE /permissions/common/grants/{permissionId}
+func (c *Client) PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params PermissionsCommonGrantsPermissionIdDeleteParams) (PermissionsCommonGrantsPermissionIdDeleteRes, error) {
+	res, err := c.sendPermissionsCommonGrantsPermissionIdDelete(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params APIV2PermissionsCommonGrantsPermissionIdDeleteParams) (res APIV2PermissionsCommonGrantsPermissionIdDeleteRes, err error) {
+func (c *Client) sendPermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params PermissionsCommonGrantsPermissionIdDeleteParams) (res PermissionsCommonGrantsPermissionIdDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/permissions/common/grants/"
+	pathParts[0] = "/permissions/common/grants/"
 	{
 		// Encode "permissionId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3257,7 +3313,7 @@ func (c *Client) sendAPIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsCommonGrantsPermissionIdDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsCommonGrantsPermissionIdDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3291,7 +3347,7 @@ func (c *Client) sendAPIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsCommonGrantsPermissionIdDeleteResponse(resp)
+	result, err := decodePermissionsCommonGrantsPermissionIdDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3299,7 +3355,7 @@ func (c *Client) sendAPIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.
 	return result, nil
 }
 
-// APIV2PermissionsEntitiesGrantsPost invokes POST /api/v2/permissions/entities/grants operation.
+// PermissionsEntitiesGrantsPost invokes POST /permissions/entities/grants operation.
 //
 // Metoda pozwala na nadanie podmiotowi wskazanemu w żądaniu uprawnień do obsługi faktur podmiotu
 // kontekstu.
@@ -3314,13 +3370,13 @@ func (c *Client) sendAPIV2PermissionsCommonGrantsPermissionIdDelete(ctx context.
 // md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur)
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
-// POST /api/v2/permissions/entities/grants
-func (c *Client) APIV2PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (APIV2PermissionsEntitiesGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsEntitiesGrantsPost(ctx, request)
+// POST /permissions/entities/grants
+func (c *Client) PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (PermissionsEntitiesGrantsPostRes, error) {
+	res, err := c.sendPermissionsEntitiesGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (res APIV2PermissionsEntitiesGrantsPostRes, err error) {
+func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (res PermissionsEntitiesGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3340,14 +3396,14 @@ func (c *Client) sendAPIV2PermissionsEntitiesGrantsPost(ctx context.Context, req
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/entities/grants"
+	pathParts[0] = "/permissions/entities/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsEntitiesGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsEntitiesGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3356,7 +3412,7 @@ func (c *Client) sendAPIV2PermissionsEntitiesGrantsPost(ctx context.Context, req
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsEntitiesGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsEntitiesGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3390,7 +3446,7 @@ func (c *Client) sendAPIV2PermissionsEntitiesGrantsPost(ctx context.Context, req
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsEntitiesGrantsPostResponse(resp)
+	result, err := decodePermissionsEntitiesGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3398,7 +3454,7 @@ func (c *Client) sendAPIV2PermissionsEntitiesGrantsPost(ctx context.Context, req
 	return result, nil
 }
 
-// APIV2PermissionsEuEntitiesAdministrationGrantsPost invokes POST /api/v2/permissions/eu-entities/administration/grants operation.
+// PermissionsEuEntitiesAdministrationGrantsPost invokes POST /permissions/eu-entities/administration/grants operation.
 //
 // Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 // administratora w kontekście złożonym z identyfikatora NIP podmiotu kontekstu bieżącego oraz
@@ -3422,13 +3478,13 @@ func (c *Client) sendAPIV2PermissionsEntitiesGrantsPost(ctx context.Context, req
 // md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego)
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
-// POST /api/v2/permissions/eu-entities/administration/grants
-func (c *Client) APIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (APIV2PermissionsEuEntitiesAdministrationGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx, request)
+// POST /permissions/eu-entities/administration/grants
+func (c *Client) PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (PermissionsEuEntitiesAdministrationGrantsPostRes, error) {
+	res, err := c.sendPermissionsEuEntitiesAdministrationGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (res APIV2PermissionsEuEntitiesAdministrationGrantsPostRes, err error) {
+func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (res PermissionsEuEntitiesAdministrationGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3448,14 +3504,14 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx cont
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/eu-entities/administration/grants"
+	pathParts[0] = "/permissions/eu-entities/administration/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsEuEntitiesAdministrationGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsEuEntitiesAdministrationGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3464,7 +3520,7 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx cont
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsEuEntitiesAdministrationGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsEuEntitiesAdministrationGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3498,7 +3554,7 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx cont
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsEuEntitiesAdministrationGrantsPostResponse(resp)
+	result, err := decodePermissionsEuEntitiesAdministrationGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3506,7 +3562,7 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx cont
 	return result, nil
 }
 
-// APIV2PermissionsEuEntitiesGrantsPost invokes POST /api/v2/permissions/eu-entities/grants operation.
+// PermissionsEuEntitiesGrantsPost invokes POST /permissions/eu-entities/grants operation.
 //
 // Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień do
 // wystawiania i/lub przeglądania faktur w kontekście złożonym kontekstu bieżącego.
@@ -3522,13 +3578,13 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesAdministrationGrantsPost(ctx cont
 // md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego)
 // **Wymagane uprawnienia**: `VatUeManage`.
 //
-// POST /api/v2/permissions/eu-entities/grants
-func (c *Client) APIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (APIV2PermissionsEuEntitiesGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsEuEntitiesGrantsPost(ctx, request)
+// POST /permissions/eu-entities/grants
+func (c *Client) PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (PermissionsEuEntitiesGrantsPostRes, error) {
+	res, err := c.sendPermissionsEuEntitiesGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (res APIV2PermissionsEuEntitiesGrantsPostRes, err error) {
+func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (res PermissionsEuEntitiesGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3548,14 +3604,14 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, r
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/eu-entities/grants"
+	pathParts[0] = "/permissions/eu-entities/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsEuEntitiesGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsEuEntitiesGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3564,7 +3620,7 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, r
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsEuEntitiesGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsEuEntitiesGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3598,7 +3654,7 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, r
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsEuEntitiesGrantsPostResponse(resp)
+	result, err := decodePermissionsEuEntitiesGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3606,7 +3662,7 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, r
 	return result, nil
 }
 
-// APIV2PermissionsIndirectGrantsPost invokes POST /api/v2/permissions/indirect/grants operation.
+// PermissionsIndirectGrantsPost invokes POST /permissions/indirect/grants operation.
 //
 // Metoda pozwala na nadanie w sposób pośredni osobie wskazanej w żądaniu uprawnień do obsługi
 // faktur innego podmiotu – klienta.
@@ -3615,8 +3671,8 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, r
 // - nadanie uprawnień selektywnych – do obsługi wskazanego klienta
 // Uprawnienie selektywne może być nadane wyłącznie wtedy, gdy klient nadał wcześniej
 // podmiotowi bieżącego kontekstu dowolne uprawnienie z prawem do jego dalszego przekazywania
-// (patrz [POST /api/v2/permissions/entities/grants](/docs/v2/index.
-// html#tag/Nadawanie-uprawnien/paths/~1api~1v2~1permissions~1entities~1grants/post)).
+// (patrz [POST /v2/permissions/entities/grants](/docs/v2/index.
+// html#tag/Nadawanie-uprawnien/paths/~1permissions~1entities~1grants/post)).
 // W żądaniu określane są nadawane uprawnienia ze zbioru:
 // - **InvoiceWrite** – wystawianie faktur
 // - **InvoiceRead** – przeglądanie faktur
@@ -3626,13 +3682,13 @@ func (c *Client) sendAPIV2PermissionsEuEntitiesGrantsPost(ctx context.Context, r
 // md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni)
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
-// POST /api/v2/permissions/indirect/grants
-func (c *Client) APIV2PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (APIV2PermissionsIndirectGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsIndirectGrantsPost(ctx, request)
+// POST /permissions/indirect/grants
+func (c *Client) PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (PermissionsIndirectGrantsPostRes, error) {
+	res, err := c.sendPermissionsIndirectGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (res APIV2PermissionsIndirectGrantsPostRes, err error) {
+func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (res PermissionsIndirectGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3652,14 +3708,14 @@ func (c *Client) sendAPIV2PermissionsIndirectGrantsPost(ctx context.Context, req
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/indirect/grants"
+	pathParts[0] = "/permissions/indirect/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsIndirectGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsIndirectGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3668,7 +3724,7 @@ func (c *Client) sendAPIV2PermissionsIndirectGrantsPost(ctx context.Context, req
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsIndirectGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsIndirectGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3702,7 +3758,7 @@ func (c *Client) sendAPIV2PermissionsIndirectGrantsPost(ctx context.Context, req
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsIndirectGrantsPostResponse(resp)
+	result, err := decodePermissionsIndirectGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3710,21 +3766,21 @@ func (c *Client) sendAPIV2PermissionsIndirectGrantsPost(ctx context.Context, req
 	return result, nil
 }
 
-// APIV2PermissionsOperationsReferenceNumberGet invokes GET /api/v2/permissions/operations/{referenceNumber} operation.
+// PermissionsOperationsReferenceNumberGet invokes GET /permissions/operations/{referenceNumber} operation.
 //
 // Zwraca status operacji asynchronicznej związanej z nadaniem lub odebraniem uprawnień.
 //
-// GET /api/v2/permissions/operations/{referenceNumber}
-func (c *Client) APIV2PermissionsOperationsReferenceNumberGet(ctx context.Context, params APIV2PermissionsOperationsReferenceNumberGetParams) (APIV2PermissionsOperationsReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2PermissionsOperationsReferenceNumberGet(ctx, params)
+// GET /permissions/operations/{referenceNumber}
+func (c *Client) PermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (PermissionsOperationsReferenceNumberGetRes, error) {
+	res, err := c.sendPermissionsOperationsReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsOperationsReferenceNumberGet(ctx context.Context, params APIV2PermissionsOperationsReferenceNumberGetParams) (res APIV2PermissionsOperationsReferenceNumberGetRes, err error) {
+func (c *Client) sendPermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (res PermissionsOperationsReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/permissions/operations/"
+	pathParts[0] = "/permissions/operations/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3758,7 +3814,7 @@ func (c *Client) sendAPIV2PermissionsOperationsReferenceNumberGet(ctx context.Co
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsOperationsReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsOperationsReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3792,7 +3848,7 @@ func (c *Client) sendAPIV2PermissionsOperationsReferenceNumberGet(ctx context.Co
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsOperationsReferenceNumberGetResponse(resp)
+	result, err := decodePermissionsOperationsReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3800,7 +3856,7 @@ func (c *Client) sendAPIV2PermissionsOperationsReferenceNumberGet(ctx context.Co
 	return result, nil
 }
 
-// APIV2PermissionsPersonsGrantsPost invokes POST /api/v2/permissions/persons/grants operation.
+// PermissionsPersonsGrantsPost invokes POST /permissions/persons/grants operation.
 //
 // Metoda pozwala na nadanie osobie wskazanej w żądaniu uprawnień do pracy w KSeF
 // w kontekście bieżącym.
@@ -3821,13 +3877,13 @@ func (c *Client) sendAPIV2PermissionsOperationsReferenceNumberGet(ctx context.Co
 // md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef)
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
-// POST /api/v2/permissions/persons/grants
-func (c *Client) APIV2PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (APIV2PermissionsPersonsGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsPersonsGrantsPost(ctx, request)
+// POST /permissions/persons/grants
+func (c *Client) PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (PermissionsPersonsGrantsPostRes, error) {
+	res, err := c.sendPermissionsPersonsGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (res APIV2PermissionsPersonsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (res PermissionsPersonsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3847,14 +3903,14 @@ func (c *Client) sendAPIV2PermissionsPersonsGrantsPost(ctx context.Context, requ
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/persons/grants"
+	pathParts[0] = "/permissions/persons/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsPersonsGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsPersonsGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3863,7 +3919,7 @@ func (c *Client) sendAPIV2PermissionsPersonsGrantsPost(ctx context.Context, requ
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsPersonsGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsPersonsGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3897,7 +3953,7 @@ func (c *Client) sendAPIV2PermissionsPersonsGrantsPost(ctx context.Context, requ
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsPersonsGrantsPostResponse(resp)
+	result, err := decodePermissionsPersonsGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3905,7 +3961,7 @@ func (c *Client) sendAPIV2PermissionsPersonsGrantsPost(ctx context.Context, requ
 	return result, nil
 }
 
-// APIV2PermissionsQueryAuthorizationsGrantsPost invokes POST /api/v2/permissions/query/authorizations/grants operation.
+// PermissionsQueryAuthorizationsGrantsPost invokes POST /permissions/query/authorizations/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień podmiotowych:
 // - otrzymanych przez podmiot bieżącego kontekstu
@@ -3932,15 +3988,16 @@ func (c *Client) sendAPIV2PermissionsPersonsGrantsPost(ctx context.Context, requ
 // md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur)
 // **Sortowanie:**
 // - startDate (Desc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+// - id (Asc)
+// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `PefInvoiceWrite`.
 //
-// POST /api/v2/permissions/query/authorizations/grants
-func (c *Client) APIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params APIV2PermissionsQueryAuthorizationsGrantsPostParams) (APIV2PermissionsQueryAuthorizationsGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx, request, params)
+// POST /permissions/query/authorizations/grants
+func (c *Client) PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error) {
+	res, err := c.sendPermissionsQueryAuthorizationsGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params APIV2PermissionsQueryAuthorizationsGrantsPostParams) (res APIV2PermissionsQueryAuthorizationsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (res PermissionsQueryAuthorizationsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3960,7 +4017,7 @@ func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.C
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/authorizations/grants"
+	pathParts[0] = "/permissions/query/authorizations/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4004,7 +4061,7 @@ func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.C
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsQueryAuthorizationsGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsQueryAuthorizationsGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -4013,7 +4070,7 @@ func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.C
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQueryAuthorizationsGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQueryAuthorizationsGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4047,7 +4104,7 @@ func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.C
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQueryAuthorizationsGrantsPostResponse(resp)
+	result, err := decodePermissionsQueryAuthorizationsGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4055,7 +4112,7 @@ func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.C
 	return result, nil
 }
 
-// APIV2PermissionsQueryEntitiesRolesGet invokes GET /api/v2/permissions/query/entities/roles operation.
+// PermissionsQueryEntitiesRolesGet invokes GET /permissions/query/entities/roles operation.
 //
 // Metoda pozwala na **odczytanie listy ról podmiotu bieżącego kontekstu logowania**.
 // #### Role podmiotów zwracane przez operację:
@@ -4075,19 +4132,20 @@ func (c *Client) sendAPIV2PermissionsQueryAuthorizationsGrantsPost(ctx context.C
 // md#pobranie-listy-r%C3%B3l-podmiotu)
 // **Sortowanie:**
 // - startDate (Desc)
+// - id (Asc)
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
 //
-// GET /api/v2/permissions/query/entities/roles
-func (c *Client) APIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, params APIV2PermissionsQueryEntitiesRolesGetParams) (APIV2PermissionsQueryEntitiesRolesGetRes, error) {
-	res, err := c.sendAPIV2PermissionsQueryEntitiesRolesGet(ctx, params)
+// GET /permissions/query/entities/roles
+func (c *Client) PermissionsQueryEntitiesRolesGet(ctx context.Context, params PermissionsQueryEntitiesRolesGetParams) (PermissionsQueryEntitiesRolesGetRes, error) {
+	res, err := c.sendPermissionsQueryEntitiesRolesGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, params APIV2PermissionsQueryEntitiesRolesGetParams) (res APIV2PermissionsQueryEntitiesRolesGetRes, err error) {
+func (c *Client) sendPermissionsQueryEntitiesRolesGet(ctx context.Context, params PermissionsQueryEntitiesRolesGetParams) (res PermissionsQueryEntitiesRolesGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/entities/roles"
+	pathParts[0] = "/permissions/query/entities/roles"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4137,7 +4195,7 @@ func (c *Client) sendAPIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, 
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQueryEntitiesRolesGetOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQueryEntitiesRolesGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4171,7 +4229,7 @@ func (c *Client) sendAPIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQueryEntitiesRolesGetResponse(resp)
+	result, err := decodePermissionsQueryEntitiesRolesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4179,7 +4237,7 @@ func (c *Client) sendAPIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, 
 	return result, nil
 }
 
-// APIV2PermissionsQueryEuEntitiesGrantsPost invokes POST /api/v2/permissions/query/eu-entities/grants operation.
+// PermissionsQueryEuEntitiesGrantsPost invokes POST /permissions/query/eu-entities/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień administratorów lub reprezentantów podmiotów unijnych:
 // - Jeżeli kontekstem logowania jest NIP, możliwe jest odczytanie uprawnień administratorów
@@ -4206,15 +4264,16 @@ func (c *Client) sendAPIV2PermissionsQueryEntitiesRolesGet(ctx context.Context, 
 // md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania)
 // **Sortowanie:**
 // - startDate (Desc)
+// - id (Asc)
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `VatUeManage`.
 //
-// POST /api/v2/permissions/query/eu-entities/grants
-func (c *Client) APIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params APIV2PermissionsQueryEuEntitiesGrantsPostParams) (APIV2PermissionsQueryEuEntitiesGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx, request, params)
+// POST /permissions/query/eu-entities/grants
+func (c *Client) PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params PermissionsQueryEuEntitiesGrantsPostParams) (PermissionsQueryEuEntitiesGrantsPostRes, error) {
+	res, err := c.sendPermissionsQueryEuEntitiesGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params APIV2PermissionsQueryEuEntitiesGrantsPostParams) (res APIV2PermissionsQueryEuEntitiesGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params PermissionsQueryEuEntitiesGrantsPostParams) (res PermissionsQueryEuEntitiesGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4234,7 +4293,7 @@ func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Conte
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/eu-entities/grants"
+	pathParts[0] = "/permissions/query/eu-entities/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4278,7 +4337,7 @@ func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Conte
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsQueryEuEntitiesGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsQueryEuEntitiesGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -4287,7 +4346,7 @@ func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Conte
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQueryEuEntitiesGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQueryEuEntitiesGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4321,7 +4380,7 @@ func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Conte
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQueryEuEntitiesGrantsPostResponse(resp)
+	result, err := decodePermissionsQueryEuEntitiesGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4329,7 +4388,7 @@ func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Conte
 	return result, nil
 }
 
-// APIV2PermissionsQueryPersonalGrantsPost invokes POST /api/v2/permissions/query/personal/grants operation.
+// PermissionsQueryPersonalGrantsPost invokes POST /permissions/query/personal/grants operation.
 //
 // Metoda pozwala na odczytanie własnych uprawnień uwierzytelnionego klienta API w bieżącym
 // kontekście logowania.
@@ -4363,15 +4422,16 @@ func (c *Client) sendAPIV2PermissionsQueryEuEntitiesGrantsPost(ctx context.Conte
 // > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84)
 // **Sortowanie:**
-// - startDate (Desc).
+// - startDate (Desc)
+// - id (Asc).
 //
-// POST /api/v2/permissions/query/personal/grants
-func (c *Client) APIV2PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params APIV2PermissionsQueryPersonalGrantsPostParams) (APIV2PermissionsQueryPersonalGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsQueryPersonalGrantsPost(ctx, request, params)
+// POST /permissions/query/personal/grants
+func (c *Client) PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params PermissionsQueryPersonalGrantsPostParams) (PermissionsQueryPersonalGrantsPostRes, error) {
+	res, err := c.sendPermissionsQueryPersonalGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params APIV2PermissionsQueryPersonalGrantsPostParams) (res APIV2PermissionsQueryPersonalGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params PermissionsQueryPersonalGrantsPostParams) (res PermissionsQueryPersonalGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4391,7 +4451,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/personal/grants"
+	pathParts[0] = "/permissions/query/personal/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4435,7 +4495,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsQueryPersonalGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsQueryPersonalGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -4444,7 +4504,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQueryPersonalGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQueryPersonalGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4478,7 +4538,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQueryPersonalGrantsPostResponse(resp)
+	result, err := decodePermissionsQueryPersonalGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4486,7 +4546,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context
 	return result, nil
 }
 
-// APIV2PermissionsQueryPersonsGrantsPost invokes POST /api/v2/permissions/query/persons/grants operation.
+// PermissionsQueryPersonsGrantsPost invokes POST /permissions/query/persons/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień nadanych osobie fizycznej lub podmiotowi.
 // Lista pobranych uprawnień może być dwóch rodzajów:
@@ -4528,15 +4588,16 @@ func (c *Client) sendAPIV2PermissionsQueryPersonalGrantsPost(ctx context.Context
 // md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom)
 // **Sortowanie:**
 // - startDate (Desc)
+// - id (Asc)
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 //
-// POST /api/v2/permissions/query/persons/grants
-func (c *Client) APIV2PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params APIV2PermissionsQueryPersonsGrantsPostParams) (APIV2PermissionsQueryPersonsGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsQueryPersonsGrantsPost(ctx, request, params)
+// POST /permissions/query/persons/grants
+func (c *Client) PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params PermissionsQueryPersonsGrantsPostParams) (PermissionsQueryPersonsGrantsPostRes, error) {
+	res, err := c.sendPermissionsQueryPersonsGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params APIV2PermissionsQueryPersonsGrantsPostParams) (res APIV2PermissionsQueryPersonsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params PermissionsQueryPersonsGrantsPostParams) (res PermissionsQueryPersonsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4556,7 +4617,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context,
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/persons/grants"
+	pathParts[0] = "/permissions/query/persons/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4600,7 +4661,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context,
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsQueryPersonsGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsQueryPersonsGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -4609,7 +4670,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context,
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQueryPersonsGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQueryPersonsGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4643,7 +4704,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context,
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQueryPersonsGrantsPostResponse(resp)
+	result, err := decodePermissionsQueryPersonsGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4651,7 +4712,7 @@ func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context,
 	return result, nil
 }
 
-// APIV2PermissionsQuerySubordinateEntitiesRolesPost invokes POST /api/v2/permissions/query/subordinate-entities/roles operation.
+// PermissionsQuerySubordinateEntitiesRolesPost invokes POST /permissions/query/subordinate-entities/roles operation.
 //
 // Metoda pozwala na odczytanie listy podmiotów podrzędnych,
 // jeżeli podmiot bieżącego kontekstu ma rolę podmiotu nadrzędnego:
@@ -4672,15 +4733,16 @@ func (c *Client) sendAPIV2PermissionsQueryPersonsGrantsPost(ctx context.Context,
 // com/CIRFMF/ksef-docs/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych)
 // **Sortowanie:**
 // - startDate (Desc)
+// - id (Asc)
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 //
-// POST /api/v2/permissions/query/subordinate-entities/roles
-func (c *Client) APIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params APIV2PermissionsQuerySubordinateEntitiesRolesPostParams) (APIV2PermissionsQuerySubordinateEntitiesRolesPostRes, error) {
-	res, err := c.sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx, request, params)
+// POST /permissions/query/subordinate-entities/roles
+func (c *Client) PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params PermissionsQuerySubordinateEntitiesRolesPostParams) (PermissionsQuerySubordinateEntitiesRolesPostRes, error) {
+	res, err := c.sendPermissionsQuerySubordinateEntitiesRolesPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params APIV2PermissionsQuerySubordinateEntitiesRolesPostParams) (res APIV2PermissionsQuerySubordinateEntitiesRolesPostRes, err error) {
+func (c *Client) sendPermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params PermissionsQuerySubordinateEntitiesRolesPostParams) (res PermissionsQuerySubordinateEntitiesRolesPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4700,7 +4762,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx conte
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/subordinate-entities/roles"
+	pathParts[0] = "/permissions/query/subordinate-entities/roles"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4744,7 +4806,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx conte
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsQuerySubordinateEntitiesRolesPostRequest(request, r); err != nil {
+	if err := encodePermissionsQuerySubordinateEntitiesRolesPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -4753,7 +4815,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx conte
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQuerySubordinateEntitiesRolesPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQuerySubordinateEntitiesRolesPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4787,7 +4849,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx conte
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQuerySubordinateEntitiesRolesPostResponse(resp)
+	result, err := decodePermissionsQuerySubordinateEntitiesRolesPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4795,7 +4857,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx conte
 	return result, nil
 }
 
-// APIV2PermissionsQuerySubunitsGrantsPost invokes POST /api/v2/permissions/query/subunits/grants operation.
+// PermissionsQuerySubunitsGrantsPost invokes POST /permissions/query/subunits/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień do zarządzania uprawnieniami nadanych administratorom:
 // - jednostek podrzędnych identyfikowanych identyfikatorem wewnętrznym
@@ -4816,15 +4878,16 @@ func (c *Client) sendAPIV2PermissionsQuerySubordinateEntitiesRolesPost(ctx conte
 // md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych)
 // **Sortowanie:**
 // - startDate (Desc)
+// - id (Asc)
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 //
-// POST /api/v2/permissions/query/subunits/grants
-func (c *Client) APIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params APIV2PermissionsQuerySubunitsGrantsPostParams) (APIV2PermissionsQuerySubunitsGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx, request, params)
+// POST /permissions/query/subunits/grants
+func (c *Client) PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params PermissionsQuerySubunitsGrantsPostParams) (PermissionsQuerySubunitsGrantsPostRes, error) {
+	res, err := c.sendPermissionsQuerySubunitsGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params APIV2PermissionsQuerySubunitsGrantsPostParams) (res APIV2PermissionsQuerySubunitsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params PermissionsQuerySubunitsGrantsPostParams) (res PermissionsQuerySubunitsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4844,7 +4907,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/query/subunits/grants"
+	pathParts[0] = "/permissions/query/subunits/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -4888,7 +4951,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsQuerySubunitsGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsQuerySubunitsGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -4897,7 +4960,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsQuerySubunitsGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsQuerySubunitsGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -4931,7 +4994,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsQuerySubunitsGrantsPostResponse(resp)
+	result, err := decodePermissionsQuerySubunitsGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4939,7 +5002,7 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 	return result, nil
 }
 
-// APIV2PermissionsSubunitsGrantsPost invokes POST /api/v2/permissions/subunits/grants operation.
+// PermissionsSubunitsGrantsPost invokes POST /permissions/subunits/grants operation.
 //
 // Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 // administratora w kontekście:
@@ -4951,6 +5014,28 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 // Wraz z utworzeniem administratora jednostki podrzędnej tworzony jest identyfikator wewnętrzny
 // składający się z numeru NIP podmiotu kontekstu logowania oraz 5 cyfr unikalnie
 // identyfikujących jednostkę wewnętrzną.
+// Ostatnia cyfra musi być poprawną sumą kontrolną, która jest obliczana według poniższego
+// algorytmu.
+// Algorytm używa naprzemiennych wag (1×, 3×, 1×, 3×, ...), sumuje wyniki i zwraca resztę z
+// dzielenia przez 10.
+// Przykład:
+// - Wejście: "6824515772-1234" (bez cyfry kontrolnej)
+// - Pozycja 0 (1. cyfra): 6 × 1 = 6
+// - Pozycja 1 (2. cyfra): 8 × 3 = 24
+// - Pozycja 2 (3. cyfra): 2 × 1 = 2
+// - Pozycja 3 (4. cyfra): 4 × 3 = 12
+// - Pozycja 4 (5. cyfra): 5 × 1 = 5
+// - Pozycja 5 (6. cyfra): 1 × 3 = 3
+// - Pozycja 6 (7. cyfra): 5 × 1 = 5
+// - Pozycja 7 (8. cyfra): 7 × 3 = 21
+// - Pozycja 8 (9. cyfra): 7 × 1 = 7
+// - Pozycja 9 (10. cyfra): 2 × 3 = 6
+// - Pozycja 10 (11. cyfra): 1 × 1 = 1
+// - Pozycja 11 (12. cyfra): 2 × 3 = 6
+// - Pozycja 12 (13. cyfra): 3 × 1 = 3
+// - Pozycja 13 (14. cyfra): 4 × 3 = 12
+// - Suma: 6 + 24 + 2 + 12 + 5 + 3 + 5 + 21 + 7 + 6 + 1 + 6 + 3 + 12 = 113
+// - Cyfra kontrolna (15. cyfra): 113 % 10 = 3
 // W żądaniu podaje się również nazwę tej jednostki.
 // Uprawnienia administratora jednostki podrzędnej obejmują:
 // - **CredentialsManage** – zarządzanie uprawnieniami
@@ -4960,13 +5045,13 @@ func (c *Client) sendAPIV2PermissionsQuerySubunitsGrantsPost(ctx context.Context
 // md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego)
 // **Wymagane uprawnienia**: `SubunitManage`.
 //
-// POST /api/v2/permissions/subunits/grants
-func (c *Client) APIV2PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (APIV2PermissionsSubunitsGrantsPostRes, error) {
-	res, err := c.sendAPIV2PermissionsSubunitsGrantsPost(ctx, request)
+// POST /permissions/subunits/grants
+func (c *Client) PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (PermissionsSubunitsGrantsPostRes, error) {
+	res, err := c.sendPermissionsSubunitsGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (res APIV2PermissionsSubunitsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (res PermissionsSubunitsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4986,14 +5071,14 @@ func (c *Client) sendAPIV2PermissionsSubunitsGrantsPost(ctx context.Context, req
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/permissions/subunits/grants"
+	pathParts[0] = "/permissions/subunits/grants"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2PermissionsSubunitsGrantsPostRequest(request, r); err != nil {
+	if err := encodePermissionsSubunitsGrantsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -5002,7 +5087,7 @@ func (c *Client) sendAPIV2PermissionsSubunitsGrantsPost(ctx context.Context, req
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2PermissionsSubunitsGrantsPostOperation, r); {
+			switch err := c.securityBearer(ctx, PermissionsSubunitsGrantsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5036,7 +5121,7 @@ func (c *Client) sendAPIV2PermissionsSubunitsGrantsPost(ctx context.Context, req
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2PermissionsSubunitsGrantsPostResponse(resp)
+	result, err := decodePermissionsSubunitsGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5044,21 +5129,21 @@ func (c *Client) sendAPIV2PermissionsSubunitsGrantsPost(ctx context.Context, req
 	return result, nil
 }
 
-// APIV2RateLimitsGet invokes GET /api/v2/rate-limits operation.
+// RateLimitsGet invokes GET /rate-limits operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów ilości żądań przesyłanych do API.
 //
-// GET /api/v2/rate-limits
-func (c *Client) APIV2RateLimitsGet(ctx context.Context) (APIV2RateLimitsGetRes, error) {
-	res, err := c.sendAPIV2RateLimitsGet(ctx)
+// GET /rate-limits
+func (c *Client) RateLimitsGet(ctx context.Context) (RateLimitsGetRes, error) {
+	res, err := c.sendRateLimitsGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2RateLimitsGet(ctx context.Context) (res APIV2RateLimitsGetRes, err error) {
+func (c *Client) sendRateLimitsGet(ctx context.Context) (res RateLimitsGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/rate-limits"
+	pathParts[0] = "/rate-limits"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -5071,7 +5156,7 @@ func (c *Client) sendAPIV2RateLimitsGet(ctx context.Context) (res APIV2RateLimit
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2RateLimitsGetOperation, r); {
+			switch err := c.securityBearer(ctx, RateLimitsGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5105,7 +5190,7 @@ func (c *Client) sendAPIV2RateLimitsGet(ctx context.Context) (res APIV2RateLimit
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2RateLimitsGetResponse(resp)
+	result, err := decodeRateLimitsGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5113,22 +5198,22 @@ func (c *Client) sendAPIV2RateLimitsGet(ctx context.Context) (res APIV2RateLimit
 	return result, nil
 }
 
-// APIV2SecurityPublicKeyCertificatesGet invokes GET /api/v2/security/public-key-certificates operation.
+// SecurityPublicKeyCertificatesGet invokes GET /security/public-key-certificates operation.
 //
 // Zwraca informacje o kluczach publicznych używanych do szyfrowania danych przesyłanych do systemu
 // KSeF.
 //
-// GET /api/v2/security/public-key-certificates
-func (c *Client) APIV2SecurityPublicKeyCertificatesGet(ctx context.Context) (APIV2SecurityPublicKeyCertificatesGetRes, error) {
-	res, err := c.sendAPIV2SecurityPublicKeyCertificatesGet(ctx)
+// GET /security/public-key-certificates
+func (c *Client) SecurityPublicKeyCertificatesGet(ctx context.Context) (SecurityPublicKeyCertificatesGetRes, error) {
+	res, err := c.sendSecurityPublicKeyCertificatesGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SecurityPublicKeyCertificatesGet(ctx context.Context) (res APIV2SecurityPublicKeyCertificatesGetRes, err error) {
+func (c *Client) sendSecurityPublicKeyCertificatesGet(ctx context.Context) (res SecurityPublicKeyCertificatesGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/security/public-key-certificates"
+	pathParts[0] = "/security/public-key-certificates"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -5142,7 +5227,7 @@ func (c *Client) sendAPIV2SecurityPublicKeyCertificatesGet(ctx context.Context) 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SecurityPublicKeyCertificatesGetResponse(resp)
+	result, err := decodeSecurityPublicKeyCertificatesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5150,49 +5235,53 @@ func (c *Client) sendAPIV2SecurityPublicKeyCertificatesGet(ctx context.Context) 
 	return result, nil
 }
 
-// APIV2SessionsBatchPost invokes POST /api/v2/sessions/batch operation.
+// SessionsBatchPost invokes POST /sessions/batch operation.
 //
 // Otwiera sesję do wysyłki wsadowej faktur. Należy przekazać schemat wysyłanych faktur,
 // informacje o paczce faktur oraz informacje o kluczu używanym do szyfrowania.
 // > Więcej informacji:
-// > - [Przygotwanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
-// > - [Klucz publiczny Ministersta Finansów](/docs/v2/index.html#tag/Certyfikaty-klucza-publicznego)
-// **Wymagane uprawnienia**: `InvoiceWrite`.
+// > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
+// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
+// html#tag/Certyfikaty-klucza-publicznego)
+// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
+// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
+// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 //
-// POST /api/v2/sessions/batch
-func (c *Client) APIV2SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (APIV2SessionsBatchPostRes, error) {
-	res, err := c.sendAPIV2SessionsBatchPost(ctx, request)
+// POST /sessions/batch
+func (c *Client) SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (SessionsBatchPostRes, error) {
+	res, err := c.sendSessionsBatchPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (res APIV2SessionsBatchPostRes, err error) {
-	//// Validate request before sending.
-	//if err := func() error {
-	//	if value, ok := request.Get(); ok {
-	//		if err := func() error {
-	//			if err := value.Validate(); err != nil {
-	//				return err
-	//			}
-	//			return nil
-	//		}(); err != nil {
-	//			return err
-	//		}
-	//	}
-	//	return nil
-	//}(); err != nil {
-	//	return res, errors.Wrap(err, "validate")
-	//}
+func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (res SessionsBatchPostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/sessions/batch"
+	pathParts[0] = "/sessions/batch"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2SessionsBatchPostRequest(request, r); err != nil {
+	if err := encodeSessionsBatchPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -5201,7 +5290,7 @@ func (c *Client) sendAPIV2SessionsBatchPost(ctx context.Context, request OptOpen
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsBatchPostOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsBatchPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5235,7 +5324,7 @@ func (c *Client) sendAPIV2SessionsBatchPost(ctx context.Context, request OptOpen
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsBatchPostResponse(resp)
+	result, err := decodeSessionsBatchPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5243,23 +5332,23 @@ func (c *Client) sendAPIV2SessionsBatchPost(ctx context.Context, request OptOpen
 	return result, nil
 }
 
-// APIV2SessionsBatchReferenceNumberClosePost invokes POST /api/v2/sessions/batch/{referenceNumber}/close operation.
+// SessionsBatchReferenceNumberClosePost invokes POST /sessions/batch/{referenceNumber}/close operation.
 //
 // Zamyka sesję wsadową, rozpoczyna procesowanie paczki faktur i generowanie UPO dla prawidłowych
 // faktur oraz zbiorczego UPO dla sesji.
-// **Wymagane uprawnienia**: `InvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 //
-// POST /api/v2/sessions/batch/{referenceNumber}/close
-func (c *Client) APIV2SessionsBatchReferenceNumberClosePost(ctx context.Context, params APIV2SessionsBatchReferenceNumberClosePostParams) (APIV2SessionsBatchReferenceNumberClosePostRes, error) {
-	res, err := c.sendAPIV2SessionsBatchReferenceNumberClosePost(ctx, params)
+// POST /sessions/batch/{referenceNumber}/close
+func (c *Client) SessionsBatchReferenceNumberClosePost(ctx context.Context, params SessionsBatchReferenceNumberClosePostParams) (SessionsBatchReferenceNumberClosePostRes, error) {
+	res, err := c.sendSessionsBatchReferenceNumberClosePost(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsBatchReferenceNumberClosePost(ctx context.Context, params APIV2SessionsBatchReferenceNumberClosePostParams) (res APIV2SessionsBatchReferenceNumberClosePostRes, err error) {
+func (c *Client) sendSessionsBatchReferenceNumberClosePost(ctx context.Context, params SessionsBatchReferenceNumberClosePostParams) (res SessionsBatchReferenceNumberClosePostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/api/v2/sessions/batch/"
+	pathParts[0] = "/sessions/batch/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -5294,7 +5383,7 @@ func (c *Client) sendAPIV2SessionsBatchReferenceNumberClosePost(ctx context.Cont
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsBatchReferenceNumberClosePostOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsBatchReferenceNumberClosePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5328,7 +5417,7 @@ func (c *Client) sendAPIV2SessionsBatchReferenceNumberClosePost(ctx context.Cont
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsBatchReferenceNumberClosePostResponse(resp)
+	result, err := decodeSessionsBatchReferenceNumberClosePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5336,28 +5425,28 @@ func (c *Client) sendAPIV2SessionsBatchReferenceNumberClosePost(ctx context.Cont
 	return result, nil
 }
 
-// APIV2SessionsGet invokes GET /api/v2/sessions operation.
+// SessionsGet invokes GET /sessions operation.
 //
 // Zwraca listę sesji spełniających podane kryteria wyszukiwania.
 // **Sortowanie:**
 // - dateCreated (Desc)
 // **Wymagane uprawnienia**:
-// - `Introspection` – pozwala pobrać wszystkie sesje w bieżącym kontekście uwierzytelnienia
-// `(ContextIdentifier)`.
+// - `Introspection`/`EnforcementOperations` – pozwala pobrać wszystkie sesje w bieżącym
+// kontekście uwierzytelnienia `(ContextIdentifier)`.
 // - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
 // czyli podmiot inicjujący uwierzytelnienie.
 //
-// GET /api/v2/sessions
-func (c *Client) APIV2SessionsGet(ctx context.Context, params APIV2SessionsGetParams) (APIV2SessionsGetRes, error) {
-	res, err := c.sendAPIV2SessionsGet(ctx, params)
+// GET /sessions
+func (c *Client) SessionsGet(ctx context.Context, params SessionsGetParams) (SessionsGetRes, error) {
+	res, err := c.sendSessionsGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsGet(ctx context.Context, params APIV2SessionsGetParams) (res APIV2SessionsGetRes, err error) {
+func (c *Client) sendSessionsGet(ctx context.Context, params SessionsGetParams) (res SessionsGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/sessions"
+	pathParts[0] = "/sessions"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -5568,7 +5657,7 @@ func (c *Client) sendAPIV2SessionsGet(ctx context.Context, params APIV2SessionsG
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5602,7 +5691,7 @@ func (c *Client) sendAPIV2SessionsGet(ctx context.Context, params APIV2SessionsG
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsGetResponse(resp)
+	result, err := decodeSessionsGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5610,34 +5699,38 @@ func (c *Client) sendAPIV2SessionsGet(ctx context.Context, params APIV2SessionsG
 	return result, nil
 }
 
-// APIV2SessionsOnlinePost invokes POST /api/v2/sessions/online operation.
+// SessionsOnlinePost invokes POST /sessions/online operation.
 //
 // Otwiera sesję do wysyłki pojedynczych faktur. Należy przekazać schemat wysyłanych faktur oraz
 // informacje o kluczu używanym do szyfrowania.
 // > Więcej informacji:
 // > - [Otwarcie sesji interaktywnej](https://github.
 // com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
-// > - [Klucz publiczny Ministersta Finansów](/docs/v2/index.html#tag/Certyfikaty-klucza-publicznego)
-// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`.
+// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
+// html#tag/Certyfikaty-klucza-publicznego)
+// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
+// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
+// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
-// POST /api/v2/sessions/online
-func (c *Client) APIV2SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (APIV2SessionsOnlinePostRes, error) {
-	res, err := c.sendAPIV2SessionsOnlinePost(ctx, request)
+// POST /sessions/online
+func (c *Client) SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (SessionsOnlinePostRes, error) {
+	res, err := c.sendSessionsOnlinePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (res APIV2SessionsOnlinePostRes, err error) {
+func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (res SessionsOnlinePostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/sessions/online"
+	pathParts[0] = "/sessions/online"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2SessionsOnlinePostRequest(request, r); err != nil {
+	if err := encodeSessionsOnlinePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -5646,7 +5739,7 @@ func (c *Client) sendAPIV2SessionsOnlinePost(ctx context.Context, request OptOpe
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsOnlinePostOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsOnlinePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5680,7 +5773,7 @@ func (c *Client) sendAPIV2SessionsOnlinePost(ctx context.Context, request OptOpe
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsOnlinePostResponse(resp)
+	result, err := decodeSessionsOnlinePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5688,22 +5781,22 @@ func (c *Client) sendAPIV2SessionsOnlinePost(ctx context.Context, request OptOpe
 	return result, nil
 }
 
-// APIV2SessionsOnlineReferenceNumberClosePost invokes POST /api/v2/sessions/online/{referenceNumber}/close operation.
+// SessionsOnlineReferenceNumberClosePost invokes POST /sessions/online/{referenceNumber}/close operation.
 //
 // Zamyka sesję interaktywną i rozpoczyna generowanie zbiorczego UPO dla sesji.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
-// POST /api/v2/sessions/online/{referenceNumber}/close
-func (c *Client) APIV2SessionsOnlineReferenceNumberClosePost(ctx context.Context, params APIV2SessionsOnlineReferenceNumberClosePostParams) (APIV2SessionsOnlineReferenceNumberClosePostRes, error) {
-	res, err := c.sendAPIV2SessionsOnlineReferenceNumberClosePost(ctx, params)
+// POST /sessions/online/{referenceNumber}/close
+func (c *Client) SessionsOnlineReferenceNumberClosePost(ctx context.Context, params SessionsOnlineReferenceNumberClosePostParams) (SessionsOnlineReferenceNumberClosePostRes, error) {
+	res, err := c.sendSessionsOnlineReferenceNumberClosePost(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsOnlineReferenceNumberClosePost(ctx context.Context, params APIV2SessionsOnlineReferenceNumberClosePostParams) (res APIV2SessionsOnlineReferenceNumberClosePostRes, err error) {
+func (c *Client) sendSessionsOnlineReferenceNumberClosePost(ctx context.Context, params SessionsOnlineReferenceNumberClosePostParams) (res SessionsOnlineReferenceNumberClosePostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/api/v2/sessions/online/"
+	pathParts[0] = "/sessions/online/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -5738,7 +5831,7 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberClosePost(ctx context.Con
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsOnlineReferenceNumberClosePostOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsOnlineReferenceNumberClosePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5772,7 +5865,7 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberClosePost(ctx context.Con
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsOnlineReferenceNumberClosePostResponse(resp)
+	result, err := decodeSessionsOnlineReferenceNumberClosePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5780,41 +5873,41 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberClosePost(ctx context.Con
 	return result, nil
 }
 
-// APIV2SessionsOnlineReferenceNumberInvoicesPost invokes POST /api/v2/sessions/online/{referenceNumber}/invoices operation.
+// SessionsOnlineReferenceNumberInvoicesPost invokes POST /sessions/online/{referenceNumber}/invoices operation.
 //
 // Przyjmuje zaszyfrowaną fakturę oraz jej metadane i rozpoczyna jej przetwarzanie.
 // > Więcej informacji:
 // > - [Wysłanie faktury](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.
 // md#2-wys%C5%82anie-faktury)
-// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
-// POST /api/v2/sessions/online/{referenceNumber}/invoices
-func (c *Client) APIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params APIV2SessionsOnlineReferenceNumberInvoicesPostParams) (APIV2SessionsOnlineReferenceNumberInvoicesPostRes, error) {
-	res, err := c.sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx, request, params)
+// POST /sessions/online/{referenceNumber}/invoices
+func (c *Client) SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params SessionsOnlineReferenceNumberInvoicesPostParams) (SessionsOnlineReferenceNumberInvoicesPostRes, error) {
+	res, err := c.sendSessionsOnlineReferenceNumberInvoicesPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params APIV2SessionsOnlineReferenceNumberInvoicesPostParams) (res APIV2SessionsOnlineReferenceNumberInvoicesPostRes, err error) {
+func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params SessionsOnlineReferenceNumberInvoicesPostParams) (res SessionsOnlineReferenceNumberInvoicesPostRes, err error) {
 	// Validate request before sending.
-	//if err := func() error {
-	//	if value, ok := request.Get(); ok {
-	//		if err := func() error {
-	//			if err := value.Validate(); err != nil {
-	//				return err
-	//			}
-	//			return nil
-	//		}(); err != nil {
-	//			return err
-	//		}
-	//	}
-	//	return nil
-	//}(); err != nil {
-	//	return res, errors.Wrap(err, "validate")
-	//}
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/api/v2/sessions/online/"
+	pathParts[0] = "/sessions/online/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -5843,7 +5936,7 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2SessionsOnlineReferenceNumberInvoicesPostRequest(request, r); err != nil {
+	if err := encodeSessionsOnlineReferenceNumberInvoicesPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -5852,7 +5945,7 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsOnlineReferenceNumberInvoicesPostOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsOnlineReferenceNumberInvoicesPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5886,7 +5979,7 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsOnlineReferenceNumberInvoicesPostResponse(resp)
+	result, err := decodeSessionsOnlineReferenceNumberInvoicesPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5894,22 +5987,23 @@ func (c *Client) sendAPIV2SessionsOnlineReferenceNumberInvoicesPost(ctx context.
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberGet invokes GET /api/v2/sessions/{referenceNumber} operation.
+// SessionsReferenceNumberGet invokes GET /sessions/{referenceNumber} operation.
 //
 // Sprawdza bieżący status sesji o podanym numerze referencyjnym.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}
-func (c *Client) APIV2SessionsReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberGetParams) (APIV2SessionsReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberGet(ctx, params)
+// GET /sessions/{referenceNumber}
+func (c *Client) SessionsReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberGetParams) (SessionsReferenceNumberGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberGetParams) (res APIV2SessionsReferenceNumberGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberGetParams) (res SessionsReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -5943,7 +6037,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberGet(ctx context.Context, params
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5977,7 +6071,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberGet(ctx context.Context, params
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5985,22 +6079,23 @@ func (c *Client) sendAPIV2SessionsReferenceNumberGet(ctx context.Context, params
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberInvoicesFailedGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/failed operation.
+// SessionsReferenceNumberInvoicesFailedGet invokes GET /sessions/{referenceNumber}/invoices/failed operation.
 //
 // Zwraca listę niepoprawnie przetworzonych faktur przesłanych w sesji wraz z ich statusami.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}/invoices/failed
-func (c *Client) APIV2SessionsReferenceNumberInvoicesFailedGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesFailedGetParams) (APIV2SessionsReferenceNumberInvoicesFailedGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberInvoicesFailedGet(ctx, params)
+// GET /sessions/{referenceNumber}/invoices/failed
+func (c *Client) SessionsReferenceNumberInvoicesFailedGet(ctx context.Context, params SessionsReferenceNumberInvoicesFailedGetParams) (SessionsReferenceNumberInvoicesFailedGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberInvoicesFailedGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesFailedGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesFailedGetParams) (res APIV2SessionsReferenceNumberInvoicesFailedGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberInvoicesFailedGet(ctx context.Context, params SessionsReferenceNumberInvoicesFailedGetParams) (res SessionsReferenceNumberInvoicesFailedGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -6071,7 +6166,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesFailedGet(ctx context.C
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberInvoicesFailedGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberInvoicesFailedGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6105,7 +6200,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesFailedGet(ctx context.C
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberInvoicesFailedGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberInvoicesFailedGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6113,23 +6208,24 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesFailedGet(ctx context.C
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberInvoicesGet invokes GET /api/v2/sessions/{referenceNumber}/invoices operation.
+// SessionsReferenceNumberInvoicesGet invokes GET /sessions/{referenceNumber}/invoices operation.
 //
 // Zwraca listę faktur przesłanych w sesji wraz z ich statusami, oraz informacje na temat ilości
 // poprawnie i niepoprawnie przetworzonych faktur.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}/invoices
-func (c *Client) APIV2SessionsReferenceNumberInvoicesGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesGetParams) (APIV2SessionsReferenceNumberInvoicesGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberInvoicesGet(ctx, params)
+// GET /sessions/{referenceNumber}/invoices
+func (c *Client) SessionsReferenceNumberInvoicesGet(ctx context.Context, params SessionsReferenceNumberInvoicesGetParams) (SessionsReferenceNumberInvoicesGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberInvoicesGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesGetParams) (res APIV2SessionsReferenceNumberInvoicesGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberInvoicesGet(ctx context.Context, params SessionsReferenceNumberInvoicesGetParams) (res SessionsReferenceNumberInvoicesGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -6200,7 +6296,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesGet(ctx context.Context
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberInvoicesGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberInvoicesGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6234,7 +6330,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesGet(ctx context.Context
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberInvoicesGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberInvoicesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6242,22 +6338,23 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesGet(ctx context.Context
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
+// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
 //
 // Zwraca fakturę przesłaną w sesji wraz ze statusem.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}
-func (c *Client) APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx, params)
+// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}
+func (c *Client) SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (res APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (res SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [4]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -6313,7 +6410,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberG
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6347,7 +6444,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberG
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6355,22 +6452,23 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberG
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
+// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 //
 // Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
-func (c *Client) APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx, params)
+// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
+func (c *Client) SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (res APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (res SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [5]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -6427,7 +6525,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberU
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6461,7 +6559,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberU
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6469,22 +6567,23 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesInvoiceReferenceNumberU
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /api/v2/sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
+// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 //
 // Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
-func (c *Client) APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx, params)
+// GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
+func (c *Client) SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (res APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (res SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [5]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -6541,7 +6640,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ct
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6575,7 +6674,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ct
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6583,22 +6682,23 @@ func (c *Client) sendAPIV2SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ct
 	return result, nil
 }
 
-// APIV2SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /api/v2/sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
+// SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
 //
 // Zwraca XML zawierający zbiorcze UPO dla sesji.
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`.
+// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// `EnforcementOperations`.
 //
-// GET /api/v2/sessions/{referenceNumber}/upo/{upoReferenceNumber}
-func (c *Client) APIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx, params)
+// GET /sessions/{referenceNumber}/upo/{upoReferenceNumber}
+func (c *Client) SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error) {
+	res, err := c.sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (res APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetRes, err error) {
+func (c *Client) sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (res SessionsReferenceNumberUpoUpoReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [4]string
-	pathParts[0] = "/api/v2/sessions/"
+	pathParts[0] = "/sessions/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -6654,7 +6754,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx co
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2SessionsReferenceNumberUpoUpoReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, SessionsReferenceNumberUpoUpoReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6688,7 +6788,7 @@ func (c *Client) sendAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx co
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp)
+	result, err := decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6696,17 +6796,17 @@ func (c *Client) sendAPIV2SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx co
 	return result, nil
 }
 
-// APIV2TestdataAttachmentPost invokes POST /api/v2/testdata/attachment operation.
+// TestdataAttachmentPost invokes POST /testdata/attachment operation.
 //
 // Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
 //
-// POST /api/v2/testdata/attachment
-func (c *Client) APIV2TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (APIV2TestdataAttachmentPostRes, error) {
-	res, err := c.sendAPIV2TestdataAttachmentPost(ctx, request)
+// POST /testdata/attachment
+func (c *Client) TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (TestdataAttachmentPostRes, error) {
+	res, err := c.sendTestdataAttachmentPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (res APIV2TestdataAttachmentPostRes, err error) {
+func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (res TestdataAttachmentPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -6726,14 +6826,14 @@ func (c *Client) sendAPIV2TestdataAttachmentPost(ctx context.Context, request Op
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/attachment"
+	pathParts[0] = "/testdata/attachment"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataAttachmentPostRequest(request, r); err != nil {
+	if err := encodeTestdataAttachmentPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -6743,7 +6843,7 @@ func (c *Client) sendAPIV2TestdataAttachmentPost(ctx context.Context, request Op
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataAttachmentPostResponse(resp)
+	result, err := decodeTestdataAttachmentPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6751,17 +6851,17 @@ func (c *Client) sendAPIV2TestdataAttachmentPost(ctx context.Context, request Op
 	return result, nil
 }
 
-// APIV2TestdataAttachmentRevokePost invokes POST /api/v2/testdata/attachment/revoke operation.
+// TestdataAttachmentRevokePost invokes POST /testdata/attachment/revoke operation.
 //
 // Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
 //
-// POST /api/v2/testdata/attachment/revoke
-func (c *Client) APIV2TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (APIV2TestdataAttachmentRevokePostRes, error) {
-	res, err := c.sendAPIV2TestdataAttachmentRevokePost(ctx, request)
+// POST /testdata/attachment/revoke
+func (c *Client) TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error) {
+	res, err := c.sendTestdataAttachmentRevokePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (res APIV2TestdataAttachmentRevokePostRes, err error) {
+func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (res TestdataAttachmentRevokePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -6781,14 +6881,14 @@ func (c *Client) sendAPIV2TestdataAttachmentRevokePost(ctx context.Context, requ
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/attachment/revoke"
+	pathParts[0] = "/testdata/attachment/revoke"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataAttachmentRevokePostRequest(request, r); err != nil {
+	if err := encodeTestdataAttachmentRevokePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -6798,7 +6898,7 @@ func (c *Client) sendAPIV2TestdataAttachmentRevokePost(ctx context.Context, requ
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataAttachmentRevokePostResponse(resp)
+	result, err := decodeTestdataAttachmentRevokePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6806,22 +6906,22 @@ func (c *Client) sendAPIV2TestdataAttachmentRevokePost(ctx context.Context, requ
 	return result, nil
 }
 
-// APIV2TestdataLimitsContextSessionDelete invokes DELETE /api/v2/testdata/limits/context/session operation.
+// TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
 // wartości domyślnych. **Tylko na środowiskach testowych.**.
 //
-// DELETE /api/v2/testdata/limits/context/session
-func (c *Client) APIV2TestdataLimitsContextSessionDelete(ctx context.Context) (APIV2TestdataLimitsContextSessionDeleteRes, error) {
-	res, err := c.sendAPIV2TestdataLimitsContextSessionDelete(ctx)
+// DELETE /testdata/limits/context/session
+func (c *Client) TestdataLimitsContextSessionDelete(ctx context.Context) (TestdataLimitsContextSessionDeleteRes, error) {
+	res, err := c.sendTestdataLimitsContextSessionDelete(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataLimitsContextSessionDelete(ctx context.Context) (res APIV2TestdataLimitsContextSessionDeleteRes, err error) {
+func (c *Client) sendTestdataLimitsContextSessionDelete(ctx context.Context) (res TestdataLimitsContextSessionDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/limits/context/session"
+	pathParts[0] = "/testdata/limits/context/session"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "DELETE", u)
@@ -6834,7 +6934,7 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionDelete(ctx context.Context
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TestdataLimitsContextSessionDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, TestdataLimitsContextSessionDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6868,7 +6968,7 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionDelete(ctx context.Context
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataLimitsContextSessionDeleteResponse(resp)
+	result, err := decodeTestdataLimitsContextSessionDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6876,18 +6976,18 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionDelete(ctx context.Context
 	return result, nil
 }
 
-// APIV2TestdataLimitsContextSessionPost invokes POST /api/v2/testdata/limits/context/session operation.
+// TestdataLimitsContextSessionPost invokes POST /testdata/limits/context/session operation.
 //
 // Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. **Tylko na
 // środowiskach testowych.**.
 //
-// POST /api/v2/testdata/limits/context/session
-func (c *Client) APIV2TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (APIV2TestdataLimitsContextSessionPostRes, error) {
-	res, err := c.sendAPIV2TestdataLimitsContextSessionPost(ctx, request)
+// POST /testdata/limits/context/session
+func (c *Client) TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (TestdataLimitsContextSessionPostRes, error) {
+	res, err := c.sendTestdataLimitsContextSessionPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (res APIV2TestdataLimitsContextSessionPostRes, err error) {
+func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (res TestdataLimitsContextSessionPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -6907,14 +7007,14 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionPost(ctx context.Context, 
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/limits/context/session"
+	pathParts[0] = "/testdata/limits/context/session"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataLimitsContextSessionPostRequest(request, r); err != nil {
+	if err := encodeTestdataLimitsContextSessionPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -6923,7 +7023,7 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionPost(ctx context.Context, 
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TestdataLimitsContextSessionPostOperation, r); {
+			switch err := c.securityBearer(ctx, TestdataLimitsContextSessionPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -6957,7 +7057,7 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionPost(ctx context.Context, 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataLimitsContextSessionPostResponse(resp)
+	result, err := decodeTestdataLimitsContextSessionPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -6965,22 +7065,22 @@ func (c *Client) sendAPIV2TestdataLimitsContextSessionPost(ctx context.Context, 
 	return result, nil
 }
 
-// APIV2TestdataLimitsSubjectCertificateDelete invokes DELETE /api/v2/testdata/limits/subject/certificate operation.
+// TestdataLimitsSubjectCertificateDelete invokes DELETE /testdata/limits/subject/certificate operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu do
 // wartości domyślnych. **Tylko na środowiskach testowych.**.
 //
-// DELETE /api/v2/testdata/limits/subject/certificate
-func (c *Client) APIV2TestdataLimitsSubjectCertificateDelete(ctx context.Context) (APIV2TestdataLimitsSubjectCertificateDeleteRes, error) {
-	res, err := c.sendAPIV2TestdataLimitsSubjectCertificateDelete(ctx)
+// DELETE /testdata/limits/subject/certificate
+func (c *Client) TestdataLimitsSubjectCertificateDelete(ctx context.Context) (TestdataLimitsSubjectCertificateDeleteRes, error) {
+	res, err := c.sendTestdataLimitsSubjectCertificateDelete(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataLimitsSubjectCertificateDelete(ctx context.Context) (res APIV2TestdataLimitsSubjectCertificateDeleteRes, err error) {
+func (c *Client) sendTestdataLimitsSubjectCertificateDelete(ctx context.Context) (res TestdataLimitsSubjectCertificateDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/limits/subject/certificate"
+	pathParts[0] = "/testdata/limits/subject/certificate"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "DELETE", u)
@@ -6993,7 +7093,7 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificateDelete(ctx context.Con
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TestdataLimitsSubjectCertificateDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, TestdataLimitsSubjectCertificateDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7027,7 +7127,7 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificateDelete(ctx context.Con
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataLimitsSubjectCertificateDeleteResponse(resp)
+	result, err := decodeTestdataLimitsSubjectCertificateDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7035,18 +7135,18 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificateDelete(ctx context.Con
 	return result, nil
 }
 
-// APIV2TestdataLimitsSubjectCertificatePost invokes POST /api/v2/testdata/limits/subject/certificate operation.
+// TestdataLimitsSubjectCertificatePost invokes POST /testdata/limits/subject/certificate operation.
 //
 // Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu.
 // **Tylko na środowiskach testowych.**.
 //
-// POST /api/v2/testdata/limits/subject/certificate
-func (c *Client) APIV2TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (APIV2TestdataLimitsSubjectCertificatePostRes, error) {
-	res, err := c.sendAPIV2TestdataLimitsSubjectCertificatePost(ctx, request)
+// POST /testdata/limits/subject/certificate
+func (c *Client) TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (TestdataLimitsSubjectCertificatePostRes, error) {
+	res, err := c.sendTestdataLimitsSubjectCertificatePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (res APIV2TestdataLimitsSubjectCertificatePostRes, err error) {
+func (c *Client) sendTestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (res TestdataLimitsSubjectCertificatePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7066,14 +7166,14 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificatePost(ctx context.Conte
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/limits/subject/certificate"
+	pathParts[0] = "/testdata/limits/subject/certificate"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataLimitsSubjectCertificatePostRequest(request, r); err != nil {
+	if err := encodeTestdataLimitsSubjectCertificatePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7082,7 +7182,7 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificatePost(ctx context.Conte
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TestdataLimitsSubjectCertificatePostOperation, r); {
+			switch err := c.securityBearer(ctx, TestdataLimitsSubjectCertificatePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7116,7 +7216,7 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificatePost(ctx context.Conte
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataLimitsSubjectCertificatePostResponse(resp)
+	result, err := decodeTestdataLimitsSubjectCertificatePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7124,17 +7224,17 @@ func (c *Client) sendAPIV2TestdataLimitsSubjectCertificatePost(ctx context.Conte
 	return result, nil
 }
 
-// APIV2TestdataPermissionsPost invokes POST /api/v2/testdata/permissions operation.
+// TestdataPermissionsPost invokes POST /testdata/permissions operation.
 //
 // Nadawanie uprawnień testowemu podmiotowi lub osobie fizycznej, a także w ich kontekście.
 //
-// POST /api/v2/testdata/permissions
-func (c *Client) APIV2TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (APIV2TestdataPermissionsPostRes, error) {
-	res, err := c.sendAPIV2TestdataPermissionsPost(ctx, request)
+// POST /testdata/permissions
+func (c *Client) TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (TestdataPermissionsPostRes, error) {
+	res, err := c.sendTestdataPermissionsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (res APIV2TestdataPermissionsPostRes, err error) {
+func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (res TestdataPermissionsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7154,14 +7254,14 @@ func (c *Client) sendAPIV2TestdataPermissionsPost(ctx context.Context, request O
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/permissions"
+	pathParts[0] = "/testdata/permissions"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataPermissionsPostRequest(request, r); err != nil {
+	if err := encodeTestdataPermissionsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7171,7 +7271,7 @@ func (c *Client) sendAPIV2TestdataPermissionsPost(ctx context.Context, request O
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataPermissionsPostResponse(resp)
+	result, err := decodeTestdataPermissionsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7179,18 +7279,18 @@ func (c *Client) sendAPIV2TestdataPermissionsPost(ctx context.Context, request O
 	return result, nil
 }
 
-// APIV2TestdataPermissionsRevokePost invokes POST /api/v2/testdata/permissions/revoke operation.
+// TestdataPermissionsRevokePost invokes POST /testdata/permissions/revoke operation.
 //
 // Odbieranie uprawnień nadanych testowemu podmiotowi lub osobie fizycznej, a także w ich
 // kontekście.
 //
-// POST /api/v2/testdata/permissions/revoke
-func (c *Client) APIV2TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (APIV2TestdataPermissionsRevokePostRes, error) {
-	res, err := c.sendAPIV2TestdataPermissionsRevokePost(ctx, request)
+// POST /testdata/permissions/revoke
+func (c *Client) TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (TestdataPermissionsRevokePostRes, error) {
+	res, err := c.sendTestdataPermissionsRevokePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (res APIV2TestdataPermissionsRevokePostRes, err error) {
+func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (res TestdataPermissionsRevokePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7210,14 +7310,14 @@ func (c *Client) sendAPIV2TestdataPermissionsRevokePost(ctx context.Context, req
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/permissions/revoke"
+	pathParts[0] = "/testdata/permissions/revoke"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataPermissionsRevokePostRequest(request, r); err != nil {
+	if err := encodeTestdataPermissionsRevokePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7227,7 +7327,7 @@ func (c *Client) sendAPIV2TestdataPermissionsRevokePost(ctx context.Context, req
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataPermissionsRevokePostResponse(resp)
+	result, err := decodeTestdataPermissionsRevokePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7235,19 +7335,19 @@ func (c *Client) sendAPIV2TestdataPermissionsRevokePost(ctx context.Context, req
 	return result, nil
 }
 
-// APIV2TestdataPersonPost invokes POST /api/v2/testdata/person operation.
+// TestdataPersonPost invokes POST /testdata/person operation.
 //
 // Tworzenie nowej osoby fizycznej, której system nadaje uprawnienia właścicielskie. Można
 // również określić, czy osoba ta jest komornikiem – wówczas otrzyma odpowiednie uprawnienie
 // egzekucyjne.
 //
-// POST /api/v2/testdata/person
-func (c *Client) APIV2TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (APIV2TestdataPersonPostRes, error) {
-	res, err := c.sendAPIV2TestdataPersonPost(ctx, request)
+// POST /testdata/person
+func (c *Client) TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (TestdataPersonPostRes, error) {
+	res, err := c.sendTestdataPersonPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (res APIV2TestdataPersonPostRes, err error) {
+func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (res TestdataPersonPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7267,14 +7367,14 @@ func (c *Client) sendAPIV2TestdataPersonPost(ctx context.Context, request OptPer
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/person"
+	pathParts[0] = "/testdata/person"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataPersonPostRequest(request, r); err != nil {
+	if err := encodeTestdataPersonPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7284,7 +7384,7 @@ func (c *Client) sendAPIV2TestdataPersonPost(ctx context.Context, request OptPer
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataPersonPostResponse(resp)
+	result, err := decodeTestdataPersonPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7292,17 +7392,17 @@ func (c *Client) sendAPIV2TestdataPersonPost(ctx context.Context, request OptPer
 	return result, nil
 }
 
-// APIV2TestdataPersonRemovePost invokes POST /api/v2/testdata/person/remove operation.
+// TestdataPersonRemovePost invokes POST /testdata/person/remove operation.
 //
 // Usuwanie testowej osoby fizycznej. System automatycznie odbierze jej wszystkie uprawnienia.
 //
-// POST /api/v2/testdata/person/remove
-func (c *Client) APIV2TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (APIV2TestdataPersonRemovePostRes, error) {
-	res, err := c.sendAPIV2TestdataPersonRemovePost(ctx, request)
+// POST /testdata/person/remove
+func (c *Client) TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (TestdataPersonRemovePostRes, error) {
+	res, err := c.sendTestdataPersonRemovePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (res APIV2TestdataPersonRemovePostRes, err error) {
+func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (res TestdataPersonRemovePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7322,14 +7422,14 @@ func (c *Client) sendAPIV2TestdataPersonRemovePost(ctx context.Context, request 
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/person/remove"
+	pathParts[0] = "/testdata/person/remove"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataPersonRemovePostRequest(request, r); err != nil {
+	if err := encodeTestdataPersonRemovePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7339,7 +7439,7 @@ func (c *Client) sendAPIV2TestdataPersonRemovePost(ctx context.Context, request 
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataPersonRemovePostResponse(resp)
+	result, err := decodeTestdataPersonRemovePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7347,22 +7447,22 @@ func (c *Client) sendAPIV2TestdataPersonRemovePost(ctx context.Context, request 
 	return result, nil
 }
 
-// APIV2TestdataRateLimitsDelete invokes DELETE /api/v2/testdata/rate-limits operation.
+// TestdataRateLimitsDelete invokes DELETE /testdata/rate-limits operation.
 //
-// Przywraca wartości aktualnie obowiązujących limitów żądań przesyłąnych do API dla
+// Przywraca wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
 // bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**.
 //
-// DELETE /api/v2/testdata/rate-limits
-func (c *Client) APIV2TestdataRateLimitsDelete(ctx context.Context) (APIV2TestdataRateLimitsDeleteRes, error) {
-	res, err := c.sendAPIV2TestdataRateLimitsDelete(ctx)
+// DELETE /testdata/rate-limits
+func (c *Client) TestdataRateLimitsDelete(ctx context.Context) (TestdataRateLimitsDeleteRes, error) {
+	res, err := c.sendTestdataRateLimitsDelete(ctx)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataRateLimitsDelete(ctx context.Context) (res APIV2TestdataRateLimitsDeleteRes, err error) {
+func (c *Client) sendTestdataRateLimitsDelete(ctx context.Context) (res TestdataRateLimitsDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/rate-limits"
+	pathParts[0] = "/testdata/rate-limits"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "DELETE", u)
@@ -7375,7 +7475,7 @@ func (c *Client) sendAPIV2TestdataRateLimitsDelete(ctx context.Context) (res API
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TestdataRateLimitsDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, TestdataRateLimitsDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7409,7 +7509,7 @@ func (c *Client) sendAPIV2TestdataRateLimitsDelete(ctx context.Context) (res API
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataRateLimitsDeleteResponse(resp)
+	result, err := decodeTestdataRateLimitsDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7417,29 +7517,29 @@ func (c *Client) sendAPIV2TestdataRateLimitsDelete(ctx context.Context) (res API
 	return result, nil
 }
 
-// APIV2TestdataRateLimitsPost invokes POST /api/v2/testdata/rate-limits operation.
+// TestdataRateLimitsPost invokes POST /testdata/rate-limits operation.
 //
-// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłąnych do API dla
+// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
 // bieżącego kontekstu. **Tylko na środowiskach testowych.**.
 //
-// POST /api/v2/testdata/rate-limits
-func (c *Client) APIV2TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (APIV2TestdataRateLimitsPostRes, error) {
-	res, err := c.sendAPIV2TestdataRateLimitsPost(ctx, request)
+// POST /testdata/rate-limits
+func (c *Client) TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (TestdataRateLimitsPostRes, error) {
+	res, err := c.sendTestdataRateLimitsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (res APIV2TestdataRateLimitsPostRes, err error) {
+func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (res TestdataRateLimitsPostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/rate-limits"
+	pathParts[0] = "/testdata/rate-limits"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataRateLimitsPostRequest(request, r); err != nil {
+	if err := encodeTestdataRateLimitsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7448,7 +7548,7 @@ func (c *Client) sendAPIV2TestdataRateLimitsPost(ctx context.Context, request Op
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TestdataRateLimitsPostOperation, r); {
+			switch err := c.securityBearer(ctx, TestdataRateLimitsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7482,7 +7582,7 @@ func (c *Client) sendAPIV2TestdataRateLimitsPost(ctx context.Context, request Op
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataRateLimitsPostResponse(resp)
+	result, err := decodeTestdataRateLimitsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7490,19 +7590,90 @@ func (c *Client) sendAPIV2TestdataRateLimitsPost(ctx context.Context, request Op
 	return result, nil
 }
 
-// APIV2TestdataSubjectPost invokes POST /api/v2/testdata/subject operation.
+// TestdataRateLimitsProductionPost invokes POST /testdata/rate-limits/production operation.
+//
+// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
+// bieżącego kontekstu na wartości takie jakie będą na środowisku produkcyjnym. **Tylko na
+// środowiskach testowych.**.
+//
+// POST /testdata/rate-limits/production
+func (c *Client) TestdataRateLimitsProductionPost(ctx context.Context) (TestdataRateLimitsProductionPostRes, error) {
+	res, err := c.sendTestdataRateLimitsProductionPost(ctx)
+	return res, err
+}
+
+func (c *Client) sendTestdataRateLimitsProductionPost(ctx context.Context) (res TestdataRateLimitsProductionPostRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/testdata/rate-limits/production"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TestdataRateLimitsProductionPostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	result, err := decodeTestdataRateLimitsProductionPostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TestdataSubjectPost invokes POST /testdata/subject operation.
 //
 // Tworzenie nowego podmiotu testowego. W przypadku grupy VAT i JST istnieje możliwość stworzenia
 // jednostek podrzędnych. W wyniku takiego działania w systemie powstanie powiązanie między tymi
 // podmiotami.
 //
-// POST /api/v2/testdata/subject
-func (c *Client) APIV2TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (APIV2TestdataSubjectPostRes, error) {
-	res, err := c.sendAPIV2TestdataSubjectPost(ctx, request)
+// POST /testdata/subject
+func (c *Client) TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (TestdataSubjectPostRes, error) {
+	res, err := c.sendTestdataSubjectPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (res APIV2TestdataSubjectPostRes, err error) {
+func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (res TestdataSubjectPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7522,14 +7693,14 @@ func (c *Client) sendAPIV2TestdataSubjectPost(ctx context.Context, request OptSu
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/subject"
+	pathParts[0] = "/testdata/subject"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataSubjectPostRequest(request, r); err != nil {
+	if err := encodeTestdataSubjectPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7539,7 +7710,7 @@ func (c *Client) sendAPIV2TestdataSubjectPost(ctx context.Context, request OptSu
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataSubjectPostResponse(resp)
+	result, err := decodeTestdataSubjectPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7547,18 +7718,18 @@ func (c *Client) sendAPIV2TestdataSubjectPost(ctx context.Context, request OptSu
 	return result, nil
 }
 
-// APIV2TestdataSubjectRemovePost invokes POST /api/v2/testdata/subject/remove operation.
+// TestdataSubjectRemovePost invokes POST /testdata/subject/remove operation.
 //
 // Usuwanie podmiotu testowego. W przypadku grupy VAT i JST usunięte zostaną również jednostki
 // podrzędne.
 //
-// POST /api/v2/testdata/subject/remove
-func (c *Client) APIV2TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (APIV2TestdataSubjectRemovePostRes, error) {
-	res, err := c.sendAPIV2TestdataSubjectRemovePost(ctx, request)
+// POST /testdata/subject/remove
+func (c *Client) TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (TestdataSubjectRemovePostRes, error) {
+	res, err := c.sendTestdataSubjectRemovePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (res APIV2TestdataSubjectRemovePostRes, err error) {
+func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (res TestdataSubjectRemovePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7578,14 +7749,14 @@ func (c *Client) sendAPIV2TestdataSubjectRemovePost(ctx context.Context, request
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/testdata/subject/remove"
+	pathParts[0] = "/testdata/subject/remove"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TestdataSubjectRemovePostRequest(request, r); err != nil {
+	if err := encodeTestdataSubjectRemovePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7595,7 +7766,7 @@ func (c *Client) sendAPIV2TestdataSubjectRemovePost(ctx context.Context, request
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TestdataSubjectRemovePostResponse(resp)
+	result, err := decodeTestdataSubjectRemovePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7603,22 +7774,22 @@ func (c *Client) sendAPIV2TestdataSubjectRemovePost(ctx context.Context, request
 	return result, nil
 }
 
-// APIV2TokensGet invokes GET /api/v2/tokens operation.
+// TokensGet invokes GET /tokens operation.
 //
 // **Sortowanie:**
 // - dateCreated (Desc).
 //
-// GET /api/v2/tokens
-func (c *Client) APIV2TokensGet(ctx context.Context, params APIV2TokensGetParams) (APIV2TokensGetRes, error) {
-	res, err := c.sendAPIV2TokensGet(ctx, params)
+// GET /tokens
+func (c *Client) TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error) {
+	res, err := c.sendTokensGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TokensGet(ctx context.Context, params APIV2TokensGetParams) (res APIV2TokensGetRes, err error) {
+func (c *Client) sendTokensGet(ctx context.Context, params TokensGetParams) (res TokensGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/tokens"
+	pathParts[0] = "/tokens"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	q := uri.NewQueryEncoder()
@@ -7744,7 +7915,7 @@ func (c *Client) sendAPIV2TokensGet(ctx context.Context, params APIV2TokensGetPa
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TokensGetOperation, r); {
+			switch err := c.securityBearer(ctx, TokensGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7778,7 +7949,7 @@ func (c *Client) sendAPIV2TokensGet(ctx context.Context, params APIV2TokensGetPa
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TokensGetResponse(resp)
+	result, err := decodeTokensGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7786,19 +7957,19 @@ func (c *Client) sendAPIV2TokensGet(ctx context.Context, params APIV2TokensGetPa
 	return result, nil
 }
 
-// APIV2TokensPost invokes POST /api/v2/tokens operation.
+// TokensPost invokes POST /tokens operation.
 //
 // Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
 // Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest
 // zwracany tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
 //
-// POST /api/v2/tokens
-func (c *Client) APIV2TokensPost(ctx context.Context, request OptGenerateTokenRequest) (APIV2TokensPostRes, error) {
-	res, err := c.sendAPIV2TokensPost(ctx, request)
+// POST /tokens
+func (c *Client) TokensPost(ctx context.Context, request OptGenerateTokenRequest) (TokensPostRes, error) {
+	res, err := c.sendTokensPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TokensPost(ctx context.Context, request OptGenerateTokenRequest) (res APIV2TokensPostRes, err error) {
+func (c *Client) sendTokensPost(ctx context.Context, request OptGenerateTokenRequest) (res TokensPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7818,14 +7989,14 @@ func (c *Client) sendAPIV2TokensPost(ctx context.Context, request OptGenerateTok
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v2/tokens"
+	pathParts[0] = "/tokens"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAPIV2TokensPostRequest(request, r); err != nil {
+	if err := encodeTokensPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -7834,7 +8005,7 @@ func (c *Client) sendAPIV2TokensPost(ctx context.Context, request OptGenerateTok
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TokensPostOperation, r); {
+			switch err := c.securityBearer(ctx, TokensPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7868,7 +8039,7 @@ func (c *Client) sendAPIV2TokensPost(ctx context.Context, request OptGenerateTok
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TokensPostResponse(resp)
+	result, err := decodeTokensPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7876,22 +8047,22 @@ func (c *Client) sendAPIV2TokensPost(ctx context.Context, request OptGenerateTok
 	return result, nil
 }
 
-// APIV2TokensReferenceNumberDelete invokes DELETE /api/v2/tokens/{referenceNumber} operation.
+// TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
 //
 // Unieważniony token nie pozwoli już na uwierzytelnienie się za jego pomocą. Unieważnienie nie
 // może zostać cofnięte.
 //
-// DELETE /api/v2/tokens/{referenceNumber}
-func (c *Client) APIV2TokensReferenceNumberDelete(ctx context.Context, params APIV2TokensReferenceNumberDeleteParams) (APIV2TokensReferenceNumberDeleteRes, error) {
-	res, err := c.sendAPIV2TokensReferenceNumberDelete(ctx, params)
+// DELETE /tokens/{referenceNumber}
+func (c *Client) TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error) {
+	res, err := c.sendTokensReferenceNumberDelete(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TokensReferenceNumberDelete(ctx context.Context, params APIV2TokensReferenceNumberDeleteParams) (res APIV2TokensReferenceNumberDeleteRes, err error) {
+func (c *Client) sendTokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (res TokensReferenceNumberDeleteRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/tokens/"
+	pathParts[0] = "/tokens/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -7925,7 +8096,7 @@ func (c *Client) sendAPIV2TokensReferenceNumberDelete(ctx context.Context, param
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TokensReferenceNumberDeleteOperation, r); {
+			switch err := c.securityBearer(ctx, TokensReferenceNumberDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -7959,7 +8130,7 @@ func (c *Client) sendAPIV2TokensReferenceNumberDelete(ctx context.Context, param
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TokensReferenceNumberDeleteResponse(resp)
+	result, err := decodeTokensReferenceNumberDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7967,21 +8138,21 @@ func (c *Client) sendAPIV2TokensReferenceNumberDelete(ctx context.Context, param
 	return result, nil
 }
 
-// APIV2TokensReferenceNumberGet invokes GET /api/v2/tokens/{referenceNumber} operation.
+// TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 //
 // Pobranie statusu tokena.
 //
-// GET /api/v2/tokens/{referenceNumber}
-func (c *Client) APIV2TokensReferenceNumberGet(ctx context.Context, params APIV2TokensReferenceNumberGetParams) (APIV2TokensReferenceNumberGetRes, error) {
-	res, err := c.sendAPIV2TokensReferenceNumberGet(ctx, params)
+// GET /tokens/{referenceNumber}
+func (c *Client) TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error) {
+	res, err := c.sendTokensReferenceNumberGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV2TokensReferenceNumberGet(ctx context.Context, params APIV2TokensReferenceNumberGetParams) (res APIV2TokensReferenceNumberGetRes, err error) {
+func (c *Client) sendTokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (res TokensReferenceNumberGetRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/api/v2/tokens/"
+	pathParts[0] = "/tokens/"
 	{
 		// Encode "referenceNumber" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -8015,7 +8186,7 @@ func (c *Client) sendAPIV2TokensReferenceNumberGet(ctx context.Context, params A
 		var satisfied bitset
 		{
 
-			switch err := c.securityBearer(ctx, APIV2TokensReferenceNumberGetOperation, r); {
+			switch err := c.securityBearer(ctx, TokensReferenceNumberGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -8049,7 +8220,7 @@ func (c *Client) sendAPIV2TokensReferenceNumberGet(ctx context.Context, params A
 	}
 	defer resp.Body.Close()
 
-	result, err := decodeAPIV2TokensReferenceNumberGetResponse(resp)
+	result, err := decodeTokensReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

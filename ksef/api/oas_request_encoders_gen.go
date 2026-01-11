@@ -10,7 +10,7 @@ import (
 	ht "github.com/ogen-go/ogen/http"
 )
 
-func encodeAPIV2AuthKsefTokenPostRequest(
+func encodeAuthKsefTokenPostRequest(
 	req OptInitTokenAuthenticationRequest,
 	r *http.Request,
 ) error {
@@ -30,8 +30,8 @@ func encodeAPIV2AuthKsefTokenPostRequest(
 	return nil
 }
 
-func encodeAPIV2AuthXadesSignaturePostRequest(
-	req APIV2AuthXadesSignaturePostReq,
+func encodeAuthXadesSignaturePostRequest(
+	req AuthXadesSignaturePostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/xml"
@@ -40,7 +40,7 @@ func encodeAPIV2AuthXadesSignaturePostRequest(
 	return nil
 }
 
-func encodeAPIV2CertificatesCertificateSerialNumberRevokePostRequest(
+func encodeCertificatesCertificateSerialNumberRevokePostRequest(
 	req OptRevokeCertificateRequest,
 	r *http.Request,
 ) error {
@@ -60,7 +60,7 @@ func encodeAPIV2CertificatesCertificateSerialNumberRevokePostRequest(
 	return nil
 }
 
-func encodeAPIV2CertificatesEnrollmentsPostRequest(
+func encodeCertificatesEnrollmentsPostRequest(
 	req OptEnrollCertificateRequest,
 	r *http.Request,
 ) error {
@@ -80,7 +80,7 @@ func encodeAPIV2CertificatesEnrollmentsPostRequest(
 	return nil
 }
 
-func encodeAPIV2CertificatesQueryPostRequest(
+func encodeCertificatesQueryPostRequest(
 	req OptQueryCertificatesRequest,
 	r *http.Request,
 ) error {
@@ -100,7 +100,7 @@ func encodeAPIV2CertificatesQueryPostRequest(
 	return nil
 }
 
-func encodeAPIV2CertificatesRetrievePostRequest(
+func encodeCertificatesRetrievePostRequest(
 	req OptRetrieveCertificatesRequest,
 	r *http.Request,
 ) error {
@@ -120,7 +120,7 @@ func encodeAPIV2CertificatesRetrievePostRequest(
 	return nil
 }
 
-func encodeAPIV2InvoicesExportsPostRequest(
+func encodeInvoicesExportsPostRequest(
 	req OptInvoiceExportRequest,
 	r *http.Request,
 ) error {
@@ -140,7 +140,7 @@ func encodeAPIV2InvoicesExportsPostRequest(
 	return nil
 }
 
-func encodeAPIV2InvoicesQueryMetadataPostRequest(
+func encodeInvoicesQueryMetadataPostRequest(
 	req OptInvoiceQueryFilters,
 	r *http.Request,
 ) error {
@@ -160,7 +160,7 @@ func encodeAPIV2InvoicesQueryMetadataPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsAuthorizationsGrantsPostRequest(
+func encodePermissionsAuthorizationsGrantsPostRequest(
 	req OptEntityAuthorizationPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -180,7 +180,7 @@ func encodeAPIV2PermissionsAuthorizationsGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsEntitiesGrantsPostRequest(
+func encodePermissionsEntitiesGrantsPostRequest(
 	req OptEntityPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -200,7 +200,7 @@ func encodeAPIV2PermissionsEntitiesGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsEuEntitiesAdministrationGrantsPostRequest(
+func encodePermissionsEuEntitiesAdministrationGrantsPostRequest(
 	req OptEuEntityAdministrationPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -220,7 +220,7 @@ func encodeAPIV2PermissionsEuEntitiesAdministrationGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsEuEntitiesGrantsPostRequest(
+func encodePermissionsEuEntitiesGrantsPostRequest(
 	req OptEuEntityPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -240,7 +240,7 @@ func encodeAPIV2PermissionsEuEntitiesGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsIndirectGrantsPostRequest(
+func encodePermissionsIndirectGrantsPostRequest(
 	req OptIndirectPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -260,7 +260,7 @@ func encodeAPIV2PermissionsIndirectGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsPersonsGrantsPostRequest(
+func encodePermissionsPersonsGrantsPostRequest(
 	req OptPersonPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -280,7 +280,7 @@ func encodeAPIV2PermissionsPersonsGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsQueryAuthorizationsGrantsPostRequest(
+func encodePermissionsQueryAuthorizationsGrantsPostRequest(
 	req OptEntityAuthorizationPermissionsQueryRequest,
 	r *http.Request,
 ) error {
@@ -300,7 +300,7 @@ func encodeAPIV2PermissionsQueryAuthorizationsGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsQueryEuEntitiesGrantsPostRequest(
+func encodePermissionsQueryEuEntitiesGrantsPostRequest(
 	req OptEuEntityPermissionsQueryRequest,
 	r *http.Request,
 ) error {
@@ -320,7 +320,7 @@ func encodeAPIV2PermissionsQueryEuEntitiesGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsQueryPersonalGrantsPostRequest(
+func encodePermissionsQueryPersonalGrantsPostRequest(
 	req OptPersonalPermissionsQueryRequest,
 	r *http.Request,
 ) error {
@@ -340,7 +340,7 @@ func encodeAPIV2PermissionsQueryPersonalGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsQueryPersonsGrantsPostRequest(
+func encodePermissionsQueryPersonsGrantsPostRequest(
 	req OptPersonPermissionsQueryRequest,
 	r *http.Request,
 ) error {
@@ -360,7 +360,7 @@ func encodeAPIV2PermissionsQueryPersonsGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsQuerySubordinateEntitiesRolesPostRequest(
+func encodePermissionsQuerySubordinateEntitiesRolesPostRequest(
 	req OptSubordinateEntityRolesQueryRequest,
 	r *http.Request,
 ) error {
@@ -380,7 +380,7 @@ func encodeAPIV2PermissionsQuerySubordinateEntitiesRolesPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsQuerySubunitsGrantsPostRequest(
+func encodePermissionsQuerySubunitsGrantsPostRequest(
 	req OptSubunitPermissionsQueryRequest,
 	r *http.Request,
 ) error {
@@ -400,7 +400,7 @@ func encodeAPIV2PermissionsQuerySubunitsGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2PermissionsSubunitsGrantsPostRequest(
+func encodePermissionsSubunitsGrantsPostRequest(
 	req OptSubunitPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -420,7 +420,7 @@ func encodeAPIV2PermissionsSubunitsGrantsPostRequest(
 	return nil
 }
 
-func encodeAPIV2SessionsBatchPostRequest(
+func encodeSessionsBatchPostRequest(
 	req OptOpenBatchSessionRequest,
 	r *http.Request,
 ) error {
@@ -440,7 +440,7 @@ func encodeAPIV2SessionsBatchPostRequest(
 	return nil
 }
 
-func encodeAPIV2SessionsOnlinePostRequest(
+func encodeSessionsOnlinePostRequest(
 	req OptOpenOnlineSessionRequest,
 	r *http.Request,
 ) error {
@@ -460,7 +460,7 @@ func encodeAPIV2SessionsOnlinePostRequest(
 	return nil
 }
 
-func encodeAPIV2SessionsOnlineReferenceNumberInvoicesPostRequest(
+func encodeSessionsOnlineReferenceNumberInvoicesPostRequest(
 	req OptSendInvoiceRequest,
 	r *http.Request,
 ) error {
@@ -480,7 +480,7 @@ func encodeAPIV2SessionsOnlineReferenceNumberInvoicesPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataAttachmentPostRequest(
+func encodeTestdataAttachmentPostRequest(
 	req OptAttachmentPermissionGrantRequest,
 	r *http.Request,
 ) error {
@@ -500,7 +500,7 @@ func encodeAPIV2TestdataAttachmentPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataAttachmentRevokePostRequest(
+func encodeTestdataAttachmentRevokePostRequest(
 	req OptAttachmentPermissionRevokeRequest,
 	r *http.Request,
 ) error {
@@ -520,7 +520,7 @@ func encodeAPIV2TestdataAttachmentRevokePostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataLimitsContextSessionPostRequest(
+func encodeTestdataLimitsContextSessionPostRequest(
 	req OptSetSessionLimitsRequest,
 	r *http.Request,
 ) error {
@@ -540,7 +540,7 @@ func encodeAPIV2TestdataLimitsContextSessionPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataLimitsSubjectCertificatePostRequest(
+func encodeTestdataLimitsSubjectCertificatePostRequest(
 	req OptSetSubjectLimitsRequest,
 	r *http.Request,
 ) error {
@@ -560,7 +560,7 @@ func encodeAPIV2TestdataLimitsSubjectCertificatePostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataPermissionsPostRequest(
+func encodeTestdataPermissionsPostRequest(
 	req OptTestDataPermissionsGrantRequest,
 	r *http.Request,
 ) error {
@@ -580,7 +580,7 @@ func encodeAPIV2TestdataPermissionsPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataPermissionsRevokePostRequest(
+func encodeTestdataPermissionsRevokePostRequest(
 	req OptTestDataPermissionsRevokeRequest,
 	r *http.Request,
 ) error {
@@ -600,7 +600,7 @@ func encodeAPIV2TestdataPermissionsRevokePostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataPersonPostRequest(
+func encodeTestdataPersonPostRequest(
 	req OptPersonCreateRequest,
 	r *http.Request,
 ) error {
@@ -620,7 +620,7 @@ func encodeAPIV2TestdataPersonPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataPersonRemovePostRequest(
+func encodeTestdataPersonRemovePostRequest(
 	req OptPersonRemoveRequest,
 	r *http.Request,
 ) error {
@@ -640,7 +640,7 @@ func encodeAPIV2TestdataPersonRemovePostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataRateLimitsPostRequest(
+func encodeTestdataRateLimitsPostRequest(
 	req OptSetRateLimitsRequest,
 	r *http.Request,
 ) error {
@@ -660,7 +660,7 @@ func encodeAPIV2TestdataRateLimitsPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataSubjectPostRequest(
+func encodeTestdataSubjectPostRequest(
 	req OptSubjectCreateRequest,
 	r *http.Request,
 ) error {
@@ -680,7 +680,7 @@ func encodeAPIV2TestdataSubjectPostRequest(
 	return nil
 }
 
-func encodeAPIV2TestdataSubjectRemovePostRequest(
+func encodeTestdataSubjectRemovePostRequest(
 	req OptSubjectRemoveRequest,
 	r *http.Request,
 ) error {
@@ -700,7 +700,7 @@ func encodeAPIV2TestdataSubjectRemovePostRequest(
 	return nil
 }
 
-func encodeAPIV2TokensPostRequest(
+func encodeTokensPostRequest(
 	req OptGenerateTokenRequest,
 	r *http.Request,
 ) error {

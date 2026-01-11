@@ -140,22 +140,16 @@ const (
 	Test Environment = iota
 	Demo
 	Prod
-	Demo_old
-	Test_old
 )
 
 func (e *Environment) BaseURL() string {
 	switch *e {
 	case Prod:
-		return "https://api.ksef.mf.gov.pl"
+		return "https://api.ksef.mf.gov.pl/v2"
 	case Test:
-		return "https://api-test.ksef.mf.gov.pl"
+		return "https://api-test.ksef.mf.gov.pl/v2"
 	case Demo:
-		return "https://api-demo.ksef.mf.gov.pl"
-	case Demo_old:
-		return "https://ksef-demo.mf.gov.pl"
-	case Test_old:
-		return "https://ksef-test.mf.gov.pl"
+		return "https://api-demo.ksef.mf.gov.pl/v2"
 	}
 	panic("Invalid environment")
 }
@@ -164,9 +158,9 @@ func (e *Environment) Name() string {
 	switch *e {
 	case Prod:
 		return "prod"
-	case Test, Test_old:
+	case Test:
 		return "test"
-	case Demo, Demo_old:
+	case Demo:
 		return "demo"
 	}
 	panic("Invalid environment")
@@ -180,12 +174,8 @@ func (e *Environment) UnmarshalText(text []byte) error {
 		*e = Prod
 	case "demo":
 		*e = Demo
-	case "demo_old":
-		*e = Demo_old
 	case "test":
 		*e = Test
-	case "test_old":
-		*e = Test_old
 	default:
 		return fmt.Errorf("invalid KSEF_ENV: %q (allowed: prod, demo, test)", val)
 	}
