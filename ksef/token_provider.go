@@ -100,6 +100,19 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 	return p.fullAuthLocked(ctx)
 }
 
+// Invalidate usuwa tokeny z cache dla NIP pobranego z kontekstu.
+// Użyj tego np. po zmianie tokena używanego do pełnej autentykacji.
+func (p *TokenProvider) Invalidate(ctx context.Context) error {
+	nip, ok := NipFromContext(ctx)
+	if !ok || nip == "" {
+		return ErrNoNip
+	}
+	p.mu.Lock()
+	delete(p.cache, nip)
+	p.mu.Unlock()
+	return nil
+}
+
 // Zakłada blokadę i sprawdza - deleguje do currentIfValidLocked()
 func (p *TokenProvider) currentIfValid(nip string) (string, bool) {
 	p.mu.Lock()
