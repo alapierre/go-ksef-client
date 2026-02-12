@@ -3289,14 +3289,6 @@ func decodeInvoicesKsefKsefNumberGetResponse(resp *http.Response) (res InvoicesK
 						}); err != nil {
 							return err
 						}
-						if err := func() error {
-							if err := wrapper.XMsMetaHash.Validate(); err != nil {
-								return err
-							}
-							return nil
-						}(); err != nil {
-							return err
-						}
 					}
 					return nil
 				}(); err != nil {
@@ -9861,14 +9853,6 @@ func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(r
 						}); err != nil {
 							return err
 						}
-						if err := func() error {
-							if err := wrapper.XMsMetaHash.Validate(); err != nil {
-								return err
-							}
-							return nil
-						}(); err != nil {
-							return err
-						}
 					}
 					return nil
 				}(); err != nil {
@@ -10075,14 +10059,6 @@ func decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp *htt
 						}); err != nil {
 							return err
 						}
-						if err := func() error {
-							if err := wrapper.XMsMetaHash.Validate(); err != nil {
-								return err
-							}
-							return nil
-						}(); err != nil {
-							return err
-						}
 					}
 					return nil
 				}(); err != nil {
@@ -10287,14 +10263,6 @@ func decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *http.Re
 							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
 							return nil
 						}); err != nil {
-							return err
-						}
-						if err := func() error {
-							if err := wrapper.XMsMetaHash.Validate(); err != nil {
-								return err
-							}
-							return nil
-						}(); err != nil {
 							return err
 						}
 					}
