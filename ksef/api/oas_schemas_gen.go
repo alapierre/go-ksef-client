@@ -554,7 +554,11 @@ type AuthenticationListItem struct {
 	// | QualifiedSeal | Pieczęć kwalifikowana. |
 	// | PersonalSignature | Podpis osobisty. |
 	// | PeppolSignature | Podpis dostawcy usług Peppol. |.
-	AuthenticationMethod AuthenticationMethod `json:"authenticationMethod"`
+	//
+	// Deprecated: schema marks this property as deprecated.
+	AuthenticationMethod OptAuthenticationMethod `json:"authenticationMethod"`
+	// Użyta metoda uwierzytelnienia.
+	AuthenticationMethodInfo OptAuthenticationMethodInfo `json:"authenticationMethodInfo"`
 	// Informacje o aktualnym statusie.
 	// | Code | Description | Details |
 	// | --- | --- | --- |
@@ -580,6 +584,8 @@ type AuthenticationListItem struct {
 	// łańcuch certyfikatów |
 	// | 460 | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat
 	// odwołany |
+	// | 460 | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat
+	// zawieszony |
 	// | 460 | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Niepoprawny
 	// certyfikat |
 	// | 470 | Uwierzytelnianie zakończone niepowodzeniem | Próba wykorzystania metod autoryzacyjnych
@@ -608,8 +614,13 @@ func (s *AuthenticationListItem) GetStartDate() time.Time {
 }
 
 // GetAuthenticationMethod returns the value of AuthenticationMethod.
-func (s *AuthenticationListItem) GetAuthenticationMethod() AuthenticationMethod {
+func (s *AuthenticationListItem) GetAuthenticationMethod() OptAuthenticationMethod {
 	return s.AuthenticationMethod
+}
+
+// GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
+func (s *AuthenticationListItem) GetAuthenticationMethodInfo() OptAuthenticationMethodInfo {
+	return s.AuthenticationMethodInfo
 }
 
 // GetStatus returns the value of Status.
@@ -648,8 +659,13 @@ func (s *AuthenticationListItem) SetStartDate(val time.Time) {
 }
 
 // SetAuthenticationMethod sets the value of AuthenticationMethod.
-func (s *AuthenticationListItem) SetAuthenticationMethod(val AuthenticationMethod) {
+func (s *AuthenticationListItem) SetAuthenticationMethod(val OptAuthenticationMethod) {
 	s.AuthenticationMethod = val
+}
+
+// SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
+func (s *AuthenticationListItem) SetAuthenticationMethodInfo(val OptAuthenticationMethodInfo) {
+	s.AuthenticationMethodInfo = val
 }
 
 // SetStatus sets the value of Status.
@@ -800,6 +816,114 @@ func (s *AuthenticationMethod) UnmarshalText(data []byte) error {
 	}
 }
 
+// | Wartość | Opis |
+// | --- | --- |
+// | XadesSignature | Uwierzytelnienie podpisem Xades. |
+// | NationalNode | Uwierzytelnienie za pomocą Węzła Krajowego (login.gov.pl). |
+// | Token | Uwierzytelnienie tokenem. |
+// | Other | Uwierzytelnienie inną metodą. |.
+// Ref: #/components/schemas/AuthenticationMethodCategory
+type AuthenticationMethodCategory string
+
+const (
+	AuthenticationMethodCategoryXadesSignature AuthenticationMethodCategory = "XadesSignature"
+	AuthenticationMethodCategoryNationalNode   AuthenticationMethodCategory = "NationalNode"
+	AuthenticationMethodCategoryToken          AuthenticationMethodCategory = "Token"
+	AuthenticationMethodCategoryOther          AuthenticationMethodCategory = "Other"
+)
+
+// AllValues returns all AuthenticationMethodCategory values.
+func (AuthenticationMethodCategory) AllValues() []AuthenticationMethodCategory {
+	return []AuthenticationMethodCategory{
+		AuthenticationMethodCategoryXadesSignature,
+		AuthenticationMethodCategoryNationalNode,
+		AuthenticationMethodCategoryToken,
+		AuthenticationMethodCategoryOther,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s AuthenticationMethodCategory) MarshalText() ([]byte, error) {
+	switch s {
+	case AuthenticationMethodCategoryXadesSignature:
+		return []byte(s), nil
+	case AuthenticationMethodCategoryNationalNode:
+		return []byte(s), nil
+	case AuthenticationMethodCategoryToken:
+		return []byte(s), nil
+	case AuthenticationMethodCategoryOther:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *AuthenticationMethodCategory) UnmarshalText(data []byte) error {
+	switch AuthenticationMethodCategory(data) {
+	case AuthenticationMethodCategoryXadesSignature:
+		*s = AuthenticationMethodCategoryXadesSignature
+		return nil
+	case AuthenticationMethodCategoryNationalNode:
+		*s = AuthenticationMethodCategoryNationalNode
+		return nil
+	case AuthenticationMethodCategoryToken:
+		*s = AuthenticationMethodCategoryToken
+		return nil
+	case AuthenticationMethodCategoryOther:
+		*s = AuthenticationMethodCategoryOther
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Ref: #/components/schemas/AuthenticationMethodInfo
+type AuthenticationMethodInfo struct {
+	// Kategoria metody uwierzytelnienia.
+	// | Wartość | Opis |
+	// | --- | --- |
+	// | XadesSignature | Uwierzytelnienie podpisem Xades. |
+	// | NationalNode | Uwierzytelnienie za pomocą Węzła Krajowego (login.gov.pl). |
+	// | Token | Uwierzytelnienie tokenem. |
+	// | Other | Uwierzytelnienie inną metodą. |.
+	Category AuthenticationMethodCategory `json:"category"`
+	// Kod metody uwierzytelnienia.
+	Code string `json:"code"`
+	// Nazwa metody uwierzytelnienia do wyświetlenia użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCategory returns the value of Category.
+func (s *AuthenticationMethodInfo) GetCategory() AuthenticationMethodCategory {
+	return s.Category
+}
+
+// GetCode returns the value of Code.
+func (s *AuthenticationMethodInfo) GetCode() string {
+	return s.Code
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *AuthenticationMethodInfo) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCategory sets the value of Category.
+func (s *AuthenticationMethodInfo) SetCategory(val AuthenticationMethodCategory) {
+	s.Category = val
+}
+
+// SetCode sets the value of Code.
+func (s *AuthenticationMethodInfo) SetCode(val string) {
+	s.Code = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *AuthenticationMethodInfo) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
 // Ref: #/components/schemas/AuthenticationOperationStatusResponse
 type AuthenticationOperationStatusResponse struct {
 	// Data rozpoczęcia operacji uwierzytelnienia.
@@ -814,7 +938,11 @@ type AuthenticationOperationStatusResponse struct {
 	// | QualifiedSeal | Pieczęć kwalifikowana. |
 	// | PersonalSignature | Podpis osobisty. |
 	// | PeppolSignature | Podpis dostawcy usług Peppol. |.
+	//
+	// Deprecated: schema marks this property as deprecated.
 	AuthenticationMethod AuthenticationMethod `json:"authenticationMethod"`
+	// Użyta metoda uwierzytelnienia.
+	AuthenticationMethodInfo AuthenticationMethodInfo `json:"authenticationMethodInfo"`
 	// Informacje o aktualnym statusie.
 	// | Code | Description | Details |
 	// | --- | --- | --- |
@@ -840,6 +968,8 @@ type AuthenticationOperationStatusResponse struct {
 	// łańcuch certyfikatów |
 	// | 460 | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat
 	// odwołany |
+	// | 460 | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat
+	// zawieszony |
 	// | 460 | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Niepoprawny
 	// certyfikat |
 	// | 470 | Uwierzytelnianie zakończone niepowodzeniem | Próba wykorzystania metod autoryzacyjnych
@@ -866,6 +996,11 @@ func (s *AuthenticationOperationStatusResponse) GetStartDate() time.Time {
 // GetAuthenticationMethod returns the value of AuthenticationMethod.
 func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethod() AuthenticationMethod {
 	return s.AuthenticationMethod
+}
+
+// GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
+func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethodInfo() AuthenticationMethodInfo {
+	return s.AuthenticationMethodInfo
 }
 
 // GetStatus returns the value of Status.
@@ -896,6 +1031,11 @@ func (s *AuthenticationOperationStatusResponse) SetStartDate(val time.Time) {
 // SetAuthenticationMethod sets the value of AuthenticationMethod.
 func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethod(val AuthenticationMethod) {
 	s.AuthenticationMethod = val
+}
+
+// SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
+func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethodInfo(val AuthenticationMethodInfo) {
+	s.AuthenticationMethodInfo = val
 }
 
 // SetStatus sets the value of Status.
@@ -1244,6 +1384,21 @@ func (s *Bearer) SetToken(val string) {
 // SetRoles sets the value of Roles.
 func (s *Bearer) SetRoles(val []string) {
 	s.Roles = val
+}
+
+// Ref: #/components/schemas/BlockContextAuthenticationRequest
+type BlockContextAuthenticationRequest struct {
+	ContextIdentifier OptNilTestDataAuthenticationContextIdentifier `json:"contextIdentifier"`
+}
+
+// GetContextIdentifier returns the value of ContextIdentifier.
+func (s *BlockContextAuthenticationRequest) GetContextIdentifier() OptNilTestDataAuthenticationContextIdentifier {
+	return s.ContextIdentifier
+}
+
+// SetContextIdentifier sets the value of ContextIdentifier.
+func (s *BlockContextAuthenticationRequest) SetContextIdentifier(val OptNilTestDataAuthenticationContextIdentifier) {
+	s.ContextIdentifier = val
 }
 
 // | Wartość | Opis |
@@ -5982,6 +6137,8 @@ func (*ExceptionResponse) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes
 func (*ExceptionResponse) sessionsReferenceNumberUpoUpoReferenceNumberGetRes()             {}
 func (*ExceptionResponse) testdataAttachmentPostRes()                                      {}
 func (*ExceptionResponse) testdataAttachmentRevokePostRes()                                {}
+func (*ExceptionResponse) testdataContextBlockPostRes()                                    {}
+func (*ExceptionResponse) testdataContextUnblockPostRes()                                  {}
 func (*ExceptionResponse) testdataLimitsContextSessionDeleteRes()                          {}
 func (*ExceptionResponse) testdataLimitsContextSessionPostRes()                            {}
 func (*ExceptionResponse) testdataLimitsSubjectCertificateDeleteRes()                      {}
@@ -7480,10 +7637,10 @@ type InvoiceQueryDateRange struct {
 	// | Invoicing | Data przyjęcia faktury w systemie KSeF (do dalszego przetwarzania). |
 	// | PermanentStorage | Data trwałego zapisu faktury w repozytorium systemu KSeF. |.
 	DateType InvoiceQueryDateType `json:"dateType"`
-	// Data początkowa zakresu(UTC).
+	// Data początkowa zakresu w formacie ISO-8601 np. 2026-01-03T13:45:00+00:00.
 	From time.Time `json:"from"`
-	// Data końcowa zakresu(UTC). Jeśli nie zostanie podana, przyjmowana jest bieżąca data i czas w
-	// UTC.
+	// Data końcowa zakresu w formacie ISO-8601. Jeśli nie zostanie podana, przyjmowana jest bieżąca
+	// data i czas w UTC.
 	To OptNilDateTime `json:"to"`
 	// Określa, czy system ma ograniczyć filtrowanie (zakres dateRange.to) do wartości
 	// `PermanentStorageHwmDate`.
@@ -7599,8 +7756,14 @@ type InvoiceQueryFilters struct {
 	// | Subject3 | Podmiot 3 |
 	// | SubjectAuthorized | Podmiot upoważniony |.
 	SubjectType InvoiceQuerySubjectType `json:"subjectType"`
-	// Typ i zakres dat, według którego mają być filtrowane faktury. Dozwolony maksymalny okres
-	// wynosi 3 miesiące.
+	// Typ i zakres dat, według którego filtrowane są faktury.
+	// Maksymalny dozwolony okres wynosi 3 miesiące w strefie UTC lub w strefie Europe/Warsaw (WAW).
+	// Format daty:
+	// * Daty muszą być przekazane w formacie ISO 8601, np. `yyyy-MM-ddTHH:mm:ss`.
+	// * Dopuszczalne są następujące warianty:
+	// - z sufiksem `Z` (czas UTC),
+	// - z jawnym offsetem, np. `+01:00`, `+03:00`,
+	// - bez offsetu (interpretowane jako czas lokalny strefy Europe/Warsaw).
 	DateRange InvoiceQueryDateRange `json:"dateRange"`
 	// Numer KSeF faktury (exact match).
 	KsefNumber OptNilKsefNumber `json:"ksefNumber"`
@@ -8660,6 +8823,144 @@ func (o OptAttachmentPermissionRevokeRequest) Get() (v AttachmentPermissionRevok
 
 // Or returns value if set, or given parameter if does not.
 func (o OptAttachmentPermissionRevokeRequest) Or(d AttachmentPermissionRevokeRequest) AttachmentPermissionRevokeRequest {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptAuthenticationMethod returns new OptAuthenticationMethod with value set to v.
+func NewOptAuthenticationMethod(v AuthenticationMethod) OptAuthenticationMethod {
+	return OptAuthenticationMethod{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptAuthenticationMethod is optional AuthenticationMethod.
+type OptAuthenticationMethod struct {
+	Value AuthenticationMethod
+	Set   bool
+}
+
+// IsSet returns true if OptAuthenticationMethod was set.
+func (o OptAuthenticationMethod) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptAuthenticationMethod) Reset() {
+	var v AuthenticationMethod
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptAuthenticationMethod) SetTo(v AuthenticationMethod) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptAuthenticationMethod) Get() (v AuthenticationMethod, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptAuthenticationMethod) Or(d AuthenticationMethod) AuthenticationMethod {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptAuthenticationMethodInfo returns new OptAuthenticationMethodInfo with value set to v.
+func NewOptAuthenticationMethodInfo(v AuthenticationMethodInfo) OptAuthenticationMethodInfo {
+	return OptAuthenticationMethodInfo{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptAuthenticationMethodInfo is optional AuthenticationMethodInfo.
+type OptAuthenticationMethodInfo struct {
+	Value AuthenticationMethodInfo
+	Set   bool
+}
+
+// IsSet returns true if OptAuthenticationMethodInfo was set.
+func (o OptAuthenticationMethodInfo) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptAuthenticationMethodInfo) Reset() {
+	var v AuthenticationMethodInfo
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptAuthenticationMethodInfo) SetTo(v AuthenticationMethodInfo) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptAuthenticationMethodInfo) Get() (v AuthenticationMethodInfo, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptAuthenticationMethodInfo) Or(d AuthenticationMethodInfo) AuthenticationMethodInfo {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptBlockContextAuthenticationRequest returns new OptBlockContextAuthenticationRequest with value set to v.
+func NewOptBlockContextAuthenticationRequest(v BlockContextAuthenticationRequest) OptBlockContextAuthenticationRequest {
+	return OptBlockContextAuthenticationRequest{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBlockContextAuthenticationRequest is optional BlockContextAuthenticationRequest.
+type OptBlockContextAuthenticationRequest struct {
+	Value BlockContextAuthenticationRequest
+	Set   bool
+}
+
+// IsSet returns true if OptBlockContextAuthenticationRequest was set.
+func (o OptBlockContextAuthenticationRequest) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBlockContextAuthenticationRequest) Reset() {
+	var v BlockContextAuthenticationRequest
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBlockContextAuthenticationRequest) SetTo(v BlockContextAuthenticationRequest) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBlockContextAuthenticationRequest) Get() (v BlockContextAuthenticationRequest, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBlockContextAuthenticationRequest) Or(d BlockContextAuthenticationRequest) BlockContextAuthenticationRequest {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -13388,6 +13689,69 @@ func (o OptNilSubunitPermissionsSubunitIdentifier) Or(d SubunitPermissionsSubuni
 	return d
 }
 
+// NewOptNilTestDataAuthenticationContextIdentifier returns new OptNilTestDataAuthenticationContextIdentifier with value set to v.
+func NewOptNilTestDataAuthenticationContextIdentifier(v TestDataAuthenticationContextIdentifier) OptNilTestDataAuthenticationContextIdentifier {
+	return OptNilTestDataAuthenticationContextIdentifier{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilTestDataAuthenticationContextIdentifier is optional nullable TestDataAuthenticationContextIdentifier.
+type OptNilTestDataAuthenticationContextIdentifier struct {
+	Value TestDataAuthenticationContextIdentifier
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilTestDataAuthenticationContextIdentifier was set.
+func (o OptNilTestDataAuthenticationContextIdentifier) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilTestDataAuthenticationContextIdentifier) Reset() {
+	var v TestDataAuthenticationContextIdentifier
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilTestDataAuthenticationContextIdentifier) SetTo(v TestDataAuthenticationContextIdentifier) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilTestDataAuthenticationContextIdentifier) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilTestDataAuthenticationContextIdentifier) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v TestDataAuthenticationContextIdentifier
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilTestDataAuthenticationContextIdentifier) Get() (v TestDataAuthenticationContextIdentifier, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilTestDataAuthenticationContextIdentifier) Or(d TestDataAuthenticationContextIdentifier) TestDataAuthenticationContextIdentifier {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptNilURI returns new OptNilURI with value set to v.
 func NewOptNilURI(v url.URL) OptNilURI {
 	return OptNilURI{
@@ -14750,6 +15114,52 @@ func (o OptTokenAuthorIdentifierType) Get() (v TokenAuthorIdentifierType, ok boo
 
 // Or returns value if set, or given parameter if does not.
 func (o OptTokenAuthorIdentifierType) Or(d TokenAuthorIdentifierType) TokenAuthorIdentifierType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptUnblockContextAuthenticationRequest returns new OptUnblockContextAuthenticationRequest with value set to v.
+func NewOptUnblockContextAuthenticationRequest(v UnblockContextAuthenticationRequest) OptUnblockContextAuthenticationRequest {
+	return OptUnblockContextAuthenticationRequest{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptUnblockContextAuthenticationRequest is optional UnblockContextAuthenticationRequest.
+type OptUnblockContextAuthenticationRequest struct {
+	Value UnblockContextAuthenticationRequest
+	Set   bool
+}
+
+// IsSet returns true if OptUnblockContextAuthenticationRequest was set.
+func (o OptUnblockContextAuthenticationRequest) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptUnblockContextAuthenticationRequest) Reset() {
+	var v UnblockContextAuthenticationRequest
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptUnblockContextAuthenticationRequest) SetTo(v UnblockContextAuthenticationRequest) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptUnblockContextAuthenticationRequest) Get() (v UnblockContextAuthenticationRequest, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptUnblockContextAuthenticationRequest) Or(d UnblockContextAuthenticationRequest) UnblockContextAuthenticationRequest {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -16932,7 +17342,9 @@ type PersonalPermission struct {
 	// Identyfikator kontekstu podmiotu, który nadał uprawnienia do obsługi faktur.
 	// | Type | Value |
 	// | --- | --- |
-	// | Nip | 10 cyfrowy numer NIP |.
+	// | Nip | 10 cyfrowy numer NIP |
+	// | InternalId | Dwuczłonowy identyfikator składający się z numeru NIP i 5 cyfr:
+	// `{nip}-{5_cyfr}` |.
 	ContextIdentifier OptNilPersonalPermissionsContextIdentifier `json:"contextIdentifier"`
 	// Identyfikator podmiotu uprawnionego, jeżeli jest inny niż identyfikator uwierzytelnionego
 	// klienta API.
@@ -17328,7 +17740,9 @@ func (s *PersonalPermissionsAuthorizedIdentifierType) UnmarshalText(data []byte)
 // Identyfikator kontekstu podmiotu, który nadał uprawnienia do obsługi faktur.
 // | Type | Value |
 // | --- | --- |
-// | Nip | 10 cyfrowy numer NIP |.
+// | Nip | 10 cyfrowy numer NIP |
+// | InternalId | Dwuczłonowy identyfikator składający się z numeru NIP i 5 cyfr:
+// `{nip}-{5_cyfr}` |.
 // Ref: #/components/schemas/PersonalPermissionsContextIdentifier
 type PersonalPermissionsContextIdentifier struct {
 	// Typ identyfikatora.
@@ -17404,7 +17818,9 @@ type PersonalPermissionsQueryRequest struct {
 	// Identyfikator kontekstu podmiotu, który nadał uprawnienia do obsługi faktur.
 	// | Type | Value |
 	// | --- | --- |
-	// | Nip | 10 cyfrowy numer NIP |.
+	// | Nip | 10 cyfrowy numer NIP |
+	// | InternalId | Dwuczłonowy identyfikator składający się z numeru NIP i 5 cyfr:
+	// `{nip}-{5_cyfr}` |.
 	ContextIdentifier OptNilPersonalPermissionsContextIdentifier `json:"contextIdentifier"`
 	// Identyfikator podmiotu docelowego dla uprawnień selektywnych nadanych pośrednio.
 	// | Type | Value |
@@ -20469,6 +20885,88 @@ func (s *SubunitPermissionsSubunitIdentifierType) UnmarshalText(data []byte) err
 	}
 }
 
+// Ref: #/components/schemas/TestDataAuthenticationContextIdentifier
+type TestDataAuthenticationContextIdentifier struct {
+	Value string                                      `json:"value"`
+	Type  TestDataAuthenticationContextIdentifierType `json:"type"`
+}
+
+// GetValue returns the value of Value.
+func (s *TestDataAuthenticationContextIdentifier) GetValue() string {
+	return s.Value
+}
+
+// GetType returns the value of Type.
+func (s *TestDataAuthenticationContextIdentifier) GetType() TestDataAuthenticationContextIdentifierType {
+	return s.Type
+}
+
+// SetValue sets the value of Value.
+func (s *TestDataAuthenticationContextIdentifier) SetValue(val string) {
+	s.Value = val
+}
+
+// SetType sets the value of Type.
+func (s *TestDataAuthenticationContextIdentifier) SetType(val TestDataAuthenticationContextIdentifierType) {
+	s.Type = val
+}
+
+// Ref: #/components/schemas/TestDataAuthenticationContextIdentifierType
+type TestDataAuthenticationContextIdentifierType string
+
+const (
+	TestDataAuthenticationContextIdentifierTypeNip        TestDataAuthenticationContextIdentifierType = "Nip"
+	TestDataAuthenticationContextIdentifierTypeInternalId TestDataAuthenticationContextIdentifierType = "InternalId"
+	TestDataAuthenticationContextIdentifierTypeNipVatUe   TestDataAuthenticationContextIdentifierType = "NipVatUe"
+	TestDataAuthenticationContextIdentifierTypePeppolId   TestDataAuthenticationContextIdentifierType = "PeppolId"
+)
+
+// AllValues returns all TestDataAuthenticationContextIdentifierType values.
+func (TestDataAuthenticationContextIdentifierType) AllValues() []TestDataAuthenticationContextIdentifierType {
+	return []TestDataAuthenticationContextIdentifierType{
+		TestDataAuthenticationContextIdentifierTypeNip,
+		TestDataAuthenticationContextIdentifierTypeInternalId,
+		TestDataAuthenticationContextIdentifierTypeNipVatUe,
+		TestDataAuthenticationContextIdentifierTypePeppolId,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TestDataAuthenticationContextIdentifierType) MarshalText() ([]byte, error) {
+	switch s {
+	case TestDataAuthenticationContextIdentifierTypeNip:
+		return []byte(s), nil
+	case TestDataAuthenticationContextIdentifierTypeInternalId:
+		return []byte(s), nil
+	case TestDataAuthenticationContextIdentifierTypeNipVatUe:
+		return []byte(s), nil
+	case TestDataAuthenticationContextIdentifierTypePeppolId:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TestDataAuthenticationContextIdentifierType) UnmarshalText(data []byte) error {
+	switch TestDataAuthenticationContextIdentifierType(data) {
+	case TestDataAuthenticationContextIdentifierTypeNip:
+		*s = TestDataAuthenticationContextIdentifierTypeNip
+		return nil
+	case TestDataAuthenticationContextIdentifierTypeInternalId:
+		*s = TestDataAuthenticationContextIdentifierTypeInternalId
+		return nil
+	case TestDataAuthenticationContextIdentifierTypeNipVatUe:
+		*s = TestDataAuthenticationContextIdentifierTypeNipVatUe
+		return nil
+	case TestDataAuthenticationContextIdentifierTypePeppolId:
+		*s = TestDataAuthenticationContextIdentifierTypePeppolId
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 // Ref: #/components/schemas/TestDataAuthorizedIdentifier
 type TestDataAuthorizedIdentifier struct {
 	Type  TestDataAuthorizedIdentifierType `json:"type"`
@@ -20780,6 +21278,16 @@ func (*TestdataAttachmentPostOK) testdataAttachmentPostRes() {}
 type TestdataAttachmentRevokePostOK struct{}
 
 func (*TestdataAttachmentRevokePostOK) testdataAttachmentRevokePostRes() {}
+
+// TestdataContextBlockPostOK is response for TestdataContextBlockPost operation.
+type TestdataContextBlockPostOK struct{}
+
+func (*TestdataContextBlockPostOK) testdataContextBlockPostRes() {}
+
+// TestdataContextUnblockPostOK is response for TestdataContextUnblockPost operation.
+type TestdataContextUnblockPostOK struct{}
+
+func (*TestdataContextUnblockPostOK) testdataContextUnblockPostRes() {}
 
 // TestdataLimitsContextSessionDeleteOK is response for TestdataLimitsContextSessionDelete operation.
 type TestdataLimitsContextSessionDeleteOK struct{}
@@ -21486,6 +21994,8 @@ func (*TooManyRequestsResponseHeaders) sessionsReferenceNumberInvoicesKsefKsefNu
 func (*TooManyRequestsResponseHeaders) sessionsReferenceNumberUpoUpoReferenceNumberGetRes()     {}
 func (*TooManyRequestsResponseHeaders) testdataAttachmentPostRes()                              {}
 func (*TooManyRequestsResponseHeaders) testdataAttachmentRevokePostRes()                        {}
+func (*TooManyRequestsResponseHeaders) testdataContextBlockPostRes()                            {}
+func (*TooManyRequestsResponseHeaders) testdataContextUnblockPostRes()                          {}
 func (*TooManyRequestsResponseHeaders) testdataLimitsContextSessionDeleteRes()                  {}
 func (*TooManyRequestsResponseHeaders) testdataLimitsContextSessionPostRes()                    {}
 func (*TooManyRequestsResponseHeaders) testdataLimitsSubjectCertificateDeleteRes()              {}
@@ -21543,6 +22053,21 @@ func (s *TooManyRequestsResponseStatus) SetDescription(val string) {
 // SetDetails sets the value of Details.
 func (s *TooManyRequestsResponseStatus) SetDetails(val []string) {
 	s.Details = val
+}
+
+// Ref: #/components/schemas/UnblockContextAuthenticationRequest
+type UnblockContextAuthenticationRequest struct {
+	ContextIdentifier OptNilTestDataAuthenticationContextIdentifier `json:"contextIdentifier"`
+}
+
+// GetContextIdentifier returns the value of ContextIdentifier.
+func (s *UnblockContextAuthenticationRequest) GetContextIdentifier() OptNilTestDataAuthenticationContextIdentifier {
+	return s.ContextIdentifier
+}
+
+// SetContextIdentifier sets the value of ContextIdentifier.
+func (s *UnblockContextAuthenticationRequest) SetContextIdentifier(val OptNilTestDataAuthenticationContextIdentifier) {
+	s.ContextIdentifier = val
 }
 
 // Ref: #/components/schemas/UpoPageResponse

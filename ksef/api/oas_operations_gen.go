@@ -64,6 +64,8 @@ const (
 	SessionsReferenceNumberUpoUpoReferenceNumberGetOperation             OperationName = "SessionsReferenceNumberUpoUpoReferenceNumberGet"
 	TestdataAttachmentPostOperation                                      OperationName = "TestdataAttachmentPost"
 	TestdataAttachmentRevokePostOperation                                OperationName = "TestdataAttachmentRevokePost"
+	TestdataContextBlockPostOperation                                    OperationName = "TestdataContextBlockPost"
+	TestdataContextUnblockPostOperation                                  OperationName = "TestdataContextUnblockPost"
 	TestdataLimitsContextSessionDeleteOperation                          OperationName = "TestdataLimitsContextSessionDelete"
 	TestdataLimitsContextSessionPostOperation                            OperationName = "TestdataLimitsContextSessionPost"
 	TestdataLimitsSubjectCertificateDeleteOperation                      OperationName = "TestdataLimitsSubjectCertificateDelete"

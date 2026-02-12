@@ -707,9 +707,6 @@ type Invoker interface {
 	// > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
 	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 	// html#tag/Certyfikaty-klucza-publicznego)
-	// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
-	// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
-	// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/batch
@@ -744,9 +741,6 @@ type Invoker interface {
 	// com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
 	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 	// html#tag/Certyfikaty-klucza-publicznego)
-	// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
-	// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
-	// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/online
@@ -837,6 +831,19 @@ type Invoker interface {
 	//
 	// POST /testdata/attachment/revoke
 	TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error)
+	// TestdataContextBlockPost invokes POST /testdata/context/block operation.
+	//
+	// Blokuje możliwość uwierzytelniania dla wskazanego kontekstu. Uwierzytelnianie zakończy się
+	// błędem 480.
+	//
+	// POST /testdata/context/block
+	TestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (TestdataContextBlockPostRes, error)
+	// TestdataContextUnblockPost invokes POST /testdata/context/unblock operation.
+	//
+	// Odblokowuje możliwość uwierzytelniania dla wskazanego kontekstu.
+	//
+	// POST /testdata/context/unblock
+	TestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (TestdataContextUnblockPostRes, error)
 	// TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
@@ -5243,9 +5250,6 @@ func (c *Client) sendSecurityPublicKeyCertificatesGet(ctx context.Context) (res 
 // > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
 // > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 // html#tag/Certyfikaty-klucza-publicznego)
-// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
-// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
-// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
 // **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/batch
@@ -5708,9 +5712,6 @@ func (c *Client) sendSessionsGet(ctx context.Context, params SessionsGetParams) 
 // com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
 // > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 // html#tag/Certyfikaty-klucza-publicznego)
-// Aby generować dokumenty UPO w wersji v4-3 w ramach sesji, należy przy jej otwarciu przesłać
-// nagłówek <b>X-KSeF-Feature: upo-v4-3</b>.
-// Od 22 grudnia 2025 wersja UPO v4-3 będzie generowana domyślnie.
 // **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/online
@@ -6899,6 +6900,117 @@ func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request O
 	defer resp.Body.Close()
 
 	result, err := decodeTestdataAttachmentRevokePostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TestdataContextBlockPost invokes POST /testdata/context/block operation.
+//
+// Blokuje możliwość uwierzytelniania dla wskazanego kontekstu. Uwierzytelnianie zakończy się
+// błędem 480.
+//
+// POST /testdata/context/block
+func (c *Client) TestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (TestdataContextBlockPostRes, error) {
+	res, err := c.sendTestdataContextBlockPost(ctx, request)
+	return res, err
+}
+
+func (c *Client) sendTestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (res TestdataContextBlockPostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/testdata/context/block"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeTestdataContextBlockPostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	result, err := decodeTestdataContextBlockPostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TestdataContextUnblockPost invokes POST /testdata/context/unblock operation.
+//
+// Odblokowuje możliwość uwierzytelniania dla wskazanego kontekstu.
+//
+// POST /testdata/context/unblock
+func (c *Client) TestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (TestdataContextUnblockPostRes, error) {
+	res, err := c.sendTestdataContextUnblockPost(ctx, request)
+	return res, err
+}
+
+func (c *Client) sendTestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (res TestdataContextUnblockPostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/testdata/context/unblock"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeTestdataContextUnblockPostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	result, err := decodeTestdataContextUnblockPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

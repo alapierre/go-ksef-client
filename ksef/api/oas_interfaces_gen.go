@@ -233,6 +233,14 @@ type TestdataAttachmentRevokePostRes interface {
 	testdataAttachmentRevokePostRes()
 }
 
+type TestdataContextBlockPostRes interface {
+	testdataContextBlockPostRes()
+}
+
+type TestdataContextUnblockPostRes interface {
+	testdataContextUnblockPostRes()
+}
+
 type TestdataLimitsContextSessionDeleteRes interface {
 	testdataLimitsContextSessionDeleteRes()
 }

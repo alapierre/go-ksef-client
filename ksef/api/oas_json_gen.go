@@ -1154,8 +1154,16 @@ func (s *AuthenticationListItem) encodeFields(e *jx.Encoder) {
 		json.EncodeDateTime(e, s.StartDate)
 	}
 	{
-		e.FieldStart("authenticationMethod")
-		s.AuthenticationMethod.Encode(e)
+		if s.AuthenticationMethod.Set {
+			e.FieldStart("authenticationMethod")
+			s.AuthenticationMethod.Encode(e)
+		}
+	}
+	{
+		if s.AuthenticationMethodInfo.Set {
+			e.FieldStart("authenticationMethodInfo")
+			s.AuthenticationMethodInfo.Encode(e)
+		}
 	}
 	{
 		e.FieldStart("status")
@@ -1191,15 +1199,16 @@ func (s *AuthenticationListItem) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfAuthenticationListItem = [8]string{
+var jsonFieldsNameOfAuthenticationListItem = [9]string{
 	0: "startDate",
 	1: "authenticationMethod",
-	2: "status",
-	3: "isTokenRedeemed",
-	4: "lastTokenRefreshDate",
-	5: "refreshTokenValidUntil",
-	6: "referenceNumber",
-	7: "isCurrent",
+	2: "authenticationMethodInfo",
+	3: "status",
+	4: "isTokenRedeemed",
+	5: "lastTokenRefreshDate",
+	6: "refreshTokenValidUntil",
+	7: "referenceNumber",
+	8: "isCurrent",
 }
 
 // Decode decodes AuthenticationListItem from json.
@@ -1207,7 +1216,7 @@ func (s *AuthenticationListItem) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode AuthenticationListItem to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -1224,8 +1233,8 @@ func (s *AuthenticationListItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		case "authenticationMethod":
-			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
+				s.AuthenticationMethod.Reset()
 				if err := s.AuthenticationMethod.Decode(d); err != nil {
 					return err
 				}
@@ -1233,8 +1242,18 @@ func (s *AuthenticationListItem) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"authenticationMethod\"")
 			}
+		case "authenticationMethodInfo":
+			if err := func() error {
+				s.AuthenticationMethodInfo.Reset()
+				if err := s.AuthenticationMethodInfo.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"authenticationMethodInfo\"")
+			}
 		case "status":
-			requiredBitSet[0] |= 1 << 2
+			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
 				if err := s.Status.Decode(d); err != nil {
 					return err
@@ -1274,7 +1293,7 @@ func (s *AuthenticationListItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"refreshTokenValidUntil\"")
 			}
 		case "referenceNumber":
-			requiredBitSet[0] |= 1 << 6
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				if err := s.ReferenceNumber.Decode(d); err != nil {
 					return err
@@ -1302,8 +1321,9 @@ func (s *AuthenticationListItem) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
-		0b01000111,
+	for i, mask := range [2]uint8{
+		0b10001001,
+		0b00000000,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1522,6 +1542,178 @@ func (s *AuthenticationMethod) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
+// Encode encodes AuthenticationMethodCategory as json.
+func (s AuthenticationMethodCategory) Encode(e *jx.Encoder) {
+	e.Str(string(s))
+}
+
+// Decode decodes AuthenticationMethodCategory from json.
+func (s *AuthenticationMethodCategory) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode AuthenticationMethodCategory to nil")
+	}
+	v, err := d.StrBytes()
+	if err != nil {
+		return err
+	}
+	// Try to use constant string.
+	switch AuthenticationMethodCategory(v) {
+	case AuthenticationMethodCategoryXadesSignature:
+		*s = AuthenticationMethodCategoryXadesSignature
+	case AuthenticationMethodCategoryNationalNode:
+		*s = AuthenticationMethodCategoryNationalNode
+	case AuthenticationMethodCategoryToken:
+		*s = AuthenticationMethodCategoryToken
+	case AuthenticationMethodCategoryOther:
+		*s = AuthenticationMethodCategoryOther
+	default:
+		*s = AuthenticationMethodCategory(v)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s AuthenticationMethodCategory) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *AuthenticationMethodCategory) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
+func (s *AuthenticationMethodInfo) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields encodes fields.
+func (s *AuthenticationMethodInfo) encodeFields(e *jx.Encoder) {
+	{
+		e.FieldStart("category")
+		s.Category.Encode(e)
+	}
+	{
+		e.FieldStart("code")
+		e.Str(s.Code)
+	}
+	{
+		e.FieldStart("displayName")
+		e.Str(s.DisplayName)
+	}
+}
+
+var jsonFieldsNameOfAuthenticationMethodInfo = [3]string{
+	0: "category",
+	1: "code",
+	2: "displayName",
+}
+
+// Decode decodes AuthenticationMethodInfo from json.
+func (s *AuthenticationMethodInfo) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode AuthenticationMethodInfo to nil")
+	}
+	var requiredBitSet [1]uint8
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "category":
+			requiredBitSet[0] |= 1 << 0
+			if err := func() error {
+				if err := s.Category.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"category\"")
+			}
+		case "code":
+			requiredBitSet[0] |= 1 << 1
+			if err := func() error {
+				v, err := d.Str()
+				s.Code = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"code\"")
+			}
+		case "displayName":
+			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Str()
+				s.DisplayName = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"displayName\"")
+			}
+		default:
+			return errors.Errorf("unexpected field %q", k)
+		}
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode AuthenticationMethodInfo")
+	}
+	// Validate required fields.
+	var failures []validate.FieldError
+	for i, mask := range [1]uint8{
+		0b00000111,
+	} {
+		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
+			// Mask only required fields and check equality to mask using XOR.
+			//
+			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
+			// Bits of fields which would be set are actually bits of missed fields.
+			missed := bits.OnesCount8(result)
+			for bitN := 0; bitN < missed; bitN++ {
+				bitIdx := bits.TrailingZeros8(result)
+				fieldIdx := i*8 + bitIdx
+				var name string
+				if fieldIdx < len(jsonFieldsNameOfAuthenticationMethodInfo) {
+					name = jsonFieldsNameOfAuthenticationMethodInfo[fieldIdx]
+				} else {
+					name = strconv.Itoa(fieldIdx)
+				}
+				failures = append(failures, validate.FieldError{
+					Name:  name,
+					Error: validate.ErrFieldRequired,
+				})
+				// Reset bit.
+				result &^= 1 << bitIdx
+			}
+		}
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *AuthenticationMethodInfo) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *AuthenticationMethodInfo) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode implements json.Marshaler.
 func (s *AuthenticationOperationStatusResponse) Encode(e *jx.Encoder) {
 	e.ObjStart()
@@ -1538,6 +1730,10 @@ func (s *AuthenticationOperationStatusResponse) encodeFields(e *jx.Encoder) {
 	{
 		e.FieldStart("authenticationMethod")
 		s.AuthenticationMethod.Encode(e)
+	}
+	{
+		e.FieldStart("authenticationMethodInfo")
+		s.AuthenticationMethodInfo.Encode(e)
 	}
 	{
 		e.FieldStart("status")
@@ -1563,13 +1759,14 @@ func (s *AuthenticationOperationStatusResponse) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfAuthenticationOperationStatusResponse = [6]string{
+var jsonFieldsNameOfAuthenticationOperationStatusResponse = [7]string{
 	0: "startDate",
 	1: "authenticationMethod",
-	2: "status",
-	3: "isTokenRedeemed",
-	4: "lastTokenRefreshDate",
-	5: "refreshTokenValidUntil",
+	2: "authenticationMethodInfo",
+	3: "status",
+	4: "isTokenRedeemed",
+	5: "lastTokenRefreshDate",
+	6: "refreshTokenValidUntil",
 }
 
 // Decode decodes AuthenticationOperationStatusResponse from json.
@@ -1603,8 +1800,18 @@ func (s *AuthenticationOperationStatusResponse) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"authenticationMethod\"")
 			}
-		case "status":
+		case "authenticationMethodInfo":
 			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				if err := s.AuthenticationMethodInfo.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"authenticationMethodInfo\"")
+			}
+		case "status":
+			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
 				if err := s.Status.Decode(d); err != nil {
 					return err
@@ -1653,7 +1860,7 @@ func (s *AuthenticationOperationStatusResponse) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -2537,6 +2744,69 @@ func (s *BatchSessionEffectiveContextLimits) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *BatchSessionEffectiveContextLimits) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
+func (s *BlockContextAuthenticationRequest) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields encodes fields.
+func (s *BlockContextAuthenticationRequest) encodeFields(e *jx.Encoder) {
+	{
+		if s.ContextIdentifier.Set {
+			e.FieldStart("contextIdentifier")
+			s.ContextIdentifier.Encode(e)
+		}
+	}
+}
+
+var jsonFieldsNameOfBlockContextAuthenticationRequest = [1]string{
+	0: "contextIdentifier",
+}
+
+// Decode decodes BlockContextAuthenticationRequest from json.
+func (s *BlockContextAuthenticationRequest) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode BlockContextAuthenticationRequest to nil")
+	}
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "contextIdentifier":
+			if err := func() error {
+				s.ContextIdentifier.Reset()
+				if err := s.ContextIdentifier.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"contextIdentifier\"")
+			}
+		default:
+			return errors.Errorf("unexpected field %q", k)
+		}
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode BlockContextAuthenticationRequest")
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *BlockContextAuthenticationRequest) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *BlockContextAuthenticationRequest) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -14970,6 +15240,105 @@ func (s *OptAttachmentPermissionRevokeRequest) UnmarshalJSON(data []byte) error 
 	return s.Decode(d)
 }
 
+// Encode encodes AuthenticationMethod as json.
+func (o OptAuthenticationMethod) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	e.Str(string(o.Value))
+}
+
+// Decode decodes AuthenticationMethod from json.
+func (o *OptAuthenticationMethod) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptAuthenticationMethod to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptAuthenticationMethod) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptAuthenticationMethod) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes AuthenticationMethodInfo as json.
+func (o OptAuthenticationMethodInfo) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	o.Value.Encode(e)
+}
+
+// Decode decodes AuthenticationMethodInfo from json.
+func (o *OptAuthenticationMethodInfo) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptAuthenticationMethodInfo to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptAuthenticationMethodInfo) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptAuthenticationMethodInfo) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes BlockContextAuthenticationRequest as json.
+func (o OptBlockContextAuthenticationRequest) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	o.Value.Encode(e)
+}
+
+// Decode decodes BlockContextAuthenticationRequest from json.
+func (o *OptBlockContextAuthenticationRequest) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptBlockContextAuthenticationRequest to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptBlockContextAuthenticationRequest) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptBlockContextAuthenticationRequest) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes bool as json.
 func (o OptBool) Encode(e *jx.Encoder) {
 	if !o.Set {
@@ -18742,6 +19111,55 @@ func (s *OptNilSubunitPermissionsSubunitIdentifier) UnmarshalJSON(data []byte) e
 	return s.Decode(d)
 }
 
+// Encode encodes TestDataAuthenticationContextIdentifier as json.
+func (o OptNilTestDataAuthenticationContextIdentifier) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	if o.Null {
+		e.Null()
+		return
+	}
+	o.Value.Encode(e)
+}
+
+// Decode decodes TestDataAuthenticationContextIdentifier from json.
+func (o *OptNilTestDataAuthenticationContextIdentifier) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptNilTestDataAuthenticationContextIdentifier to nil")
+	}
+	if d.Next() == jx.Null {
+		if err := d.Null(); err != nil {
+			return err
+		}
+
+		var v TestDataAuthenticationContextIdentifier
+		o.Value = v
+		o.Set = true
+		o.Null = true
+		return nil
+	}
+	o.Set = true
+	o.Null = false
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptNilTestDataAuthenticationContextIdentifier) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptNilTestDataAuthenticationContextIdentifier) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes url.URL as json.
 func (o OptNilURI) Encode(e *jx.Encoder) {
 	if !o.Set {
@@ -19597,6 +20015,39 @@ func (s OptTestDataPermissionsRevokeRequest) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *OptTestDataPermissionsRevokeRequest) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes UnblockContextAuthenticationRequest as json.
+func (o OptUnblockContextAuthenticationRequest) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	o.Value.Encode(e)
+}
+
+// Decode decodes UnblockContextAuthenticationRequest from json.
+func (o *OptUnblockContextAuthenticationRequest) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptUnblockContextAuthenticationRequest to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptUnblockContextAuthenticationRequest) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptUnblockContextAuthenticationRequest) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -30933,6 +31384,161 @@ func (s *SubunitPermissionsSubunitIdentifierType) UnmarshalJSON(data []byte) err
 }
 
 // Encode implements json.Marshaler.
+func (s *TestDataAuthenticationContextIdentifier) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields encodes fields.
+func (s *TestDataAuthenticationContextIdentifier) encodeFields(e *jx.Encoder) {
+	{
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+		e.FieldStart("type")
+		s.Type.Encode(e)
+	}
+}
+
+var jsonFieldsNameOfTestDataAuthenticationContextIdentifier = [2]string{
+	0: "value",
+	1: "type",
+}
+
+// Decode decodes TestDataAuthenticationContextIdentifier from json.
+func (s *TestDataAuthenticationContextIdentifier) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode TestDataAuthenticationContextIdentifier to nil")
+	}
+	var requiredBitSet [1]uint8
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "value":
+			requiredBitSet[0] |= 1 << 0
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "type":
+			requiredBitSet[0] |= 1 << 1
+			if err := func() error {
+				if err := s.Type.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"type\"")
+			}
+		default:
+			return errors.Errorf("unexpected field %q", k)
+		}
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode TestDataAuthenticationContextIdentifier")
+	}
+	// Validate required fields.
+	var failures []validate.FieldError
+	for i, mask := range [1]uint8{
+		0b00000011,
+	} {
+		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
+			// Mask only required fields and check equality to mask using XOR.
+			//
+			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
+			// Bits of fields which would be set are actually bits of missed fields.
+			missed := bits.OnesCount8(result)
+			for bitN := 0; bitN < missed; bitN++ {
+				bitIdx := bits.TrailingZeros8(result)
+				fieldIdx := i*8 + bitIdx
+				var name string
+				if fieldIdx < len(jsonFieldsNameOfTestDataAuthenticationContextIdentifier) {
+					name = jsonFieldsNameOfTestDataAuthenticationContextIdentifier[fieldIdx]
+				} else {
+					name = strconv.Itoa(fieldIdx)
+				}
+				failures = append(failures, validate.FieldError{
+					Name:  name,
+					Error: validate.ErrFieldRequired,
+				})
+				// Reset bit.
+				result &^= 1 << bitIdx
+			}
+		}
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *TestDataAuthenticationContextIdentifier) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *TestDataAuthenticationContextIdentifier) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes TestDataAuthenticationContextIdentifierType as json.
+func (s TestDataAuthenticationContextIdentifierType) Encode(e *jx.Encoder) {
+	e.Str(string(s))
+}
+
+// Decode decodes TestDataAuthenticationContextIdentifierType from json.
+func (s *TestDataAuthenticationContextIdentifierType) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode TestDataAuthenticationContextIdentifierType to nil")
+	}
+	v, err := d.StrBytes()
+	if err != nil {
+		return err
+	}
+	// Try to use constant string.
+	switch TestDataAuthenticationContextIdentifierType(v) {
+	case TestDataAuthenticationContextIdentifierTypeNip:
+		*s = TestDataAuthenticationContextIdentifierTypeNip
+	case TestDataAuthenticationContextIdentifierTypeInternalId:
+		*s = TestDataAuthenticationContextIdentifierTypeInternalId
+	case TestDataAuthenticationContextIdentifierTypeNipVatUe:
+		*s = TestDataAuthenticationContextIdentifierTypeNipVatUe
+	case TestDataAuthenticationContextIdentifierTypePeppolId:
+		*s = TestDataAuthenticationContextIdentifierTypePeppolId
+	default:
+		*s = TestDataAuthenticationContextIdentifierType(v)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s TestDataAuthenticationContextIdentifierType) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *TestDataAuthenticationContextIdentifierType) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
 func (s *TestDataAuthorizedIdentifier) Encode(e *jx.Encoder) {
 	e.ObjStart()
 	s.encodeFields(e)
@@ -32622,6 +33228,69 @@ func (s *TooManyRequestsResponseStatus) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *TooManyRequestsResponseStatus) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
+func (s *UnblockContextAuthenticationRequest) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields encodes fields.
+func (s *UnblockContextAuthenticationRequest) encodeFields(e *jx.Encoder) {
+	{
+		if s.ContextIdentifier.Set {
+			e.FieldStart("contextIdentifier")
+			s.ContextIdentifier.Encode(e)
+		}
+	}
+}
+
+var jsonFieldsNameOfUnblockContextAuthenticationRequest = [1]string{
+	0: "contextIdentifier",
+}
+
+// Decode decodes UnblockContextAuthenticationRequest from json.
+func (s *UnblockContextAuthenticationRequest) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode UnblockContextAuthenticationRequest to nil")
+	}
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "contextIdentifier":
+			if err := func() error {
+				s.ContextIdentifier.Reset()
+				if err := s.ContextIdentifier.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"contextIdentifier\"")
+			}
+		default:
+			return errors.Errorf("unexpected field %q", k)
+		}
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode UnblockContextAuthenticationRequest")
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *UnblockContextAuthenticationRequest) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *UnblockContextAuthenticationRequest) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
