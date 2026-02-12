@@ -940,9 +940,9 @@ type AuthenticationOperationStatusResponse struct {
 	// | PeppolSignature | Podpis dostawcy usług Peppol. |.
 	//
 	// Deprecated: schema marks this property as deprecated.
-	AuthenticationMethod AuthenticationMethod `json:"authenticationMethod"`
+	AuthenticationMethod OptAuthenticationMethod `json:"authenticationMethod"`
 	// Użyta metoda uwierzytelnienia.
-	AuthenticationMethodInfo AuthenticationMethodInfo `json:"authenticationMethodInfo"`
+	AuthenticationMethodInfo OptAuthenticationMethodInfo `json:"authenticationMethodInfo"`
 	// Informacje o aktualnym statusie.
 	// | Code | Description | Details |
 	// | --- | --- | --- |
@@ -994,12 +994,12 @@ func (s *AuthenticationOperationStatusResponse) GetStartDate() time.Time {
 }
 
 // GetAuthenticationMethod returns the value of AuthenticationMethod.
-func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethod() AuthenticationMethod {
+func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethod() OptAuthenticationMethod {
 	return s.AuthenticationMethod
 }
 
 // GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
-func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethodInfo() AuthenticationMethodInfo {
+func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethodInfo() OptAuthenticationMethodInfo {
 	return s.AuthenticationMethodInfo
 }
 
@@ -1029,12 +1029,12 @@ func (s *AuthenticationOperationStatusResponse) SetStartDate(val time.Time) {
 }
 
 // SetAuthenticationMethod sets the value of AuthenticationMethod.
-func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethod(val AuthenticationMethod) {
+func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethod(val OptAuthenticationMethod) {
 	s.AuthenticationMethod = val
 }
 
 // SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
-func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethodInfo(val AuthenticationMethodInfo) {
+func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethodInfo(val OptAuthenticationMethodInfo) {
 	s.AuthenticationMethodInfo = val
 }
 

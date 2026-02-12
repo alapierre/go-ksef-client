@@ -1728,12 +1728,16 @@ func (s *AuthenticationOperationStatusResponse) encodeFields(e *jx.Encoder) {
 		json.EncodeDateTime(e, s.StartDate)
 	}
 	{
-		e.FieldStart("authenticationMethod")
-		s.AuthenticationMethod.Encode(e)
+		if s.AuthenticationMethod.Set {
+			e.FieldStart("authenticationMethod")
+			s.AuthenticationMethod.Encode(e)
+		}
 	}
 	{
-		e.FieldStart("authenticationMethodInfo")
-		s.AuthenticationMethodInfo.Encode(e)
+		if s.AuthenticationMethodInfo.Set {
+			e.FieldStart("authenticationMethodInfo")
+			s.AuthenticationMethodInfo.Encode(e)
+		}
 	}
 	{
 		e.FieldStart("status")
@@ -1791,8 +1795,8 @@ func (s *AuthenticationOperationStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		case "authenticationMethod":
-			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
+				s.AuthenticationMethod.Reset()
 				if err := s.AuthenticationMethod.Decode(d); err != nil {
 					return err
 				}
@@ -1801,8 +1805,8 @@ func (s *AuthenticationOperationStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"authenticationMethod\"")
 			}
 		case "authenticationMethodInfo":
-			requiredBitSet[0] |= 1 << 2
 			if err := func() error {
+				s.AuthenticationMethodInfo.Reset()
 				if err := s.AuthenticationMethodInfo.Decode(d); err != nil {
 					return err
 				}
@@ -1860,7 +1864,7 @@ func (s *AuthenticationOperationStatusResponse) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001111,
+		0b00001001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

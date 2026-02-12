@@ -481,8 +481,15 @@ func (s *AuthenticationOperationStatusResponse) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
-		if err := s.AuthenticationMethod.Validate(); err != nil {
-			return err
+		if value, ok := s.AuthenticationMethod.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
 		}
 		return nil
 	}(); err != nil {
@@ -492,8 +499,15 @@ func (s *AuthenticationOperationStatusResponse) Validate() error {
 		})
 	}
 	if err := func() error {
-		if err := s.AuthenticationMethodInfo.Validate(); err != nil {
-			return err
+		if value, ok := s.AuthenticationMethodInfo.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
 		}
 		return nil
 	}(); err != nil {
