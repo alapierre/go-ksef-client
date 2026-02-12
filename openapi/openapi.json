@@ -8010,8 +8010,6 @@
       },
       "AuthenticationOperationStatusResponse": {
         "required": [
-          "authenticationMethod",
-          "authenticationMethodInfo",
           "startDate",
           "status"
         ],
