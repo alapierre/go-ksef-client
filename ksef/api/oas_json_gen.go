@@ -88,7 +88,7 @@ func (s *AllowedIps) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"ip4Masks\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -228,7 +228,7 @@ func (s *ApiRateLimitValuesOverride) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"perHour\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -487,7 +487,7 @@ func (s *ApiRateLimitsOverride) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"other\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -582,7 +582,7 @@ func (s *AttachmentPermissionGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"nip\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -693,7 +693,7 @@ func (s *AttachmentPermissionRevokeRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"expectedEndDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -821,7 +821,7 @@ func (s *AuthenticationChallengeResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"timestampMs\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -932,7 +932,7 @@ func (s *AuthenticationContextIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -1085,7 +1085,7 @@ func (s *AuthenticationInitResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"authenticationToken\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -1313,7 +1313,7 @@ func (s *AuthenticationListItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"isCurrent\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -1437,7 +1437,7 @@ func (s *AuthenticationListResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"items\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -1659,7 +1659,7 @@ func (s *AuthenticationMethodInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"displayName\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -1855,7 +1855,7 @@ func (s *AuthenticationOperationStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"refreshTokenValidUntil\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -1949,7 +1949,7 @@ func (s *AuthenticationTokenRefreshResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"accessToken\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2104,7 +2104,7 @@ func (s *AuthenticationTokensResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"refreshToken\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2199,7 +2199,7 @@ func (s *AuthorizationPolicy) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"allowedIps\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2307,7 +2307,7 @@ func (s *BatchFileInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"fileParts\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2437,7 +2437,7 @@ func (s *BatchFilePartInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"fileHash\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2567,7 +2567,7 @@ func (s *BatchSessionContextLimitsOverride) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxInvoices\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2697,7 +2697,7 @@ func (s *BatchSessionEffectiveContextLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxInvoices\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2792,7 +2792,7 @@ func (s *BlockContextAuthenticationRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"contextIdentifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -2899,7 +2899,7 @@ func (s *CertificateEffectiveSubjectLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxCertificates\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -3082,7 +3082,7 @@ func (s *CertificateEnrollmentDataResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"organizationIdentifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -3210,7 +3210,7 @@ func (s *CertificateEnrollmentStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificateSerialNumber\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -3323,7 +3323,7 @@ func (s *CertificateLimit) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"limit\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -3449,7 +3449,7 @@ func (s *CertificateLimitsResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -3692,7 +3692,7 @@ func (s *CertificateListItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"requestDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -3890,7 +3890,7 @@ func (s *CertificateSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -4027,7 +4027,7 @@ func (s *CertificateSubjectLimitsOverride) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxCertificates\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -4147,7 +4147,7 @@ func (s *CheckAttachmentPermissionStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"revokedDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -4645,7 +4645,7 @@ func (s *EffectiveApiRateLimitValues) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"perHour\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -4904,7 +4904,7 @@ func (s *EffectiveApiRateLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"other\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5014,7 +5014,7 @@ func (s *EffectiveContextLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"batchSession\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5126,7 +5126,7 @@ func (s *EffectiveSubjectLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5207,7 +5207,7 @@ func (s *EncryptionInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"initializationVector\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5352,7 +5352,7 @@ func (s *EnrollCertificateRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"validFrom\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5463,7 +5463,7 @@ func (s *EnrollCertificateResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"timestamp\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5558,7 +5558,7 @@ func (s *EnrollmentEffectiveSubjectLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxEnrollments\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5621,7 +5621,7 @@ func (s *EnrollmentSubjectLimitsOverride) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxEnrollments\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5796,7 +5796,7 @@ func (s *EntityAuthorizationGrant) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -5981,7 +5981,7 @@ func (s *EntityAuthorizationPermissionsGrantRequest) Decode(d *jx.Decoder) error
 				return errors.Wrap(err, "decode field \"subjectDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6126,7 +6126,7 @@ func (s *EntityAuthorizationPermissionsQueryRequest) Decode(d *jx.Decoder) error
 				return errors.Wrap(err, "decode field \"permissionTypes\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6237,7 +6237,7 @@ func (s *EntityAuthorizationPermissionsSubjectIdentifier) Decode(d *jx.Decoder) 
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6388,7 +6388,7 @@ func (s *EntityAuthorizationsAuthorIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6541,7 +6541,7 @@ func (s *EntityAuthorizationsAuthorizedEntityIdentifier) Decode(d *jx.Decoder) e
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6692,7 +6692,7 @@ func (s *EntityAuthorizationsAuthorizingEntityIdentifier) Decode(d *jx.Decoder) 
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6843,7 +6843,7 @@ func (s *EntityByFingerprintDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"address\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -6939,7 +6939,7 @@ func (s *EntityDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"fullName\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -7050,7 +7050,7 @@ func (s *EntityPermission) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"canDelegate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -7243,7 +7243,7 @@ func (s *EntityPermissionsGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subjectDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -7354,7 +7354,7 @@ func (s *EntityPermissionsSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -7503,7 +7503,7 @@ func (s *EntityPermissionsSubordinateEntityIdentifier) Decode(d *jx.Decoder) err
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -7686,7 +7686,7 @@ func (s *EntityRole) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -7845,7 +7845,7 @@ func (s *EntityRolesParentEntityIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -8110,7 +8110,7 @@ func (s *EuEntityAdministrationPermissionsContextIdentifier) Decode(d *jx.Decode
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -8321,7 +8321,7 @@ func (s *EuEntityAdministrationPermissionsGrantRequest) Decode(d *jx.Decoder) er
 				return errors.Wrap(err, "decode field \"euEntityDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -8432,7 +8432,7 @@ func (s *EuEntityAdministrationPermissionsSubjectIdentifier) Decode(d *jx.Decode
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -8583,7 +8583,7 @@ func (s *EuEntityDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"address\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -8843,7 +8843,7 @@ func (s *EuEntityPermission) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -8989,7 +8989,7 @@ func (s *EuEntityPermissionSubjectDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"entityByFp\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -9182,7 +9182,7 @@ func (s *EuEntityPermissionsAuthorIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -9377,7 +9377,7 @@ func (s *EuEntityPermissionsGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subjectDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -9550,7 +9550,7 @@ func (s *EuEntityPermissionsQueryRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"permissionTypes\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -9629,7 +9629,7 @@ func (s *EuEntityPermissionsSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -9796,7 +9796,7 @@ func (s *ExceptionDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"details\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -9944,7 +9944,7 @@ func (s *ExceptionInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"timestamp\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10007,7 +10007,7 @@ func (s *ExceptionResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"exception\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10069,7 +10069,7 @@ func (s *ExportInvoicesResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"referenceNumber\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10199,7 +10199,7 @@ func (s *FormCode) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10322,7 +10322,7 @@ func (s *GenerateTokenRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10433,7 +10433,7 @@ func (s *GenerateTokenResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"token\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10563,7 +10563,7 @@ func (s *IdDocument) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"country\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10773,7 +10773,7 @@ func (s *IndirectPermissionsGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subjectDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -10884,7 +10884,7 @@ func (s *IndirectPermissionsSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -11037,7 +11037,7 @@ func (s *IndirectPermissionsTargetIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -11222,7 +11222,7 @@ func (s *InitTokenAuthenticationRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"authorizationPolicy\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -11331,7 +11331,7 @@ func (s *InvoiceExportRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"filters\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -11476,7 +11476,7 @@ func (s *InvoiceExportStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"package\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -11900,7 +11900,7 @@ func (s *InvoiceMetadata) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"authorizedSubject\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12030,7 +12030,7 @@ func (s *InvoiceMetadataAuthorizedSubject) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"role\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12141,7 +12141,7 @@ func (s *InvoiceMetadataBuyer) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"name\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12252,7 +12252,7 @@ func (s *InvoiceMetadataBuyerIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12363,7 +12363,7 @@ func (s *InvoiceMetadataSeller) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"name\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12491,7 +12491,7 @@ func (s *InvoiceMetadataThirdSubject) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"role\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12602,7 +12602,7 @@ func (s *InvoiceMetadataThirdSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -12827,7 +12827,7 @@ func (s *InvoicePackage) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"permanentStorageHwmDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -13059,7 +13059,7 @@ func (s *InvoicePackagePart) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"expirationDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -13232,7 +13232,7 @@ func (s *InvoiceQueryAmount) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"to\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -13343,7 +13343,7 @@ func (s *InvoiceQueryBuyerIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -13488,7 +13488,7 @@ func (s *InvoiceQueryDateRange) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"restrictToPermanentStorageHwmDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -13826,7 +13826,7 @@ func (s *InvoiceQueryFilters) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasAttachment\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -14060,7 +14060,7 @@ func (s *InvoiceStatusInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"extensions\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -14510,7 +14510,7 @@ func (s *OnlineSessionContextLimitsOverride) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxInvoices\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -14640,7 +14640,7 @@ func (s *OnlineSessionEffectiveContextLimits) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"maxInvoices\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -14782,7 +14782,7 @@ func (s *OpenBatchSessionRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"offlineMode\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -14903,7 +14903,7 @@ func (s *OpenBatchSessionResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"partUploadRequests\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -15012,7 +15012,7 @@ func (s *OpenOnlineSessionRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"encryption\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -15123,7 +15123,7 @@ func (s *OpenOnlineSessionResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"validUntil\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20146,7 +20146,7 @@ func (s *PartUploadRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"headers\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20368,7 +20368,7 @@ func (s *PeppolProvider) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"dateCreated\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20561,7 +20561,7 @@ func (s *PermissionsEuEntityDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"address\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20655,7 +20655,7 @@ func (s *PermissionsOperationResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"referenceNumber\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20749,7 +20749,7 @@ func (s *PermissionsOperationStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"status\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20877,7 +20877,7 @@ func (s *PermissionsSubjectEntityByFingerprintDetails) Decode(d *jx.Decoder) err
 				return errors.Wrap(err, "decode field \"address\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -20988,7 +20988,7 @@ func (s *PermissionsSubjectEntityByIdentifierDetails) Decode(d *jx.Decoder) erro
 				return errors.Wrap(err, "decode field \"fullName\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -21116,7 +21116,7 @@ func (s *PermissionsSubjectEntityDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"address\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -21295,7 +21295,7 @@ func (s *PermissionsSubjectPersonByFingerprintDetails) Decode(d *jx.Decoder) err
 				return errors.Wrap(err, "decode field \"idDocument\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -21474,7 +21474,7 @@ func (s *PermissionsSubjectPersonDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"idDocument\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -21602,7 +21602,7 @@ func (s *PersonByFingerprintWithIdentifierDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"identifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -21747,7 +21747,7 @@ func (s *PersonByFingerprintWithoutIdentifierDetails) Decode(d *jx.Decoder) erro
 				return errors.Wrap(err, "decode field \"idDocument\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -21924,7 +21924,7 @@ func (s *PersonCreateRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -22037,7 +22037,7 @@ func (s *PersonDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"lastName\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -22148,7 +22148,7 @@ func (s *PersonIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -22461,7 +22461,7 @@ func (s *PersonPermission) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"canDelegate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -22657,7 +22657,7 @@ func (s *PersonPermissionSubjectDetails) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"personByFpNoId\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -22860,7 +22860,7 @@ func (s *PersonPermissionsAuthorIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23015,7 +23015,7 @@ func (s *PersonPermissionsAuthorizedIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23168,7 +23168,7 @@ func (s *PersonPermissionsContextIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23361,7 +23361,7 @@ func (s *PersonPermissionsGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subjectDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23557,7 +23557,7 @@ func (s *PersonPermissionsQueryRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"queryType\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23708,7 +23708,7 @@ func (s *PersonPermissionsSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23861,7 +23861,7 @@ func (s *PersonPermissionsTargetIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -23997,7 +23997,7 @@ func (s *PersonRemoveRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"nip\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -24339,7 +24339,7 @@ func (s *PersonalPermission) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"canDelegate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -24555,7 +24555,7 @@ func (s *PersonalPermissionsAuthorizedIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -24708,7 +24708,7 @@ func (s *PersonalPermissionsContextIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -24894,7 +24894,7 @@ func (s *PersonalPermissionsQueryRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"permissionState\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -24973,7 +24973,7 @@ func (s *PersonalPermissionsTargetIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -25212,7 +25212,7 @@ func (s *PublicKeyCertificate) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"usage\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -25415,7 +25415,7 @@ func (s *QueryCertificatesRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"expiresAfter\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -25506,7 +25506,7 @@ func (s *QueryCertificatesResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -25629,7 +25629,7 @@ func (s *QueryEntityAuthorizationPermissionsResponse) Decode(d *jx.Decoder) erro
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -25752,7 +25752,7 @@ func (s *QueryEntityRolesResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -25875,7 +25875,7 @@ func (s *QueryEuEntityPermissionsResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26032,7 +26032,7 @@ func (s *QueryInvoicesMetadataResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"invoices\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26155,7 +26155,7 @@ func (s *QueryPeppolProvidersResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26278,7 +26278,7 @@ func (s *QueryPersonPermissionsResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26401,7 +26401,7 @@ func (s *QueryPersonalPermissionsResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26524,7 +26524,7 @@ func (s *QuerySubordinateEntityRolesResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26647,7 +26647,7 @@ func (s *QuerySubunitPermissionsResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hasMore\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -26770,7 +26770,7 @@ func (s *QueryTokensResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"tokens\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27004,7 +27004,7 @@ func (s *QueryTokensResponseItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"statusDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27230,7 +27230,7 @@ func (s *RetrieveCertificatesListItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificateType\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27338,7 +27338,7 @@ func (s *RetrieveCertificatesRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificateSerialNumbers\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27444,7 +27444,7 @@ func (s *RetrieveCertificatesResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificates\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27539,7 +27539,7 @@ func (s *RevokeCertificateRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"revocationReason\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27756,7 +27756,7 @@ func (s *SendInvoiceRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"hashOfCorrectedInvoice\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -27850,7 +27850,7 @@ func (s *SendInvoiceResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"referenceNumber\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -28146,7 +28146,7 @@ func (s *SessionInvoiceStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"status\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -28270,7 +28270,7 @@ func (s *SessionInvoicesResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"invoices\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -28483,7 +28483,7 @@ func (s *SessionStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"failedInvoiceCount\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -28606,7 +28606,7 @@ func (s *SessionsQueryResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"sessions\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -28817,7 +28817,7 @@ func (s *SessionsQueryResponseItem) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"failedInvoiceCount\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -28911,7 +28911,7 @@ func (s *SetRateLimitsRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"rateLimits\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29020,7 +29020,7 @@ func (s *SetSessionLimitsRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"batchSession\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29149,7 +29149,7 @@ func (s *SetSubjectLimitsRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"certificate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29287,7 +29287,7 @@ func (s *StatusInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"details\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29447,7 +29447,7 @@ func (s *SubjectCreateRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29583,7 +29583,7 @@ func (s *SubjectRemoveRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subjectNip\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29768,7 +29768,7 @@ func (s *SubordinateEntityRole) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29903,7 +29903,7 @@ func (s *SubordinateEntityRolesQueryRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subordinateEntityIdentifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -29982,7 +29982,7 @@ func (s *SubordinateRoleSubordinateEntityIdentifier) Decode(d *jx.Decoder) error
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -30131,7 +30131,7 @@ func (s *Subunit) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -30353,7 +30353,7 @@ func (s *SubunitPermission) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"startDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -30503,7 +30503,7 @@ func (s *SubunitPermissionsAuthorIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -30656,7 +30656,7 @@ func (s *SubunitPermissionsAuthorizedIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -30767,7 +30767,7 @@ func (s *SubunitPermissionsContextIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -30965,7 +30965,7 @@ func (s *SubunitPermissionsGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subjectDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31060,7 +31060,7 @@ func (s *SubunitPermissionsQueryRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"subunitIdentifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31139,7 +31139,7 @@ func (s *SubunitPermissionsSubjectIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31292,7 +31292,7 @@ func (s *SubunitPermissionsSubunitIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31443,7 +31443,7 @@ func (s *TestDataAuthenticationContextIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"type\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31598,7 +31598,7 @@ func (s *TestDataAuthorizedIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31751,7 +31751,7 @@ func (s *TestDataContextIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -31900,7 +31900,7 @@ func (s *TestDataPermission) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"permissionType\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -32086,7 +32086,7 @@ func (s *TestDataPermissionsGrantRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"permissions\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -32195,7 +32195,7 @@ func (s *TestDataPermissionsRevokeRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"authorizedIdentifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -32394,7 +32394,7 @@ func (s *TokenAuthorIdentifierTypeIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -32549,7 +32549,7 @@ func (s *TokenContextIdentifierTypeIdentifier) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"value\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -32662,7 +32662,7 @@ func (s *TokenInfo) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"validUntil\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -32944,7 +32944,7 @@ func (s *TokenStatusResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"statusDetails\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -33276,7 +33276,7 @@ func (s *UnblockContextAuthenticationRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"contextIdentifier\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -33372,7 +33372,7 @@ func (s *UpoPageResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"downloadUrlExpirationDate\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {
@@ -33478,7 +33478,7 @@ func (s *UpoResponse) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"pages\"")
 			}
 		default:
-			return errors.Errorf("unexpected field %q", k)
+			return d.Skip()
 		}
 		return nil
 	}); err != nil {

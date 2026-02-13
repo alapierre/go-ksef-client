@@ -434,3 +434,15 @@ Because of how ogen handles size validation for string fields with the byte form
       },
 ````
 
+Prevent failure when parsing JSON with unknown fields:
+
+replace:
+
+- `return errors.Errorf("unexpected field %q", k)`
+
+to:
+
+- `return d.Skip()`
+
+on generated parser [oas_json_gen.go](ksef/api/oas_json_gen.go) 
+
