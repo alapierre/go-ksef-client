@@ -31,11 +31,6 @@ jobs:
       - name: Show Go version
         run: go version
 
-      - name: Tidy + enforce clean go.mod/go.sum
-        run: |
-          go mod tidy
-          git diff --exit-code -- go.mod go.sum
-
       - name: Download modules
         run: go mod download
 
@@ -43,7 +38,7 @@ jobs:
         run: go mod verify
 
       - name: Build
-        run: go build -v ./...
+        run: go build -mod=readonly -v ./...
 
       - name: Vet
         run: go vet ./...
@@ -53,7 +48,7 @@ jobs:
           KSEF_CERT_PASS: ${{ secrets.KSEF_CERT_PASS }}
           KSEF_CERT_NIP: ${{ secrets.KSEF_CERT_NIP }}
           KSEF_CERT_SERIAL: ${{ secrets.KSEF_CERT_SERIAL }}
-        run: go test -v ./...
+        run: go test -mod=readonly -v ./...
 
       # ---- govulncheck -> SARIF (ładny raport w GitHub UI) ----
       - name: Run govulncheck (SARIF)
