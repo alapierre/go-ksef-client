@@ -2,21 +2,45 @@ name: Go
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
+
+permissions:
+  contents: read
+  security-events: write   # potrzebne do upload SARIF
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    env:
+      GOPROXY: https://proxy.golang.org
+      GOSUMDB: sum.golang.org
+      GONOSUMDB: "off"
+
     steps:
       - uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: 'go.mod'
+          go-version-file: "go.mod"
           cache: true
+
+      - name: Show Go version
+        run: go version
+
+      - name: Tidy + enforce clean go.mod/go.sum
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Verify module content
+        run: go mod verify
 
       - name: Build
         run: go build -v ./...
@@ -31,3 +55,16 @@ jobs:
           KSEF_CERT_SERIAL: ${{ secrets.KSEF_CERT_SERIAL }}
         run: go test -v ./...
 
+      # ---- govulncheck -> SARIF (ładny raport w GitHub UI) ----
+      - name: Run govulncheck (SARIF)
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-file: "go.mod"
+          go-package: ./...
+          output-format: sarif
+          output-file: govulncheck.sarif
+
+      - name: Upload SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: govulncheck.sarif

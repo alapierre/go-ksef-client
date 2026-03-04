@@ -29,7 +29,7 @@ type EncryptionService struct {
 
 	lastFetch time.Time
 
-	// ile wcześniej odświeżyć klucze zanim wygasną (margines bezpieczeństwa)
+	// How long before expiration should the keys be refreshed (safety margin)
 	refreshSkew time.Duration
 }
 

@@ -59,6 +59,10 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 
 	client, err := NewClient(env, httpClient, provider)
 
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	form := api.FormCode{
 		SystemCode:    "FA (3)",
 		SchemaVersion: "1-0E",
@@ -66,8 +70,19 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 	}
 
 	key, err := aes.GenerateRandom256BitsKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	iv, err := aes.GenerateRandom16BytesIv()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	enc := api.EncryptionInfo{
 		EncryptedSymmetricKey: encryptedKey,
