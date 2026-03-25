@@ -1,6 +1,7 @@
 package ksef
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -86,6 +87,33 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
 	}
+}
+
+func (c *AuthFacade) AuthWithXades(ctx context.Context, signedXml []byte) (*api.AuthenticationInitResponse, error) {
+
+	req := api.AuthXadesSignaturePostReq{
+		Data: bytes.NewReader(signedXml),
+	}
+
+	params := api.AuthXadesSignaturePostParams{
+		VerifyCertificateChain: api.NewOptBool(false),
+	}
+
+	res, err := c.raw.AuthXadesSignaturePost(ctx, req, params)
+
+	if err != nil {
+		return nil, fmt.Errorf("APIV2AuthKsefTokenPost: %w", err)
+	}
+
+	switch v := res.(type) {
+	case *api.AuthenticationInitResponse:
+		return v, nil
+	case *api.ExceptionResponse:
+		return nil, HandleAPIError(v)
+	default:
+		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+
 }
 
 // AuthWaitAndRedeem Polluje status aż do 200 lub do ctx.Done(). Interwał czekania kontrolowany parametrem pollEvery.

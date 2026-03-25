@@ -2,5 +2,5 @@ package tpl
 
 import _ "embed"
 
-//go:embed InitSessionTokenRequest.xml
-var InitSessionTokenRequest string
+//go:embed auth_request_v2.xml
+var authRequestTemplate string

@@ -21,3 +21,7 @@ private.env
 /go-ksef-client
 
 /test/test-sign.crt
+/test_data/certificate.pem
+/test_data/private_key.pem
+/test_data/auth-cert.crt
+/test_data/auth-cert.key

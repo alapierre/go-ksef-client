@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AuthTokenRequest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://ksef.mf.gov.pl/auth/token/2.0">
+  <Challenge>{{ .Challenge }}</Challenge>
+  <ContextIdentifier>
+    <Nip>{{ .Identifier }}</Nip>
+  </ContextIdentifier>
+  <SubjectIdentifierType>{{ .SubjectIdentifierType }}</SubjectIdentifierType>
+  {{- if .AllowedIPs }}
+  <AuthorizationPolicy>
+    <AllowedIps>
+      {{- range .AllowedIPs }}
+      <Ip4Address>{{ . }}</Ip4Address>
+      {{- end }}
+    </AllowedIps>
+  </AuthorizationPolicy>
+  {{- end }}
+</AuthTokenRequest>
