@@ -24,6 +24,9 @@ type Invoker interface {
 	// AuthChallengePost invokes POST /auth/challenge operation.
 	//
 	// Generuje unikalny challenge wymagany w kolejnym kroku operacji uwierzytelnienia.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /auth/challenge
 	AuthChallengePost(ctx context.Context) (AuthChallengePostRes, error)
@@ -35,6 +38,9 @@ type Invoker interface {
 	// - Timestamp powinien zostać przekazany jako **liczba milisekund od 1 stycznia 1970 roku (Unix
 	// timestamp)**.
 	// - Algorytm szyfrowania: **RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu)**.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /auth/ksef-token
 	AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (AuthKsefTokenPostRes, error)
@@ -43,6 +49,10 @@ type Invoker interface {
 	// Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 	// uwierzytelniania.
+	// Operacja jest dostępna przez 7 dni.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /auth/{referenceNumber}
 	AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error)
@@ -53,12 +63,18 @@ type Invoker interface {
 	// już za jego pomocą uzyskać kolejnych access tokenów.
 	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
 	// Sposób uwierzytelnienia: `RefreshToken` lub `AccessToken`.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// DELETE /auth/sessions/current
 	AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error)
 	// AuthSessionsGet invokes GET /auth/sessions operation.
 	//
 	// Zwraca listę aktywnych sesji uwierzytelnienia.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc).
 	//
@@ -69,7 +85,10 @@ type Invoker interface {
 	// Unieważnia sesję o podanym numerze referencyjnym.
 	// Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
 	// już za jego pomocą uzyskać kolejnych access tokenów.
-	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**.
+	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// DELETE /auth/sessions/{referenceNumber}
 	AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error)
@@ -80,6 +99,9 @@ type Invoker interface {
 	// **Tokeny można pobrać tylko raz.**
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 	// uwierzytelniania.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /auth/token/redeem
 	AuthTokenRedeemPost(ctx context.Context) (AuthTokenRedeemPostRes, error)
@@ -87,6 +109,9 @@ type Invoker interface {
 	//
 	// Generuje nowy token dostępu na podstawie ważnego refresh tokena.
 	// Sposób uwierzytelnienia: `RefreshToken`.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /auth/token/refresh
 	AuthTokenRefreshPost(ctx context.Context) (AuthTokenRefreshPostRes, error)
@@ -99,13 +124,25 @@ type Invoker interface {
 	// md#1-przygotowanie-dokumentu-xml-authtokenrequest)
 	// > - [Podpis dokumentu XML](https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.
 	// md#2-podpisanie-dokumentu-xades)
-	// > - [Schemat XSD](/docs/v2/schemas/authv2.xsd).
+	// > - Obsługiwane schematy:
+	// >   - [auth v2.0](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-0.xsd)
+	// >   - [auth v2.1](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-1.xsd)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /auth/xades-signature
 	AuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (AuthXadesSignaturePostRes, error)
 	// CertificatesCertificateSerialNumberRevokePost invokes POST /certificates/{certificateSerialNumber}/revoke operation.
 	//
-	// Unieważnia certyfikat o podanym numerze seryjnym.
+	// Unieważnia certyfikat o podanym numerze seryjnym. Operacja nie jest dostępna dla podmiotu
+	// uwierzytelnionego tokenem KSeF.
+	// Podmiot może unieważnić wyłącznie certyfikat wygenerowany na jego identyfikator
+	// uwierzytelnienia
+	// lub na identyfikator powiązany w ramach powiązania NIP–PESEL.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /certificates/{certificateSerialNumber}/revoke
 	CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (CertificatesCertificateSerialNumberRevokePostRes, error)
@@ -118,7 +155,10 @@ type Invoker interface {
 	// > - [Pobranie danych do wniosku certyfikacyjnego](https://github.
 	// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#2-pobranie-danych-do-wniosku-certyfikacyjnego)
 	// > - [Przygotowanie wniosku](https://github.com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.
-	// md#3-przygotowanie-csr-certificate-signing-request).
+	// md#3-przygotowanie-csr-certificate-signing-request)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /certificates/enrollments/data
 	CertificatesEnrollmentsDataGet(ctx context.Context) (CertificatesEnrollmentsDataGetRes, error)
@@ -141,13 +181,19 @@ type Invoker interface {
 	// - SHA512
 	// > Więcej informacji:
 	// > - [Wysłanie wniosku certyfikacyjnego](https://github.
-	// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego).
+	// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /certificates/enrollments
 	CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (CertificatesEnrollmentsPostRes, error)
 	// CertificatesEnrollmentsReferenceNumberGet invokes GET /certificates/enrollments/{referenceNumber} operation.
 	//
 	// Zwraca informacje o statusie wniosku certyfikacyjnego.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /certificates/enrollments/{referenceNumber}
 	CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (CertificatesEnrollmentsReferenceNumberGetRes, error)
@@ -155,6 +201,9 @@ type Invoker interface {
 	//
 	// Zwraca informacje o limitach certyfikatów oraz informacje czy użytkownik może zawnioskować o
 	// certyfikat KSeF.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /certificates/limits
 	CertificatesLimitsGet(ctx context.Context) (CertificatesLimitsGetRes, error)
@@ -162,6 +211,9 @@ type Invoker interface {
 	//
 	// Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania.
 	// W przypadku braku podania kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - requestDate (Desc).
 	//
@@ -170,6 +222,9 @@ type Invoker interface {
 	// CertificatesRetrievePost invokes POST /certificates/retrieve operation.
 	//
 	// Zwraca certyfikaty o podanych numerach seryjnych w formacie DER zakodowanym w Base64.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /certificates/retrieve
 	CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (CertificatesRetrievePostRes, error)
@@ -191,6 +246,9 @@ type Invoker interface {
 	// (taki jak zwracany przez endpoint `POST /invoices/query/metadata`).
 	// <b>Plik z metadanymi(_metadata.json) nie jest wliczany do limitów algorytmu budowania paczki</b>.
 	// `Do realizacji pobierania przyrostowego należy stosować filtrowanie po dacie PermanentStorage`.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 	// **Wymagane uprawnienia**: `InvoiceRead`.
@@ -205,6 +263,10 @@ type Invoker interface {
 	// W przypadku ucięcia wyniku eksportu z powodu przekroczenia limitów, zwracana jest flaga
 	// <b>IsTruncated = true</b> oraz odpowiednia data, którą należy wykorzystać do wykonania
 	// kolejnego eksportu, aż do momentu, gdy flaga <b>IsTruncated = false</b>.
+	// Status eksportu paczki faktur jest dostępny przez 7 dni.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 	// **Wymagane uprawnienia**: `InvoiceRead`.
@@ -214,6 +276,9 @@ type Invoker interface {
 	// InvoicesKsefKsefNumberGet invokes GET /invoices/ksef/{ksefNumber} operation.
 	//
 	// Zwraca fakturę o podanym numerze KSeF.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceRead`.
 	//
 	// GET /invoices/ksef/{ksefNumber}
@@ -232,6 +297,9 @@ type Invoker interface {
 	// * Gdy <b>hasMore = true</b> i <b>isTruncated = false</b>, należy zwiększyć <b>pageOffset</b>,
 	// * Gdy <b>hasMore = true</b> i <b>isTruncated = true</b>, należy zawęzić <b>dateRange</b>
 	// (ustawić from od daty ostatniego rekordu), wyzerować <b>pageOffset</b> i kontynuować
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - permanentStorageDate | invoicingDate | issueDate (Asc | Desc) - pole wybierane na podstawie
 	// filtrów
@@ -242,18 +310,27 @@ type Invoker interface {
 	// LimitsContextGet invokes GET /limits/context operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego kontekstu.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /limits/context
 	LimitsContextGet(ctx context.Context) (LimitsContextGetRes, error)
 	// LimitsSubjectGet invokes GET /limits/subject operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego podmiotu.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /limits/subject
 	LimitsSubjectGet(ctx context.Context) (LimitsSubjectGetRes, error)
 	// PeppolQueryGet invokes GET /peppol/query operation.
 	//
 	// Zwraca listę dostawców usług Peppol zarejestrowanych w systemie.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - dateCreated (Desc)
 	// - id (Asc).
@@ -263,6 +340,9 @@ type Invoker interface {
 	// PermissionsAttachmentsStatusGet invokes GET /permissions/attachments/status operation.
 	//
 	// Sprawdzenie czy obecny kontekst posiada zgodę na wystawianie faktur z załącznikiem.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
 	//
 	// GET /permissions/attachments/status
@@ -275,6 +355,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#odebranie-uprawnie%C5%84-podmiotowych)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
 	// DELETE /permissions/authorizations/grants/{permissionId}
@@ -286,6 +369,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadanie-uprawnie%C5%84-podmiotowych)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
 	// POST /permissions/authorizations/grants
@@ -298,6 +384,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#odebranie-uprawnie%C5%84)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
 	//
 	// DELETE /permissions/common/grants/{permissionId}
@@ -315,6 +404,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
 	// POST /permissions/entities/grants
@@ -341,6 +433,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
 	// POST /permissions/eu-entities/administration/grants
@@ -359,6 +454,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `VatUeManage`.
 	//
 	// POST /permissions/eu-entities/grants
@@ -381,6 +479,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
 	// POST /permissions/indirect/grants
@@ -388,6 +489,10 @@ type Invoker interface {
 	// PermissionsOperationsReferenceNumberGet invokes GET /permissions/operations/{referenceNumber} operation.
 	//
 	// Zwraca status operacji asynchronicznej związanej z nadaniem lub odebraniem uprawnień.
+	// Status operacji jest dostępny przez 30 dni.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /permissions/operations/{referenceNumber}
 	PermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (PermissionsOperationsReferenceNumberGetRes, error)
@@ -410,6 +515,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `CredentialsManage`.
 	//
 	// POST /permissions/persons/grants
@@ -439,6 +547,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc)
@@ -446,6 +557,35 @@ type Invoker interface {
 	//
 	// POST /permissions/query/authorizations/grants
 	PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error)
+	// PermissionsQueryEntitiesGrantsPost invokes POST /permissions/query/entities/grants operation.
+	//
+	// Metoda pozwala na odczytanie otrzymanych uprawnień do obsługi faktur w bieżącym kontekście
+	// logowania.
+	// W odpowiedzi przekazywane są następujące uprawnienia:
+	// - nadane podmiotowi do obsługi faktur przez inny podmiot
+	// Uprawnienia zwracane przez operację obejmują:
+	// - **InvoiceWrite** – wystawianie faktur
+	// - **InvoiceRead** – przeglądanie faktur
+	// Odpowiedź może być filtrowana na podstawie następujących parametrów:
+	// - **contextIdentifier** – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
+	// #### Stronicowanie wyników
+	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
+	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
+	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	// > Więcej informacji:
+	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
+	// md#pobranie-listy-uprawnie%C5%84-do-obs%C5%82ugi-faktur-w-bie%C5%BC%C4%85cym-kontek%C5%9Bcie)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
+	// **Sortowanie:**
+	// - startDate (Desc)
+	// - id (Asc)
+	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+	//
+	// POST /permissions/query/entities/grants
+	PermissionsQueryEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsQueryRequest, params PermissionsQueryEntitiesGrantsPostParams) (PermissionsQueryEntitiesGrantsPostRes, error)
 	// PermissionsQueryEntitiesRolesGet invokes GET /permissions/query/entities/roles operation.
 	//
 	// Metoda pozwala na **odczytanie listy ról podmiotu bieżącego kontekstu logowania**.
@@ -464,6 +604,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy ról](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-r%C3%B3l-podmiotu)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc)
@@ -496,6 +639,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc)
@@ -536,6 +682,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc).
@@ -582,6 +731,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc)
@@ -608,6 +760,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy podmiotów podrzędnych](https://github.
 	// com/CIRFMF/ksef-docs/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc)
@@ -634,6 +789,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - startDate (Desc)
 	// - id (Asc)
@@ -682,6 +840,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 	// md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `SubunitManage`.
 	//
 	// POST /permissions/subunits/grants
@@ -689,6 +850,9 @@ type Invoker interface {
 	// RateLimitsGet invokes GET /rate-limits operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów ilości żądań przesyłanych do API.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /rate-limits
 	RateLimitsGet(ctx context.Context) (RateLimitsGetRes, error)
@@ -696,6 +860,9 @@ type Invoker interface {
 	//
 	// Zwraca informacje o kluczach publicznych używanych do szyfrowania danych przesyłanych do systemu
 	// KSeF.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /security/public-key-certificates
 	SecurityPublicKeyCertificatesGet(ctx context.Context) (SecurityPublicKeyCertificatesGetRes, error)
@@ -707,6 +874,9 @@ type Invoker interface {
 	// > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
 	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 	// html#tag/Certyfikaty-klucza-publicznego)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/batch
@@ -715,6 +885,9 @@ type Invoker interface {
 	//
 	// Zamyka sesję wsadową, rozpoczyna procesowanie paczki faktur i generowanie UPO dla prawidłowych
 	// faktur oraz zbiorczego UPO dla sesji.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/batch/{referenceNumber}/close
@@ -729,6 +902,9 @@ type Invoker interface {
 	// kontekście uwierzytelnienia `(ContextIdentifier)`.
 	// - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
 	// czyli podmiot inicjujący uwierzytelnienie.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /sessions
 	SessionsGet(ctx context.Context, params SessionsGetParams) (SessionsGetRes, error)
@@ -741,6 +917,9 @@ type Invoker interface {
 	// com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
 	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 	// html#tag/Certyfikaty-klucza-publicznego)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/online
@@ -748,6 +927,9 @@ type Invoker interface {
 	// SessionsOnlineReferenceNumberClosePost invokes POST /sessions/online/{referenceNumber}/close operation.
 	//
 	// Zamyka sesję interaktywną i rozpoczyna generowanie zbiorczego UPO dla sesji.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/online/{referenceNumber}/close
@@ -758,6 +940,9 @@ type Invoker interface {
 	// > Więcej informacji:
 	// > - [Wysłanie faktury](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.
 	// md#2-wys%C5%82anie-faktury)
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/online/{referenceNumber}/invoices
@@ -765,6 +950,9 @@ type Invoker interface {
 	// SessionsReferenceNumberGet invokes GET /sessions/{referenceNumber} operation.
 	//
 	// Sprawdza bieżący status sesji o podanym numerze referencyjnym.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -773,6 +961,9 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesFailedGet invokes GET /sessions/{referenceNumber}/invoices/failed operation.
 	//
 	// Zwraca listę niepoprawnie przetworzonych faktur przesłanych w sesji wraz z ich statusami.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -782,6 +973,9 @@ type Invoker interface {
 	//
 	// Zwraca listę faktur przesłanych w sesji wraz z ich statusami, oraz informacje na temat ilości
 	// poprawnie i niepoprawnie przetworzonych faktur.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -790,6 +984,9 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
 	//
 	// Zwraca fakturę przesłaną w sesji wraz ze statusem.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -798,6 +995,9 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 	//
 	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -806,6 +1006,9 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 	//
 	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -814,6 +1017,9 @@ type Invoker interface {
 	// SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
 	//
 	// Zwraca XML zawierający zbiorcze UPO dla sesji.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
@@ -821,13 +1027,19 @@ type Invoker interface {
 	SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error)
 	// TestdataAttachmentPost invokes POST /testdata/attachment operation.
 	//
-	// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
+	// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/attachment
 	TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (TestdataAttachmentPostRes, error)
 	// TestdataAttachmentRevokePost invokes POST /testdata/attachment/revoke operation.
 	//
-	// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
+	// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/attachment/revoke
 	TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error)
@@ -835,46 +1047,67 @@ type Invoker interface {
 	//
 	// Blokuje możliwość uwierzytelniania dla wskazanego kontekstu. Uwierzytelnianie zakończy się
 	// błędem 480.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/context/block
 	TestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (TestdataContextBlockPostRes, error)
 	// TestdataContextUnblockPost invokes POST /testdata/context/unblock operation.
 	//
 	// Odblokowuje możliwość uwierzytelniania dla wskazanego kontekstu.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/context/unblock
 	TestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (TestdataContextUnblockPostRes, error)
 	// TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
-	// wartości domyślnych. **Tylko na środowiskach testowych.**.
+	// wartości domyślnych. **Tylko na środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// DELETE /testdata/limits/context/session
 	TestdataLimitsContextSessionDelete(ctx context.Context) (TestdataLimitsContextSessionDeleteRes, error)
 	// TestdataLimitsContextSessionPost invokes POST /testdata/limits/context/session operation.
 	//
 	// Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. **Tylko na
-	// środowiskach testowych.**.
+	// środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/limits/context/session
 	TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (TestdataLimitsContextSessionPostRes, error)
 	// TestdataLimitsSubjectCertificateDelete invokes DELETE /testdata/limits/subject/certificate operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu do
-	// wartości domyślnych. **Tylko na środowiskach testowych.**.
+	// wartości domyślnych. **Tylko na środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// DELETE /testdata/limits/subject/certificate
 	TestdataLimitsSubjectCertificateDelete(ctx context.Context) (TestdataLimitsSubjectCertificateDeleteRes, error)
 	// TestdataLimitsSubjectCertificatePost invokes POST /testdata/limits/subject/certificate operation.
 	//
 	// Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu.
-	// **Tylko na środowiskach testowych.**.
+	// **Tylko na środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/limits/subject/certificate
 	TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (TestdataLimitsSubjectCertificatePostRes, error)
 	// TestdataPermissionsPost invokes POST /testdata/permissions operation.
 	//
 	// Nadawanie uprawnień testowemu podmiotowi lub osobie fizycznej, a także w ich kontekście.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/permissions
 	TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (TestdataPermissionsPostRes, error)
@@ -882,6 +1115,9 @@ type Invoker interface {
 	//
 	// Odbieranie uprawnień nadanych testowemu podmiotowi lub osobie fizycznej, a także w ich
 	// kontekście.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/permissions/revoke
 	TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (TestdataPermissionsRevokePostRes, error)
@@ -890,26 +1126,38 @@ type Invoker interface {
 	// Tworzenie nowej osoby fizycznej, której system nadaje uprawnienia właścicielskie. Można
 	// również określić, czy osoba ta jest komornikiem – wówczas otrzyma odpowiednie uprawnienie
 	// egzekucyjne.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/person
 	TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (TestdataPersonPostRes, error)
 	// TestdataPersonRemovePost invokes POST /testdata/person/remove operation.
 	//
 	// Usuwanie testowej osoby fizycznej. System automatycznie odbierze jej wszystkie uprawnienia.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/person/remove
 	TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (TestdataPersonRemovePostRes, error)
 	// TestdataRateLimitsDelete invokes DELETE /testdata/rate-limits operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-	// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**.
+	// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// DELETE /testdata/rate-limits
 	TestdataRateLimitsDelete(ctx context.Context) (TestdataRateLimitsDeleteRes, error)
 	// TestdataRateLimitsPost invokes POST /testdata/rate-limits operation.
 	//
 	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-	// bieżącego kontekstu. **Tylko na środowiskach testowych.**.
+	// bieżącego kontekstu. **Tylko na środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/rate-limits
 	TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (TestdataRateLimitsPostRes, error)
@@ -917,7 +1165,10 @@ type Invoker interface {
 	//
 	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
 	// bieżącego kontekstu na wartości takie jakie będą na środowisku produkcyjnym. **Tylko na
-	// środowiskach testowych.**.
+	// środowiskach testowych.**
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/rate-limits/production
 	TestdataRateLimitsProductionPost(ctx context.Context) (TestdataRateLimitsProductionPostRes, error)
@@ -926,6 +1177,9 @@ type Invoker interface {
 	// Tworzenie nowego podmiotu testowego. W przypadku grupy VAT i JST istnieje możliwość stworzenia
 	// jednostek podrzędnych. W wyniku takiego działania w systemie powstanie powiązanie między tymi
 	// podmiotami.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/subject
 	TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (TestdataSubjectPostRes, error)
@@ -933,11 +1187,27 @@ type Invoker interface {
 	//
 	// Usuwanie podmiotu testowego. W przypadku grupy VAT i JST usunięte zostaną również jednostki
 	// podrzędne.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /testdata/subject/remove
 	TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (TestdataSubjectRemovePostRes, error)
 	// TokensGet invokes GET /tokens operation.
 	//
+	// Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
+	// uprawnień podmiotu wywołującego.
+	// Jeżeli podmiot posiada uprawnienie **CredentialsManage** lub **CredentialsRead**,
+	// usługa zwraca wszystkie tokeny wygenerowane w danym kontekście niezależnie od metody
+	// uwierzytelnienia.
+	// Jeżeli podmiot nie posiada żadnego z powyższych uprawnień, zakres wyników jest ograniczony:
+	// - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
+	// uwierzytelnienia.
+	// - Dla pozostałych metod uwierzytelnienia zwracane są tokeny,
+	// których autorem jest wywołujący podmiot – z uwzględnieniem powiązania NIP–PESEL.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	// **Sortowanie:**
 	// - dateCreated (Desc).
 	//
@@ -948,19 +1218,35 @@ type Invoker interface {
 	// Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
 	// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest
 	// zwracany tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// POST /tokens
 	TokensPost(ctx context.Context, request OptGenerateTokenRequest) (TokensPostRes, error)
 	// TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
 	//
-	// Unieważniony token nie pozwoli już na uwierzytelnienie się za jego pomocą. Unieważnienie nie
-	// może zostać cofnięte.
+	// Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
+	// zależy od sposobu uwierzytelnienia oraz uprawnień podmiotu wywołującego.
+	// Jeżeli podmiot posiada uprawnienie **CredentialsManage**,
+	// może unieważnić dowolny aktywny token w danym kontekście niezależnie od metody
+	// uwierzytelnienia.
+	// Jeżeli podmiot nie posiada powyższego uprawnienia, zakres unieważnienia jest ograniczony:
+	// - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
+	// do uwierzytelnienia.
+	// - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny,
+	// których jest autorem – z uwzględnieniem powiązania NIP–PESEL.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// DELETE /tokens/{referenceNumber}
 	TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error)
 	// TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 	//
-	// Pobranie statusu tokena.
+	// **Headers:**
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie **Problem Details** (`application/problem+json`).
 	//
 	// GET /tokens/{referenceNumber}
 	TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error)
@@ -1010,6 +1296,9 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // AuthChallengePost invokes POST /auth/challenge operation.
 //
 // Generuje unikalny challenge wymagany w kolejnym kroku operacji uwierzytelnienia.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /auth/challenge
 func (c *Client) AuthChallengePost(ctx context.Context) (AuthChallengePostRes, error) {
@@ -1033,7 +1322,8 @@ func (c *Client) sendAuthChallengePost(ctx context.Context) (res AuthChallengePo
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthChallengePostResponse(resp)
 	if err != nil {
@@ -1051,6 +1341,9 @@ func (c *Client) sendAuthChallengePost(ctx context.Context) (res AuthChallengePo
 // - Timestamp powinien zostać przekazany jako **liczba milisekund od 1 stycznia 1970 roku (Unix
 // timestamp)**.
 // - Algorytm szyfrowania: **RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu)**.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /auth/ksef-token
 func (c *Client) AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (AuthKsefTokenPostRes, error) {
@@ -1093,7 +1386,8 @@ func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptInitToken
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthKsefTokenPostResponse(resp)
 	if err != nil {
@@ -1108,6 +1402,10 @@ func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptInitToken
 // Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 // uwierzytelniania.
+// Operacja jest dostępna przez 7 dni.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /auth/{referenceNumber}
 func (c *Client) AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error) {
@@ -1185,7 +1483,8 @@ func (c *Client) sendAuthReferenceNumberGet(ctx context.Context, params AuthRefe
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -1202,6 +1501,9 @@ func (c *Client) sendAuthReferenceNumberGet(ctx context.Context, params AuthRefe
 // już za jego pomocą uzyskać kolejnych access tokenów.
 // **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
 // Sposób uwierzytelnienia: `RefreshToken` lub `AccessToken`.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // DELETE /auth/sessions/current
 func (c *Client) AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error) {
@@ -1258,7 +1560,8 @@ func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSes
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthSessionsCurrentDeleteResponse(resp)
 	if err != nil {
@@ -1271,6 +1574,9 @@ func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSes
 // AuthSessionsGet invokes GET /auth/sessions operation.
 //
 // Zwraca listę aktywnych sesji uwierzytelnienia.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc).
 //
@@ -1365,7 +1671,8 @@ func (c *Client) sendAuthSessionsGet(ctx context.Context, params AuthSessionsGet
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthSessionsGetResponse(resp)
 	if err != nil {
@@ -1380,7 +1687,10 @@ func (c *Client) sendAuthSessionsGet(ctx context.Context, params AuthSessionsGet
 // Unieważnia sesję o podanym numerze referencyjnym.
 // Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
 // już za jego pomocą uzyskać kolejnych access tokenów.
-// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**.
+// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // DELETE /auth/sessions/{referenceNumber}
 func (c *Client) AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error) {
@@ -1458,7 +1768,8 @@ func (c *Client) sendAuthSessionsReferenceNumberDelete(ctx context.Context, para
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthSessionsReferenceNumberDeleteResponse(resp)
 	if err != nil {
@@ -1475,6 +1786,9 @@ func (c *Client) sendAuthSessionsReferenceNumberDelete(ctx context.Context, para
 // **Tokeny można pobrać tylko raz.**
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 // uwierzytelniania.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /auth/token/redeem
 func (c *Client) AuthTokenRedeemPost(ctx context.Context) (AuthTokenRedeemPostRes, error) {
@@ -1531,7 +1845,8 @@ func (c *Client) sendAuthTokenRedeemPost(ctx context.Context) (res AuthTokenRede
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthTokenRedeemPostResponse(resp)
 	if err != nil {
@@ -1545,6 +1860,9 @@ func (c *Client) sendAuthTokenRedeemPost(ctx context.Context) (res AuthTokenRede
 //
 // Generuje nowy token dostępu na podstawie ważnego refresh tokena.
 // Sposób uwierzytelnienia: `RefreshToken`.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /auth/token/refresh
 func (c *Client) AuthTokenRefreshPost(ctx context.Context) (AuthTokenRefreshPostRes, error) {
@@ -1601,7 +1919,8 @@ func (c *Client) sendAuthTokenRefreshPost(ctx context.Context) (res AuthTokenRef
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthTokenRefreshPostResponse(resp)
 	if err != nil {
@@ -1620,7 +1939,12 @@ func (c *Client) sendAuthTokenRefreshPost(ctx context.Context) (res AuthTokenRef
 // md#1-przygotowanie-dokumentu-xml-authtokenrequest)
 // > - [Podpis dokumentu XML](https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.
 // md#2-podpisanie-dokumentu-xades)
-// > - [Schemat XSD](/docs/v2/schemas/authv2.xsd).
+// > - Obsługiwane schematy:
+// >   - [auth v2.0](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-0.xsd)
+// >   - [auth v2.1](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-1.xsd)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /auth/xades-signature
 func (c *Client) AuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (AuthXadesSignaturePostRes, error) {
@@ -1667,7 +1991,8 @@ func (c *Client) sendAuthXadesSignaturePost(ctx context.Context, request AuthXad
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeAuthXadesSignaturePostResponse(resp)
 	if err != nil {
@@ -1679,7 +2004,14 @@ func (c *Client) sendAuthXadesSignaturePost(ctx context.Context, request AuthXad
 
 // CertificatesCertificateSerialNumberRevokePost invokes POST /certificates/{certificateSerialNumber}/revoke operation.
 //
-// Unieważnia certyfikat o podanym numerze seryjnym.
+// Unieważnia certyfikat o podanym numerze seryjnym. Operacja nie jest dostępna dla podmiotu
+// uwierzytelnionego tokenem KSeF.
+// Podmiot może unieważnić wyłącznie certyfikat wygenerowany na jego identyfikator
+// uwierzytelnienia
+// lub na identyfikator powiązany w ramach powiązania NIP–PESEL.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /certificates/{certificateSerialNumber}/revoke
 func (c *Client) CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (CertificatesCertificateSerialNumberRevokePostRes, error) {
@@ -1774,7 +2106,8 @@ func (c *Client) sendCertificatesCertificateSerialNumberRevokePost(ctx context.C
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesCertificateSerialNumberRevokePostResponse(resp)
 	if err != nil {
@@ -1793,7 +2126,10 @@ func (c *Client) sendCertificatesCertificateSerialNumberRevokePost(ctx context.C
 // > - [Pobranie danych do wniosku certyfikacyjnego](https://github.
 // com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#2-pobranie-danych-do-wniosku-certyfikacyjnego)
 // > - [Przygotowanie wniosku](https://github.com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.
-// md#3-przygotowanie-csr-certificate-signing-request).
+// md#3-przygotowanie-csr-certificate-signing-request)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /certificates/enrollments/data
 func (c *Client) CertificatesEnrollmentsDataGet(ctx context.Context) (CertificatesEnrollmentsDataGetRes, error) {
@@ -1850,7 +2186,8 @@ func (c *Client) sendCertificatesEnrollmentsDataGet(ctx context.Context) (res Ce
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesEnrollmentsDataGetResponse(resp)
 	if err != nil {
@@ -1879,7 +2216,10 @@ func (c *Client) sendCertificatesEnrollmentsDataGet(ctx context.Context) (res Ce
 // - SHA512
 // > Więcej informacji:
 // > - [Wysłanie wniosku certyfikacyjnego](https://github.
-// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego).
+// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /certificates/enrollments
 func (c *Client) CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (CertificatesEnrollmentsPostRes, error) {
@@ -1955,7 +2295,8 @@ func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request Op
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesEnrollmentsPostResponse(resp)
 	if err != nil {
@@ -1968,6 +2309,9 @@ func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request Op
 // CertificatesEnrollmentsReferenceNumberGet invokes GET /certificates/enrollments/{referenceNumber} operation.
 //
 // Zwraca informacje o statusie wniosku certyfikacyjnego.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /certificates/enrollments/{referenceNumber}
 func (c *Client) CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (CertificatesEnrollmentsReferenceNumberGetRes, error) {
@@ -2045,7 +2389,8 @@ func (c *Client) sendCertificatesEnrollmentsReferenceNumberGet(ctx context.Conte
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesEnrollmentsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -2059,6 +2404,9 @@ func (c *Client) sendCertificatesEnrollmentsReferenceNumberGet(ctx context.Conte
 //
 // Zwraca informacje o limitach certyfikatów oraz informacje czy użytkownik może zawnioskować o
 // certyfikat KSeF.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /certificates/limits
 func (c *Client) CertificatesLimitsGet(ctx context.Context) (CertificatesLimitsGetRes, error) {
@@ -2115,7 +2463,8 @@ func (c *Client) sendCertificatesLimitsGet(ctx context.Context) (res Certificate
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesLimitsGetResponse(resp)
 	if err != nil {
@@ -2129,6 +2478,9 @@ func (c *Client) sendCertificatesLimitsGet(ctx context.Context) (res Certificate
 //
 // Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania.
 // W przypadku braku podania kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - requestDate (Desc).
 //
@@ -2243,7 +2595,8 @@ func (c *Client) sendCertificatesQueryPost(ctx context.Context, request OptQuery
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesQueryPostResponse(resp)
 	if err != nil {
@@ -2256,6 +2609,9 @@ func (c *Client) sendCertificatesQueryPost(ctx context.Context, request OptQuery
 // CertificatesRetrievePost invokes POST /certificates/retrieve operation.
 //
 // Zwraca certyfikaty o podanych numerach seryjnych w formacie DER zakodowanym w Base64.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /certificates/retrieve
 func (c *Client) CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (CertificatesRetrievePostRes, error) {
@@ -2331,7 +2687,8 @@ func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptRe
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeCertificatesRetrievePostResponse(resp)
 	if err != nil {
@@ -2359,6 +2716,9 @@ func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptRe
 // (taki jak zwracany przez endpoint `POST /invoices/query/metadata`).
 // <b>Plik z metadanymi(_metadata.json) nie jest wliczany do limitów algorytmu budowania paczki</b>.
 // `Do realizacji pobierania przyrostowego należy stosować filtrowanie po dacie PermanentStorage`.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 // **Wymagane uprawnienia**: `InvoiceRead`.
@@ -2437,7 +2797,8 @@ func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoice
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeInvoicesExportsPostResponse(resp)
 	if err != nil {
@@ -2455,6 +2816,10 @@ func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoice
 // W przypadku ucięcia wyniku eksportu z powodu przekroczenia limitów, zwracana jest flaga
 // <b>IsTruncated = true</b> oraz odpowiednia data, którą należy wykorzystać do wykonania
 // kolejnego eksportu, aż do momentu, gdy flaga <b>IsTruncated = false</b>.
+// Status eksportu paczki faktur jest dostępny przez 7 dni.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
 // **Wymagane uprawnienia**: `InvoiceRead`.
@@ -2535,7 +2900,8 @@ func (c *Client) sendInvoicesExportsReferenceNumberGet(ctx context.Context, para
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeInvoicesExportsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -2548,6 +2914,9 @@ func (c *Client) sendInvoicesExportsReferenceNumberGet(ctx context.Context, para
 // InvoicesKsefKsefNumberGet invokes GET /invoices/ksef/{ksefNumber} operation.
 //
 // Zwraca fakturę o podanym numerze KSeF.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceRead`.
 //
 // GET /invoices/ksef/{ksefNumber}
@@ -2626,7 +2995,8 @@ func (c *Client) sendInvoicesKsefKsefNumberGet(ctx context.Context, params Invoi
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeInvoicesKsefKsefNumberGetResponse(resp)
 	if err != nil {
@@ -2650,6 +3020,9 @@ func (c *Client) sendInvoicesKsefKsefNumberGet(ctx context.Context, params Invoi
 // * Gdy <b>hasMore = true</b> i <b>isTruncated = false</b>, należy zwiększyć <b>pageOffset</b>,
 // * Gdy <b>hasMore = true</b> i <b>isTruncated = true</b>, należy zawęzić <b>dateRange</b>
 // (ustawić from od daty ostatniego rekordu), wyzerować <b>pageOffset</b> i kontynuować
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - permanentStorageDate | invoicingDate | issueDate (Asc | Desc) - pole wybierane na podstawie
 // filtrów
@@ -2783,7 +3156,8 @@ func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptI
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeInvoicesQueryMetadataPostResponse(resp)
 	if err != nil {
@@ -2796,6 +3170,9 @@ func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptI
 // LimitsContextGet invokes GET /limits/context operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów dla bieżącego kontekstu.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /limits/context
 func (c *Client) LimitsContextGet(ctx context.Context) (LimitsContextGetRes, error) {
@@ -2852,7 +3229,8 @@ func (c *Client) sendLimitsContextGet(ctx context.Context) (res LimitsContextGet
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeLimitsContextGetResponse(resp)
 	if err != nil {
@@ -2865,6 +3243,9 @@ func (c *Client) sendLimitsContextGet(ctx context.Context) (res LimitsContextGet
 // LimitsSubjectGet invokes GET /limits/subject operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów dla bieżącego podmiotu.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /limits/subject
 func (c *Client) LimitsSubjectGet(ctx context.Context) (LimitsSubjectGetRes, error) {
@@ -2921,7 +3302,8 @@ func (c *Client) sendLimitsSubjectGet(ctx context.Context) (res LimitsSubjectGet
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeLimitsSubjectGetResponse(resp)
 	if err != nil {
@@ -2934,6 +3316,9 @@ func (c *Client) sendLimitsSubjectGet(ctx context.Context) (res LimitsSubjectGet
 // PeppolQueryGet invokes GET /peppol/query operation.
 //
 // Zwraca listę dostawców usług Peppol zarejestrowanych w systemie.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - dateCreated (Desc)
 // - id (Asc).
@@ -2997,7 +3382,8 @@ func (c *Client) sendPeppolQueryGet(ctx context.Context, params PeppolQueryGetPa
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePeppolQueryGetResponse(resp)
 	if err != nil {
@@ -3010,6 +3396,9 @@ func (c *Client) sendPeppolQueryGet(ctx context.Context, params PeppolQueryGetPa
 // PermissionsAttachmentsStatusGet invokes GET /permissions/attachments/status operation.
 //
 // Sprawdzenie czy obecny kontekst posiada zgodę na wystawianie faktur z załącznikiem.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
 //
 // GET /permissions/attachments/status
@@ -3067,7 +3456,8 @@ func (c *Client) sendPermissionsAttachmentsStatusGet(ctx context.Context) (res P
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsAttachmentsStatusGetResponse(resp)
 	if err != nil {
@@ -3085,6 +3475,9 @@ func (c *Client) sendPermissionsAttachmentsStatusGet(ctx context.Context) (res P
 // > Więcej informacji:
 // > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#odebranie-uprawnie%C5%84-podmiotowych)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
 // DELETE /permissions/authorizations/grants/{permissionId}
@@ -3163,7 +3556,8 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx conte
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp)
 	if err != nil {
@@ -3180,6 +3574,9 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx conte
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadanie-uprawnie%C5%84-podmiotowych)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
 // POST /permissions/authorizations/grants
@@ -3256,7 +3653,8 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, re
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsAuthorizationsGrantsPostResponse(resp)
 	if err != nil {
@@ -3274,6 +3672,9 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, re
 // > Więcej informacji:
 // > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#odebranie-uprawnie%C5%84)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
 //
 // DELETE /permissions/common/grants/{permissionId}
@@ -3352,7 +3753,8 @@ func (c *Client) sendPermissionsCommonGrantsPermissionIdDelete(ctx context.Conte
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsCommonGrantsPermissionIdDeleteResponse(resp)
 	if err != nil {
@@ -3375,6 +3777,9 @@ func (c *Client) sendPermissionsCommonGrantsPermissionIdDelete(ctx context.Conte
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
 // POST /permissions/entities/grants
@@ -3451,7 +3856,8 @@ func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -3483,6 +3889,9 @@ func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request 
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
 // POST /permissions/eu-entities/administration/grants
@@ -3559,7 +3968,8 @@ func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.C
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsEuEntitiesAdministrationGrantsPostResponse(resp)
 	if err != nil {
@@ -3583,6 +3993,9 @@ func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.C
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `VatUeManage`.
 //
 // POST /permissions/eu-entities/grants
@@ -3659,7 +4072,8 @@ func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, reques
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsEuEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -3687,6 +4101,9 @@ func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, reques
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
 // POST /permissions/indirect/grants
@@ -3763,7 +4180,8 @@ func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsIndirectGrantsPostResponse(resp)
 	if err != nil {
@@ -3776,6 +4194,10 @@ func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request 
 // PermissionsOperationsReferenceNumberGet invokes GET /permissions/operations/{referenceNumber} operation.
 //
 // Zwraca status operacji asynchronicznej związanej z nadaniem lub odebraniem uprawnień.
+// Status operacji jest dostępny przez 30 dni.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /permissions/operations/{referenceNumber}
 func (c *Client) PermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (PermissionsOperationsReferenceNumberGetRes, error) {
@@ -3853,7 +4275,8 @@ func (c *Client) sendPermissionsOperationsReferenceNumberGet(ctx context.Context
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsOperationsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -3882,6 +4305,9 @@ func (c *Client) sendPermissionsOperationsReferenceNumberGet(ctx context.Context
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `CredentialsManage`.
 //
 // POST /permissions/persons/grants
@@ -3958,7 +4384,8 @@ func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request O
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsPersonsGrantsPostResponse(resp)
 	if err != nil {
@@ -3993,6 +4420,9 @@ func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request O
 // > Więcej informacji:
 // > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc)
@@ -4109,9 +4539,159 @@ func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Contex
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQueryAuthorizationsGrantsPostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// PermissionsQueryEntitiesGrantsPost invokes POST /permissions/query/entities/grants operation.
+//
+// Metoda pozwala na odczytanie otrzymanych uprawnień do obsługi faktur w bieżącym kontekście
+// logowania.
+// W odpowiedzi przekazywane są następujące uprawnienia:
+// - nadane podmiotowi do obsługi faktur przez inny podmiot
+// Uprawnienia zwracane przez operację obejmują:
+// - **InvoiceWrite** – wystawianie faktur
+// - **InvoiceRead** – przeglądanie faktur
+// Odpowiedź może być filtrowana na podstawie następujących parametrów:
+// - **contextIdentifier** – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
+// #### Stronicowanie wyników
+// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
+// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
+// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+// > Więcej informacji:
+// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
+// md#pobranie-listy-uprawnie%C5%84-do-obs%C5%82ugi-faktur-w-bie%C5%BC%C4%85cym-kontek%C5%9Bcie)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
+// **Sortowanie:**
+// - startDate (Desc)
+// - id (Asc)
+// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+//
+// POST /permissions/query/entities/grants
+func (c *Client) PermissionsQueryEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsQueryRequest, params PermissionsQueryEntitiesGrantsPostParams) (PermissionsQueryEntitiesGrantsPostRes, error) {
+	res, err := c.sendPermissionsQueryEntitiesGrantsPost(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendPermissionsQueryEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsQueryRequest, params PermissionsQueryEntitiesGrantsPostParams) (res PermissionsQueryEntitiesGrantsPostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/permissions/query/entities/grants"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "pageOffset" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageOffset",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageOffset.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "pageSize" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageSize",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageSize.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodePermissionsQueryEntitiesGrantsPostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, PermissionsQueryEntitiesGrantsPostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	result, err := decodePermissionsQueryEntitiesGrantsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -4137,6 +4717,9 @@ func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Contex
 // > Więcej informacji:
 // > - [Pobieranie listy ról](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-r%C3%B3l-podmiotu)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc)
@@ -4234,7 +4817,8 @@ func (c *Client) sendPermissionsQueryEntitiesRolesGet(ctx context.Context, param
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQueryEntitiesRolesGetResponse(resp)
 	if err != nil {
@@ -4269,6 +4853,9 @@ func (c *Client) sendPermissionsQueryEntitiesRolesGet(ctx context.Context, param
 // > Więcej informacji:
 // > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc)
@@ -4385,7 +4972,8 @@ func (c *Client) sendPermissionsQueryEuEntitiesGrantsPost(ctx context.Context, r
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQueryEuEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -4428,6 +5016,9 @@ func (c *Client) sendPermissionsQueryEuEntitiesGrantsPost(ctx context.Context, r
 // > Więcej informacji:
 // > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc).
@@ -4543,7 +5134,8 @@ func (c *Client) sendPermissionsQueryPersonalGrantsPost(ctx context.Context, req
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQueryPersonalGrantsPostResponse(resp)
 	if err != nil {
@@ -4593,6 +5185,9 @@ func (c *Client) sendPermissionsQueryPersonalGrantsPost(ctx context.Context, req
 // > Więcej informacji:
 // > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc)
@@ -4709,7 +5304,8 @@ func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, requ
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQueryPersonsGrantsPostResponse(resp)
 	if err != nil {
@@ -4738,6 +5334,9 @@ func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, requ
 // > Więcej informacji:
 // > - [Pobieranie listy podmiotów podrzędnych](https://github.
 // com/CIRFMF/ksef-docs/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc)
@@ -4854,7 +5453,8 @@ func (c *Client) sendPermissionsQuerySubordinateEntitiesRolesPost(ctx context.Co
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQuerySubordinateEntitiesRolesPostResponse(resp)
 	if err != nil {
@@ -4883,6 +5483,9 @@ func (c *Client) sendPermissionsQuerySubordinateEntitiesRolesPost(ctx context.Co
 // > Więcej informacji:
 // > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - startDate (Desc)
 // - id (Asc)
@@ -4999,7 +5602,8 @@ func (c *Client) sendPermissionsQuerySubunitsGrantsPost(ctx context.Context, req
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsQuerySubunitsGrantsPostResponse(resp)
 	if err != nil {
@@ -5050,6 +5654,9 @@ func (c *Client) sendPermissionsQuerySubunitsGrantsPost(ctx context.Context, req
 // > Więcej informacji:
 // > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
 // md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `SubunitManage`.
 //
 // POST /permissions/subunits/grants
@@ -5126,7 +5733,8 @@ func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodePermissionsSubunitsGrantsPostResponse(resp)
 	if err != nil {
@@ -5139,6 +5747,9 @@ func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request 
 // RateLimitsGet invokes GET /rate-limits operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów ilości żądań przesyłanych do API.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /rate-limits
 func (c *Client) RateLimitsGet(ctx context.Context) (RateLimitsGetRes, error) {
@@ -5195,7 +5806,8 @@ func (c *Client) sendRateLimitsGet(ctx context.Context) (res RateLimitsGetRes, e
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeRateLimitsGetResponse(resp)
 	if err != nil {
@@ -5209,6 +5821,9 @@ func (c *Client) sendRateLimitsGet(ctx context.Context) (res RateLimitsGetRes, e
 //
 // Zwraca informacje o kluczach publicznych używanych do szyfrowania danych przesyłanych do systemu
 // KSeF.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /security/public-key-certificates
 func (c *Client) SecurityPublicKeyCertificatesGet(ctx context.Context) (SecurityPublicKeyCertificatesGetRes, error) {
@@ -5232,7 +5847,8 @@ func (c *Client) sendSecurityPublicKeyCertificatesGet(ctx context.Context) (res 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSecurityPublicKeyCertificatesGetResponse(resp)
 	if err != nil {
@@ -5250,6 +5866,9 @@ func (c *Client) sendSecurityPublicKeyCertificatesGet(ctx context.Context) (res 
 // > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
 // > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 // html#tag/Certyfikaty-klucza-publicznego)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/batch
@@ -5326,7 +5945,8 @@ func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptOpenBatch
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsBatchPostResponse(resp)
 	if err != nil {
@@ -5340,6 +5960,9 @@ func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptOpenBatch
 //
 // Zamyka sesję wsadową, rozpoczyna procesowanie paczki faktur i generowanie UPO dla prawidłowych
 // faktur oraz zbiorczego UPO dla sesji.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/batch/{referenceNumber}/close
@@ -5419,7 +6042,8 @@ func (c *Client) sendSessionsBatchReferenceNumberClosePost(ctx context.Context, 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsBatchReferenceNumberClosePostResponse(resp)
 	if err != nil {
@@ -5439,6 +6063,9 @@ func (c *Client) sendSessionsBatchReferenceNumberClosePost(ctx context.Context, 
 // kontekście uwierzytelnienia `(ContextIdentifier)`.
 // - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
 // czyli podmiot inicjujący uwierzytelnienie.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /sessions
 func (c *Client) SessionsGet(ctx context.Context, params SessionsGetParams) (SessionsGetRes, error) {
@@ -5693,7 +6320,8 @@ func (c *Client) sendSessionsGet(ctx context.Context, params SessionsGetParams) 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsGetResponse(resp)
 	if err != nil {
@@ -5712,6 +6340,9 @@ func (c *Client) sendSessionsGet(ctx context.Context, params SessionsGetParams) 
 // com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
 // > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
 // html#tag/Certyfikaty-klucza-publicznego)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/online
@@ -5721,6 +6352,22 @@ func (c *Client) SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSe
 }
 
 func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (res SessionsOnlinePostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
@@ -5772,7 +6419,8 @@ func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnli
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsOnlinePostResponse(resp)
 	if err != nil {
@@ -5785,6 +6433,9 @@ func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnli
 // SessionsOnlineReferenceNumberClosePost invokes POST /sessions/online/{referenceNumber}/close operation.
 //
 // Zamyka sesję interaktywną i rozpoczyna generowanie zbiorczego UPO dla sesji.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/online/{referenceNumber}/close
@@ -5864,7 +6515,8 @@ func (c *Client) sendSessionsOnlineReferenceNumberClosePost(ctx context.Context,
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsOnlineReferenceNumberClosePostResponse(resp)
 	if err != nil {
@@ -5880,6 +6532,9 @@ func (c *Client) sendSessionsOnlineReferenceNumberClosePost(ctx context.Context,
 // > Więcej informacji:
 // > - [Wysłanie faktury](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.
 // md#2-wys%C5%82anie-faktury)
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/online/{referenceNumber}/invoices
@@ -5978,7 +6633,8 @@ func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Conte
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsOnlineReferenceNumberInvoicesPostResponse(resp)
 	if err != nil {
@@ -5991,6 +6647,9 @@ func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Conte
 // SessionsReferenceNumberGet invokes GET /sessions/{referenceNumber} operation.
 //
 // Sprawdza bieżący status sesji o podanym numerze referencyjnym.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6070,7 +6729,8 @@ func (c *Client) sendSessionsReferenceNumberGet(ctx context.Context, params Sess
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -6083,6 +6743,9 @@ func (c *Client) sendSessionsReferenceNumberGet(ctx context.Context, params Sess
 // SessionsReferenceNumberInvoicesFailedGet invokes GET /sessions/{referenceNumber}/invoices/failed operation.
 //
 // Zwraca listę niepoprawnie przetworzonych faktur przesłanych w sesji wraz z ich statusami.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6199,7 +6862,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesFailedGet(ctx context.Contex
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberInvoicesFailedGetResponse(resp)
 	if err != nil {
@@ -6213,6 +6877,9 @@ func (c *Client) sendSessionsReferenceNumberInvoicesFailedGet(ctx context.Contex
 //
 // Zwraca listę faktur przesłanych w sesji wraz z ich statusami, oraz informacje na temat ilości
 // poprawnie i niepoprawnie przetworzonych faktur.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6329,7 +6996,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesGet(ctx context.Context, par
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberInvoicesGetResponse(resp)
 	if err != nil {
@@ -6342,6 +7010,9 @@ func (c *Client) sendSessionsReferenceNumberInvoicesGet(ctx context.Context, par
 // SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
 //
 // Zwraca fakturę przesłaną w sesji wraz ze statusem.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6443,7 +7114,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ct
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -6456,6 +7128,9 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ct
 // SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 //
 // Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6558,7 +7233,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(resp)
 	if err != nil {
@@ -6571,6 +7247,9 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet
 // SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 //
 // Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6673,7 +7352,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx con
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp)
 	if err != nil {
@@ -6686,6 +7366,9 @@ func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx con
 // SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
 //
 // Zwraca XML zawierający zbiorcze UPO dla sesji.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
@@ -6787,7 +7470,8 @@ func (c *Client) sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -6799,7 +7483,10 @@ func (c *Client) sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context
 
 // TestdataAttachmentPost invokes POST /testdata/attachment operation.
 //
-// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
+// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/attachment
 func (c *Client) TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (TestdataAttachmentPostRes, error) {
@@ -6842,7 +7529,8 @@ func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptAtta
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataAttachmentPostResponse(resp)
 	if err != nil {
@@ -6854,7 +7542,10 @@ func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptAtta
 
 // TestdataAttachmentRevokePost invokes POST /testdata/attachment/revoke operation.
 //
-// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot.
+// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/attachment/revoke
 func (c *Client) TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error) {
@@ -6897,7 +7588,8 @@ func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request O
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataAttachmentRevokePostResponse(resp)
 	if err != nil {
@@ -6911,6 +7603,9 @@ func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request O
 //
 // Blokuje możliwość uwierzytelniania dla wskazanego kontekstu. Uwierzytelnianie zakończy się
 // błędem 480.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/context/block
 func (c *Client) TestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (TestdataContextBlockPostRes, error) {
@@ -6953,7 +7648,8 @@ func (c *Client) sendTestdataContextBlockPost(ctx context.Context, request OptBl
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataContextBlockPostResponse(resp)
 	if err != nil {
@@ -6966,6 +7662,9 @@ func (c *Client) sendTestdataContextBlockPost(ctx context.Context, request OptBl
 // TestdataContextUnblockPost invokes POST /testdata/context/unblock operation.
 //
 // Odblokowuje możliwość uwierzytelniania dla wskazanego kontekstu.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/context/unblock
 func (c *Client) TestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (TestdataContextUnblockPostRes, error) {
@@ -7008,7 +7707,8 @@ func (c *Client) sendTestdataContextUnblockPost(ctx context.Context, request Opt
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataContextUnblockPostResponse(resp)
 	if err != nil {
@@ -7021,7 +7721,10 @@ func (c *Client) sendTestdataContextUnblockPost(ctx context.Context, request Opt
 // TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
-// wartości domyślnych. **Tylko na środowiskach testowych.**.
+// wartości domyślnych. **Tylko na środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // DELETE /testdata/limits/context/session
 func (c *Client) TestdataLimitsContextSessionDelete(ctx context.Context) (TestdataLimitsContextSessionDeleteRes, error) {
@@ -7078,7 +7781,8 @@ func (c *Client) sendTestdataLimitsContextSessionDelete(ctx context.Context) (re
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataLimitsContextSessionDeleteResponse(resp)
 	if err != nil {
@@ -7091,7 +7795,10 @@ func (c *Client) sendTestdataLimitsContextSessionDelete(ctx context.Context) (re
 // TestdataLimitsContextSessionPost invokes POST /testdata/limits/context/session operation.
 //
 // Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. **Tylko na
-// środowiskach testowych.**.
+// środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/limits/context/session
 func (c *Client) TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (TestdataLimitsContextSessionPostRes, error) {
@@ -7167,7 +7874,8 @@ func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, reque
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataLimitsContextSessionPostResponse(resp)
 	if err != nil {
@@ -7180,7 +7888,10 @@ func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, reque
 // TestdataLimitsSubjectCertificateDelete invokes DELETE /testdata/limits/subject/certificate operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu do
-// wartości domyślnych. **Tylko na środowiskach testowych.**.
+// wartości domyślnych. **Tylko na środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // DELETE /testdata/limits/subject/certificate
 func (c *Client) TestdataLimitsSubjectCertificateDelete(ctx context.Context) (TestdataLimitsSubjectCertificateDeleteRes, error) {
@@ -7237,7 +7948,8 @@ func (c *Client) sendTestdataLimitsSubjectCertificateDelete(ctx context.Context)
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataLimitsSubjectCertificateDeleteResponse(resp)
 	if err != nil {
@@ -7250,7 +7962,10 @@ func (c *Client) sendTestdataLimitsSubjectCertificateDelete(ctx context.Context)
 // TestdataLimitsSubjectCertificatePost invokes POST /testdata/limits/subject/certificate operation.
 //
 // Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu.
-// **Tylko na środowiskach testowych.**.
+// **Tylko na środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/limits/subject/certificate
 func (c *Client) TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (TestdataLimitsSubjectCertificatePostRes, error) {
@@ -7326,7 +8041,8 @@ func (c *Client) sendTestdataLimitsSubjectCertificatePost(ctx context.Context, r
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataLimitsSubjectCertificatePostResponse(resp)
 	if err != nil {
@@ -7339,6 +8055,9 @@ func (c *Client) sendTestdataLimitsSubjectCertificatePost(ctx context.Context, r
 // TestdataPermissionsPost invokes POST /testdata/permissions operation.
 //
 // Nadawanie uprawnień testowemu podmiotowi lub osobie fizycznej, a także w ich kontekście.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/permissions
 func (c *Client) TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (TestdataPermissionsPostRes, error) {
@@ -7381,7 +8100,8 @@ func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTes
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataPermissionsPostResponse(resp)
 	if err != nil {
@@ -7395,6 +8115,9 @@ func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTes
 //
 // Odbieranie uprawnień nadanych testowemu podmiotowi lub osobie fizycznej, a także w ich
 // kontekście.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/permissions/revoke
 func (c *Client) TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (TestdataPermissionsRevokePostRes, error) {
@@ -7437,7 +8160,8 @@ func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataPermissionsRevokePostResponse(resp)
 	if err != nil {
@@ -7452,6 +8176,9 @@ func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request 
 // Tworzenie nowej osoby fizycznej, której system nadaje uprawnienia właścicielskie. Można
 // również określić, czy osoba ta jest komornikiem – wówczas otrzyma odpowiednie uprawnienie
 // egzekucyjne.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/person
 func (c *Client) TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (TestdataPersonPostRes, error) {
@@ -7494,7 +8221,8 @@ func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptPersonCr
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataPersonPostResponse(resp)
 	if err != nil {
@@ -7507,6 +8235,9 @@ func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptPersonCr
 // TestdataPersonRemovePost invokes POST /testdata/person/remove operation.
 //
 // Usuwanie testowej osoby fizycznej. System automatycznie odbierze jej wszystkie uprawnienia.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/person/remove
 func (c *Client) TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (TestdataPersonRemovePostRes, error) {
@@ -7549,7 +8280,8 @@ func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptPe
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataPersonRemovePostResponse(resp)
 	if err != nil {
@@ -7562,7 +8294,10 @@ func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptPe
 // TestdataRateLimitsDelete invokes DELETE /testdata/rate-limits operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**.
+// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // DELETE /testdata/rate-limits
 func (c *Client) TestdataRateLimitsDelete(ctx context.Context) (TestdataRateLimitsDeleteRes, error) {
@@ -7619,7 +8354,8 @@ func (c *Client) sendTestdataRateLimitsDelete(ctx context.Context) (res Testdata
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataRateLimitsDeleteResponse(resp)
 	if err != nil {
@@ -7632,7 +8368,10 @@ func (c *Client) sendTestdataRateLimitsDelete(ctx context.Context) (res Testdata
 // TestdataRateLimitsPost invokes POST /testdata/rate-limits operation.
 //
 // Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-// bieżącego kontekstu. **Tylko na środowiskach testowych.**.
+// bieżącego kontekstu. **Tylko na środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/rate-limits
 func (c *Client) TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (TestdataRateLimitsPostRes, error) {
@@ -7692,7 +8431,8 @@ func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptSetR
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataRateLimitsPostResponse(resp)
 	if err != nil {
@@ -7706,7 +8446,10 @@ func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptSetR
 //
 // Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
 // bieżącego kontekstu na wartości takie jakie będą na środowisku produkcyjnym. **Tylko na
-// środowiskach testowych.**.
+// środowiskach testowych.**
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/rate-limits/production
 func (c *Client) TestdataRateLimitsProductionPost(ctx context.Context) (TestdataRateLimitsProductionPostRes, error) {
@@ -7763,7 +8506,8 @@ func (c *Client) sendTestdataRateLimitsProductionPost(ctx context.Context) (res 
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataRateLimitsProductionPostResponse(resp)
 	if err != nil {
@@ -7778,6 +8522,9 @@ func (c *Client) sendTestdataRateLimitsProductionPost(ctx context.Context) (res 
 // Tworzenie nowego podmiotu testowego. W przypadku grupy VAT i JST istnieje możliwość stworzenia
 // jednostek podrzędnych. W wyniku takiego działania w systemie powstanie powiązanie między tymi
 // podmiotami.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/subject
 func (c *Client) TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (TestdataSubjectPostRes, error) {
@@ -7820,7 +8567,8 @@ func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptSubject
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataSubjectPostResponse(resp)
 	if err != nil {
@@ -7834,6 +8582,9 @@ func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptSubject
 //
 // Usuwanie podmiotu testowego. W przypadku grupy VAT i JST usunięte zostaną również jednostki
 // podrzędne.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /testdata/subject/remove
 func (c *Client) TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (TestdataSubjectRemovePostRes, error) {
@@ -7876,7 +8627,8 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptS
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTestdataSubjectRemovePostResponse(resp)
 	if err != nil {
@@ -7888,6 +8640,19 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptS
 
 // TokensGet invokes GET /tokens operation.
 //
+// Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
+// uprawnień podmiotu wywołującego.
+// Jeżeli podmiot posiada uprawnienie **CredentialsManage** lub **CredentialsRead**,
+// usługa zwraca wszystkie tokeny wygenerowane w danym kontekście niezależnie od metody
+// uwierzytelnienia.
+// Jeżeli podmiot nie posiada żadnego z powyższych uprawnień, zakres wyników jest ograniczony:
+// - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
+// uwierzytelnienia.
+// - Dla pozostałych metod uwierzytelnienia zwracane są tokeny,
+// których autorem jest wywołujący podmiot – z uwzględnieniem powiązania NIP–PESEL.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 // **Sortowanie:**
 // - dateCreated (Desc).
 //
@@ -8059,7 +8824,8 @@ func (c *Client) sendTokensGet(ctx context.Context, params TokensGetParams) (res
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTokensGetResponse(resp)
 	if err != nil {
@@ -8074,6 +8840,9 @@ func (c *Client) sendTokensGet(ctx context.Context, params TokensGetParams) (res
 // Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
 // Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest
 // zwracany tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // POST /tokens
 func (c *Client) TokensPost(ctx context.Context, request OptGenerateTokenRequest) (TokensPostRes, error) {
@@ -8149,7 +8918,8 @@ func (c *Client) sendTokensPost(ctx context.Context, request OptGenerateTokenReq
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTokensPostResponse(resp)
 	if err != nil {
@@ -8161,8 +8931,19 @@ func (c *Client) sendTokensPost(ctx context.Context, request OptGenerateTokenReq
 
 // TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
 //
-// Unieważniony token nie pozwoli już na uwierzytelnienie się za jego pomocą. Unieważnienie nie
-// może zostać cofnięte.
+// Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
+// zależy od sposobu uwierzytelnienia oraz uprawnień podmiotu wywołującego.
+// Jeżeli podmiot posiada uprawnienie **CredentialsManage**,
+// może unieważnić dowolny aktywny token w danym kontekście niezależnie od metody
+// uwierzytelnienia.
+// Jeżeli podmiot nie posiada powyższego uprawnienia, zakres unieważnienia jest ograniczony:
+// - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
+// do uwierzytelnienia.
+// - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny,
+// których jest autorem – z uwzględnieniem powiązania NIP–PESEL.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // DELETE /tokens/{referenceNumber}
 func (c *Client) TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error) {
@@ -8240,7 +9021,8 @@ func (c *Client) sendTokensReferenceNumberDelete(ctx context.Context, params Tok
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTokensReferenceNumberDeleteResponse(resp)
 	if err != nil {
@@ -8252,7 +9034,9 @@ func (c *Client) sendTokensReferenceNumberDelete(ctx context.Context, params Tok
 
 // TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 //
-// Pobranie statusu tokena.
+// **Headers:**
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie **Problem Details** (`application/problem+json`).
 //
 // GET /tokens/{referenceNumber}
 func (c *Client) TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error) {
@@ -8330,7 +9114,8 @@ func (c *Client) sendTokensReferenceNumberGet(ctx context.Context, params Tokens
 	if err != nil {
 		return res, errors.Wrap(err, "do request")
 	}
-	defer resp.Body.Close()
+	body := resp.Body
+	defer body.Close()
 
 	result, err := decodeTokensReferenceNumberGetResponse(resp)
 	if err != nil {

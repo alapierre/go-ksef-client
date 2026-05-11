@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
+	"github.com/go-faster/jx"
 )
 
 // Ref: #/components/schemas/AllowedIps
@@ -98,6 +99,47 @@ func (s *AmountType) UnmarshalText(data []byte) error {
 	default:
 		return errors.Errorf("invalid value: %q", data)
 	}
+}
+
+// Ref: #/components/schemas/ApiError
+type ApiError struct {
+	// Kod błędu.
+	Code int32 `json:"code"`
+	// Ogólny opis błędu odpowiadający danemu kodowi.
+	Description string `json:"description"`
+	// Lista szczegółowych komunikatów opisujących konkretny błąd.
+	// Może zawierać wiele wpisów dla jednego kodu błędu.
+	Details OptNilStringArray `json:"details"`
+}
+
+// GetCode returns the value of Code.
+func (s *ApiError) GetCode() int32 {
+	return s.Code
+}
+
+// GetDescription returns the value of Description.
+func (s *ApiError) GetDescription() string {
+	return s.Description
+}
+
+// GetDetails returns the value of Details.
+func (s *ApiError) GetDetails() OptNilStringArray {
+	return s.Details
+}
+
+// SetCode sets the value of Code.
+func (s *ApiError) SetCode(val int32) {
+	s.Code = val
+}
+
+// SetDescription sets the value of Description.
+func (s *ApiError) SetDescription(val string) {
+	s.Description = val
+}
+
+// SetDetails sets the value of Details.
+func (s *ApiError) SetDetails(val OptNilStringArray) {
+	s.Details = val
 }
 
 // Ref: #/components/schemas/ApiRateLimitValuesOverride
@@ -330,45 +372,15 @@ func (s *AttachmentPermissionRevokeRequest) SetExpectedEndDate(val OptNilDate) {
 	s.ExpectedEndDate = val
 }
 
-// AuthReferenceNumberGetUnauthorized is response for AuthReferenceNumberGet operation.
-type AuthReferenceNumberGetUnauthorized struct{}
-
-func (*AuthReferenceNumberGetUnauthorized) authReferenceNumberGetRes() {}
-
 // AuthSessionsCurrentDeleteNoContent is response for AuthSessionsCurrentDelete operation.
 type AuthSessionsCurrentDeleteNoContent struct{}
 
 func (*AuthSessionsCurrentDeleteNoContent) authSessionsCurrentDeleteRes() {}
 
-// AuthSessionsCurrentDeleteUnauthorized is response for AuthSessionsCurrentDelete operation.
-type AuthSessionsCurrentDeleteUnauthorized struct{}
-
-func (*AuthSessionsCurrentDeleteUnauthorized) authSessionsCurrentDeleteRes() {}
-
-// AuthSessionsGetUnauthorized is response for AuthSessionsGet operation.
-type AuthSessionsGetUnauthorized struct{}
-
-func (*AuthSessionsGetUnauthorized) authSessionsGetRes() {}
-
 // AuthSessionsReferenceNumberDeleteNoContent is response for AuthSessionsReferenceNumberDelete operation.
 type AuthSessionsReferenceNumberDeleteNoContent struct{}
 
 func (*AuthSessionsReferenceNumberDeleteNoContent) authSessionsReferenceNumberDeleteRes() {}
-
-// AuthSessionsReferenceNumberDeleteUnauthorized is response for AuthSessionsReferenceNumberDelete operation.
-type AuthSessionsReferenceNumberDeleteUnauthorized struct{}
-
-func (*AuthSessionsReferenceNumberDeleteUnauthorized) authSessionsReferenceNumberDeleteRes() {}
-
-// AuthTokenRedeemPostUnauthorized is response for AuthTokenRedeemPost operation.
-type AuthTokenRedeemPostUnauthorized struct{}
-
-func (*AuthTokenRedeemPostUnauthorized) authTokenRedeemPostRes() {}
-
-// AuthTokenRefreshPostUnauthorized is response for AuthTokenRefreshPost operation.
-type AuthTokenRefreshPostUnauthorized struct{}
-
-func (*AuthTokenRefreshPostUnauthorized) authTokenRefreshPostRes() {}
 
 type AuthXadesSignaturePostReq struct {
 	Data io.Reader
@@ -391,6 +403,8 @@ type AuthenticationChallengeResponse struct {
 	Timestamp time.Time `json:"timestamp"`
 	// Czas wygenerowania challenge-a w milisekundach od 1 stycznia 1970 roku (Unix timestamp).
 	TimestampMs int64 `json:"timestampMs"`
+	// Adres IP klienta.
+	ClientIp string `json:"clientIp"`
 }
 
 // GetChallenge returns the value of Challenge.
@@ -408,6 +422,11 @@ func (s *AuthenticationChallengeResponse) GetTimestampMs() int64 {
 	return s.TimestampMs
 }
 
+// GetClientIp returns the value of ClientIp.
+func (s *AuthenticationChallengeResponse) GetClientIp() string {
+	return s.ClientIp
+}
+
 // SetChallenge sets the value of Challenge.
 func (s *AuthenticationChallengeResponse) SetChallenge(val Challenge) {
 	s.Challenge = val
@@ -421,6 +440,11 @@ func (s *AuthenticationChallengeResponse) SetTimestamp(val time.Time) {
 // SetTimestampMs sets the value of TimestampMs.
 func (s *AuthenticationChallengeResponse) SetTimestampMs(val int64) {
 	s.TimestampMs = val
+}
+
+// SetClientIp sets the value of ClientIp.
+func (s *AuthenticationChallengeResponse) SetClientIp(val string) {
+	s.ClientIp = val
 }
 
 func (*AuthenticationChallengeResponse) authChallengePostRes() {}
@@ -556,9 +580,9 @@ type AuthenticationListItem struct {
 	// | PeppolSignature | Podpis dostawcy usług Peppol. |.
 	//
 	// Deprecated: schema marks this property as deprecated.
-	AuthenticationMethod OptAuthenticationMethod `json:"authenticationMethod"`
+	AuthenticationMethod AuthenticationMethod `json:"authenticationMethod"`
 	// Użyta metoda uwierzytelnienia.
-	AuthenticationMethodInfo OptAuthenticationMethodInfo `json:"authenticationMethodInfo"`
+	AuthenticationMethodInfo AuthenticationMethodInfo `json:"authenticationMethodInfo"`
 	// Informacje o aktualnym statusie.
 	// | Code | Description | Details |
 	// | --- | --- | --- |
@@ -614,12 +638,12 @@ func (s *AuthenticationListItem) GetStartDate() time.Time {
 }
 
 // GetAuthenticationMethod returns the value of AuthenticationMethod.
-func (s *AuthenticationListItem) GetAuthenticationMethod() OptAuthenticationMethod {
+func (s *AuthenticationListItem) GetAuthenticationMethod() AuthenticationMethod {
 	return s.AuthenticationMethod
 }
 
 // GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
-func (s *AuthenticationListItem) GetAuthenticationMethodInfo() OptAuthenticationMethodInfo {
+func (s *AuthenticationListItem) GetAuthenticationMethodInfo() AuthenticationMethodInfo {
 	return s.AuthenticationMethodInfo
 }
 
@@ -659,12 +683,12 @@ func (s *AuthenticationListItem) SetStartDate(val time.Time) {
 }
 
 // SetAuthenticationMethod sets the value of AuthenticationMethod.
-func (s *AuthenticationListItem) SetAuthenticationMethod(val OptAuthenticationMethod) {
+func (s *AuthenticationListItem) SetAuthenticationMethod(val AuthenticationMethod) {
 	s.AuthenticationMethod = val
 }
 
 // SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
-func (s *AuthenticationListItem) SetAuthenticationMethodInfo(val OptAuthenticationMethodInfo) {
+func (s *AuthenticationListItem) SetAuthenticationMethodInfo(val AuthenticationMethodInfo) {
 	s.AuthenticationMethodInfo = val
 }
 
@@ -940,9 +964,9 @@ type AuthenticationOperationStatusResponse struct {
 	// | PeppolSignature | Podpis dostawcy usług Peppol. |.
 	//
 	// Deprecated: schema marks this property as deprecated.
-	AuthenticationMethod OptAuthenticationMethod `json:"authenticationMethod"`
+	AuthenticationMethod AuthenticationMethod `json:"authenticationMethod"`
 	// Użyta metoda uwierzytelnienia.
-	AuthenticationMethodInfo OptAuthenticationMethodInfo `json:"authenticationMethodInfo"`
+	AuthenticationMethodInfo AuthenticationMethodInfo `json:"authenticationMethodInfo"`
 	// Informacje o aktualnym statusie.
 	// | Code | Description | Details |
 	// | --- | --- | --- |
@@ -994,12 +1018,12 @@ func (s *AuthenticationOperationStatusResponse) GetStartDate() time.Time {
 }
 
 // GetAuthenticationMethod returns the value of AuthenticationMethod.
-func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethod() OptAuthenticationMethod {
+func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethod() AuthenticationMethod {
 	return s.AuthenticationMethod
 }
 
 // GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
-func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethodInfo() OptAuthenticationMethodInfo {
+func (s *AuthenticationOperationStatusResponse) GetAuthenticationMethodInfo() AuthenticationMethodInfo {
 	return s.AuthenticationMethodInfo
 }
 
@@ -1029,12 +1053,12 @@ func (s *AuthenticationOperationStatusResponse) SetStartDate(val time.Time) {
 }
 
 // SetAuthenticationMethod sets the value of AuthenticationMethod.
-func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethod(val OptAuthenticationMethod) {
+func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethod(val AuthenticationMethod) {
 	s.AuthenticationMethod = val
 }
 
 // SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
-func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethodInfo(val OptAuthenticationMethodInfo) {
+func (s *AuthenticationOperationStatusResponse) SetAuthenticationMethodInfo(val AuthenticationMethodInfo) {
 	s.AuthenticationMethodInfo = val
 }
 
@@ -1199,6 +1223,173 @@ func (s *AuthorizationPolicy) GetAllowedIps() OptNilAllowedIps {
 func (s *AuthorizationPolicy) SetAllowedIps(val OptNilAllowedIps) {
 	s.AllowedIps = val
 }
+
+// Ref: #/components/schemas/BadRequestProblemDetails
+type BadRequestProblemDetails struct {
+	// Bad Request.
+	Title string `json:"title"`
+	// 400.
+	Status int32 `json:"status"`
+	// URI identyfikujące konkretne wystąpienie błędu.
+	Instance string `json:"instance"`
+	// Ogólny opis problemu.
+	Detail string `json:"detail"`
+	// Lista błędów powiązanych z żądaniem.
+	Errors []ApiError `json:"errors"`
+	// Data i czas wystąpienia błędu w UTC.
+	Timestamp time.Time `json:"timestamp"`
+	// Identyfikator śledzenia błędu.
+	TraceId string `json:"traceId"`
+}
+
+// GetTitle returns the value of Title.
+func (s *BadRequestProblemDetails) GetTitle() string {
+	return s.Title
+}
+
+// GetStatus returns the value of Status.
+func (s *BadRequestProblemDetails) GetStatus() int32 {
+	return s.Status
+}
+
+// GetInstance returns the value of Instance.
+func (s *BadRequestProblemDetails) GetInstance() string {
+	return s.Instance
+}
+
+// GetDetail returns the value of Detail.
+func (s *BadRequestProblemDetails) GetDetail() string {
+	return s.Detail
+}
+
+// GetErrors returns the value of Errors.
+func (s *BadRequestProblemDetails) GetErrors() []ApiError {
+	return s.Errors
+}
+
+// GetTimestamp returns the value of Timestamp.
+func (s *BadRequestProblemDetails) GetTimestamp() time.Time {
+	return s.Timestamp
+}
+
+// GetTraceId returns the value of TraceId.
+func (s *BadRequestProblemDetails) GetTraceId() string {
+	return s.TraceId
+}
+
+// SetTitle sets the value of Title.
+func (s *BadRequestProblemDetails) SetTitle(val string) {
+	s.Title = val
+}
+
+// SetStatus sets the value of Status.
+func (s *BadRequestProblemDetails) SetStatus(val int32) {
+	s.Status = val
+}
+
+// SetInstance sets the value of Instance.
+func (s *BadRequestProblemDetails) SetInstance(val string) {
+	s.Instance = val
+}
+
+// SetDetail sets the value of Detail.
+func (s *BadRequestProblemDetails) SetDetail(val string) {
+	s.Detail = val
+}
+
+// SetErrors sets the value of Errors.
+func (s *BadRequestProblemDetails) SetErrors(val []ApiError) {
+	s.Errors = val
+}
+
+// SetTimestamp sets the value of Timestamp.
+func (s *BadRequestProblemDetails) SetTimestamp(val time.Time) {
+	s.Timestamp = val
+}
+
+// SetTraceId sets the value of TraceId.
+func (s *BadRequestProblemDetails) SetTraceId(val string) {
+	s.TraceId = val
+}
+
+func (*BadRequestProblemDetails) authChallengePostRes()                                           {}
+func (*BadRequestProblemDetails) authKsefTokenPostRes()                                           {}
+func (*BadRequestProblemDetails) authReferenceNumberGetRes()                                      {}
+func (*BadRequestProblemDetails) authSessionsCurrentDeleteRes()                                   {}
+func (*BadRequestProblemDetails) authSessionsGetRes()                                             {}
+func (*BadRequestProblemDetails) authSessionsReferenceNumberDeleteRes()                           {}
+func (*BadRequestProblemDetails) authTokenRedeemPostRes()                                         {}
+func (*BadRequestProblemDetails) authTokenRefreshPostRes()                                        {}
+func (*BadRequestProblemDetails) authXadesSignaturePostRes()                                      {}
+func (*BadRequestProblemDetails) certificatesCertificateSerialNumberRevokePostRes()               {}
+func (*BadRequestProblemDetails) certificatesEnrollmentsDataGetRes()                              {}
+func (*BadRequestProblemDetails) certificatesEnrollmentsPostRes()                                 {}
+func (*BadRequestProblemDetails) certificatesEnrollmentsReferenceNumberGetRes()                   {}
+func (*BadRequestProblemDetails) certificatesLimitsGetRes()                                       {}
+func (*BadRequestProblemDetails) certificatesQueryPostRes()                                       {}
+func (*BadRequestProblemDetails) certificatesRetrievePostRes()                                    {}
+func (*BadRequestProblemDetails) invoicesExportsPostRes()                                         {}
+func (*BadRequestProblemDetails) invoicesExportsReferenceNumberGetRes()                           {}
+func (*BadRequestProblemDetails) invoicesKsefKsefNumberGetRes()                                   {}
+func (*BadRequestProblemDetails) invoicesQueryMetadataPostRes()                                   {}
+func (*BadRequestProblemDetails) limitsContextGetRes()                                            {}
+func (*BadRequestProblemDetails) limitsSubjectGetRes()                                            {}
+func (*BadRequestProblemDetails) peppolQueryGetRes()                                              {}
+func (*BadRequestProblemDetails) permissionsAttachmentsStatusGetRes()                             {}
+func (*BadRequestProblemDetails) permissionsAuthorizationsGrantsPermissionIdDeleteRes()           {}
+func (*BadRequestProblemDetails) permissionsAuthorizationsGrantsPostRes()                         {}
+func (*BadRequestProblemDetails) permissionsCommonGrantsPermissionIdDeleteRes()                   {}
+func (*BadRequestProblemDetails) permissionsEntitiesGrantsPostRes()                               {}
+func (*BadRequestProblemDetails) permissionsEuEntitiesAdministrationGrantsPostRes()               {}
+func (*BadRequestProblemDetails) permissionsEuEntitiesGrantsPostRes()                             {}
+func (*BadRequestProblemDetails) permissionsIndirectGrantsPostRes()                               {}
+func (*BadRequestProblemDetails) permissionsOperationsReferenceNumberGetRes()                     {}
+func (*BadRequestProblemDetails) permissionsPersonsGrantsPostRes()                                {}
+func (*BadRequestProblemDetails) permissionsQueryAuthorizationsGrantsPostRes()                    {}
+func (*BadRequestProblemDetails) permissionsQueryEntitiesGrantsPostRes()                          {}
+func (*BadRequestProblemDetails) permissionsQueryEntitiesRolesGetRes()                            {}
+func (*BadRequestProblemDetails) permissionsQueryEuEntitiesGrantsPostRes()                        {}
+func (*BadRequestProblemDetails) permissionsQueryPersonalGrantsPostRes()                          {}
+func (*BadRequestProblemDetails) permissionsQueryPersonsGrantsPostRes()                           {}
+func (*BadRequestProblemDetails) permissionsQuerySubordinateEntitiesRolesPostRes()                {}
+func (*BadRequestProblemDetails) permissionsQuerySubunitsGrantsPostRes()                          {}
+func (*BadRequestProblemDetails) permissionsSubunitsGrantsPostRes()                               {}
+func (*BadRequestProblemDetails) rateLimitsGetRes()                                               {}
+func (*BadRequestProblemDetails) securityPublicKeyCertificatesGetRes()                            {}
+func (*BadRequestProblemDetails) sessionsBatchPostRes()                                           {}
+func (*BadRequestProblemDetails) sessionsBatchReferenceNumberClosePostRes()                       {}
+func (*BadRequestProblemDetails) sessionsGetRes()                                                 {}
+func (*BadRequestProblemDetails) sessionsOnlinePostRes()                                          {}
+func (*BadRequestProblemDetails) sessionsOnlineReferenceNumberClosePostRes()                      {}
+func (*BadRequestProblemDetails) sessionsOnlineReferenceNumberInvoicesPostRes()                   {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberGetRes()                                  {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberInvoicesFailedGetRes()                    {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberInvoicesGetRes()                          {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes()    {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes()         {}
+func (*BadRequestProblemDetails) sessionsReferenceNumberUpoUpoReferenceNumberGetRes()             {}
+func (*BadRequestProblemDetails) testdataAttachmentPostRes()                                      {}
+func (*BadRequestProblemDetails) testdataAttachmentRevokePostRes()                                {}
+func (*BadRequestProblemDetails) testdataContextBlockPostRes()                                    {}
+func (*BadRequestProblemDetails) testdataContextUnblockPostRes()                                  {}
+func (*BadRequestProblemDetails) testdataLimitsContextSessionDeleteRes()                          {}
+func (*BadRequestProblemDetails) testdataLimitsContextSessionPostRes()                            {}
+func (*BadRequestProblemDetails) testdataLimitsSubjectCertificateDeleteRes()                      {}
+func (*BadRequestProblemDetails) testdataLimitsSubjectCertificatePostRes()                        {}
+func (*BadRequestProblemDetails) testdataPermissionsPostRes()                                     {}
+func (*BadRequestProblemDetails) testdataPermissionsRevokePostRes()                               {}
+func (*BadRequestProblemDetails) testdataPersonPostRes()                                          {}
+func (*BadRequestProblemDetails) testdataPersonRemovePostRes()                                    {}
+func (*BadRequestProblemDetails) testdataRateLimitsDeleteRes()                                    {}
+func (*BadRequestProblemDetails) testdataRateLimitsPostRes()                                      {}
+func (*BadRequestProblemDetails) testdataRateLimitsProductionPostRes()                            {}
+func (*BadRequestProblemDetails) testdataSubjectPostRes()                                         {}
+func (*BadRequestProblemDetails) testdataSubjectRemovePostRes()                                   {}
+func (*BadRequestProblemDetails) tokensGetRes()                                                   {}
+func (*BadRequestProblemDetails) tokensPostRes()                                                  {}
+func (*BadRequestProblemDetails) tokensReferenceNumberDeleteRes()                                 {}
+func (*BadRequestProblemDetails) tokensReferenceNumberGetRes()                                    {}
 
 // Ref: #/components/schemas/BatchFileInfo
 type BatchFileInfo struct {
@@ -2067,43 +2258,6 @@ type CertificatesCertificateSerialNumberRevokePostNoContent struct{}
 
 func (*CertificatesCertificateSerialNumberRevokePostNoContent) certificatesCertificateSerialNumberRevokePostRes() {
 }
-
-// CertificatesCertificateSerialNumberRevokePostUnauthorized is response for CertificatesCertificateSerialNumberRevokePost operation.
-type CertificatesCertificateSerialNumberRevokePostUnauthorized struct{}
-
-func (*CertificatesCertificateSerialNumberRevokePostUnauthorized) certificatesCertificateSerialNumberRevokePostRes() {
-}
-
-// CertificatesEnrollmentsDataGetUnauthorized is response for CertificatesEnrollmentsDataGet operation.
-type CertificatesEnrollmentsDataGetUnauthorized struct{}
-
-func (*CertificatesEnrollmentsDataGetUnauthorized) certificatesEnrollmentsDataGetRes() {}
-
-// CertificatesEnrollmentsPostUnauthorized is response for CertificatesEnrollmentsPost operation.
-type CertificatesEnrollmentsPostUnauthorized struct{}
-
-func (*CertificatesEnrollmentsPostUnauthorized) certificatesEnrollmentsPostRes() {}
-
-// CertificatesEnrollmentsReferenceNumberGetUnauthorized is response for CertificatesEnrollmentsReferenceNumberGet operation.
-type CertificatesEnrollmentsReferenceNumberGetUnauthorized struct{}
-
-func (*CertificatesEnrollmentsReferenceNumberGetUnauthorized) certificatesEnrollmentsReferenceNumberGetRes() {
-}
-
-// CertificatesLimitsGetUnauthorized is response for CertificatesLimitsGet operation.
-type CertificatesLimitsGetUnauthorized struct{}
-
-func (*CertificatesLimitsGetUnauthorized) certificatesLimitsGetRes() {}
-
-// CertificatesQueryPostUnauthorized is response for CertificatesQueryPost operation.
-type CertificatesQueryPostUnauthorized struct{}
-
-func (*CertificatesQueryPostUnauthorized) certificatesQueryPostRes() {}
-
-// CertificatesRetrievePostUnauthorized is response for CertificatesRetrievePost operation.
-type CertificatesRetrievePostUnauthorized struct{}
-
-func (*CertificatesRetrievePostUnauthorized) certificatesRetrievePostRes() {}
 
 type Challenge string
 
@@ -3764,6 +3918,8 @@ type EncryptionInfo struct {
 	// Wektor inicjalizujący (IV) o długości 16 bajtów, używany do szyfrowania symetrycznego,
 	// zakodowany w formacie Base64.
 	InitializationVector []byte `json:"initializationVector"`
+	// Identyfikator klucza publicznego użytego do szyfrowania.
+	PublicKeyId OptNilByte `json:"publicKeyId"`
 }
 
 // GetEncryptedSymmetricKey returns the value of EncryptedSymmetricKey.
@@ -3776,6 +3932,11 @@ func (s *EncryptionInfo) GetInitializationVector() []byte {
 	return s.InitializationVector
 }
 
+// GetPublicKeyId returns the value of PublicKeyId.
+func (s *EncryptionInfo) GetPublicKeyId() OptNilByte {
+	return s.PublicKeyId
+}
+
 // SetEncryptedSymmetricKey sets the value of EncryptedSymmetricKey.
 func (s *EncryptionInfo) SetEncryptedSymmetricKey(val []byte) {
 	s.EncryptedSymmetricKey = val
@@ -3784,6 +3945,11 @@ func (s *EncryptionInfo) SetEncryptedSymmetricKey(val []byte) {
 // SetInitializationVector sets the value of InitializationVector.
 func (s *EncryptionInfo) SetInitializationVector(val []byte) {
 	s.InitializationVector = val
+}
+
+// SetPublicKeyId sets the value of PublicKeyId.
+func (s *EncryptionInfo) SetPublicKeyId(val OptNilByte) {
+	s.PublicKeyId = val
 }
 
 // Ref: #/components/schemas/EnrollCertificateRequest
@@ -4563,6 +4729,129 @@ func (s *EntityPermission) SetCanDelegate(val OptBool) {
 	s.CanDelegate = val
 }
 
+// Ref: #/components/schemas/EntityPermissionItem
+type EntityPermissionItem struct {
+	// Identyfikator uprawnienia.
+	ID PermissionId `json:"id"`
+	// Identyfikator kontekstu podmiotu, który nadał uprawnienia do obsługi faktur.
+	// | Type | Value |
+	// | --- | --- |
+	// | Nip | 10 cyfrowy numer NIP |
+	// | InternalId | Dwuczłonowy identyfikator składający się z numeru NIP i 5 cyfr:
+	// `{nip}-{5_cyfr}` |.
+	ContextIdentifier EntityPermissionsContextIdentifier `json:"contextIdentifier"`
+	// Rodzaj uprawnienia.
+	PermissionScope EntityPermissionItemScope `json:"permissionScope"`
+	// Opis uprawnienia.
+	Description string `json:"description"`
+	// Data rozpoczęcia obowiązywania uprawnienia.
+	StartDate time.Time `json:"startDate"`
+	// Flaga określająca, czy uprawnienie ma być możliwe do dalszego przekazywania.
+	CanDelegate bool `json:"canDelegate"`
+}
+
+// GetID returns the value of ID.
+func (s *EntityPermissionItem) GetID() PermissionId {
+	return s.ID
+}
+
+// GetContextIdentifier returns the value of ContextIdentifier.
+func (s *EntityPermissionItem) GetContextIdentifier() EntityPermissionsContextIdentifier {
+	return s.ContextIdentifier
+}
+
+// GetPermissionScope returns the value of PermissionScope.
+func (s *EntityPermissionItem) GetPermissionScope() EntityPermissionItemScope {
+	return s.PermissionScope
+}
+
+// GetDescription returns the value of Description.
+func (s *EntityPermissionItem) GetDescription() string {
+	return s.Description
+}
+
+// GetStartDate returns the value of StartDate.
+func (s *EntityPermissionItem) GetStartDate() time.Time {
+	return s.StartDate
+}
+
+// GetCanDelegate returns the value of CanDelegate.
+func (s *EntityPermissionItem) GetCanDelegate() bool {
+	return s.CanDelegate
+}
+
+// SetID sets the value of ID.
+func (s *EntityPermissionItem) SetID(val PermissionId) {
+	s.ID = val
+}
+
+// SetContextIdentifier sets the value of ContextIdentifier.
+func (s *EntityPermissionItem) SetContextIdentifier(val EntityPermissionsContextIdentifier) {
+	s.ContextIdentifier = val
+}
+
+// SetPermissionScope sets the value of PermissionScope.
+func (s *EntityPermissionItem) SetPermissionScope(val EntityPermissionItemScope) {
+	s.PermissionScope = val
+}
+
+// SetDescription sets the value of Description.
+func (s *EntityPermissionItem) SetDescription(val string) {
+	s.Description = val
+}
+
+// SetStartDate sets the value of StartDate.
+func (s *EntityPermissionItem) SetStartDate(val time.Time) {
+	s.StartDate = val
+}
+
+// SetCanDelegate sets the value of CanDelegate.
+func (s *EntityPermissionItem) SetCanDelegate(val bool) {
+	s.CanDelegate = val
+}
+
+// Ref: #/components/schemas/EntityPermissionItemScope
+type EntityPermissionItemScope string
+
+const (
+	EntityPermissionItemScopeInvoiceWrite EntityPermissionItemScope = "InvoiceWrite"
+	EntityPermissionItemScopeInvoiceRead  EntityPermissionItemScope = "InvoiceRead"
+)
+
+// AllValues returns all EntityPermissionItemScope values.
+func (EntityPermissionItemScope) AllValues() []EntityPermissionItemScope {
+	return []EntityPermissionItemScope{
+		EntityPermissionItemScopeInvoiceWrite,
+		EntityPermissionItemScopeInvoiceRead,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s EntityPermissionItemScope) MarshalText() ([]byte, error) {
+	switch s {
+	case EntityPermissionItemScopeInvoiceWrite:
+		return []byte(s), nil
+	case EntityPermissionItemScopeInvoiceRead:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *EntityPermissionItemScope) UnmarshalText(data []byte) error {
+	switch EntityPermissionItemScope(data) {
+	case EntityPermissionItemScopeInvoiceWrite:
+		*s = EntityPermissionItemScopeInvoiceWrite
+		return nil
+	case EntityPermissionItemScopeInvoiceRead:
+		*s = EntityPermissionItemScopeInvoiceRead
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 // Ref: #/components/schemas/EntityPermissionType
 type EntityPermissionType string
 
@@ -4599,6 +4888,82 @@ func (s *EntityPermissionType) UnmarshalText(data []byte) error {
 		return nil
 	case EntityPermissionTypeInvoiceRead:
 		*s = EntityPermissionTypeInvoiceRead
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Identyfikator kontekstu podmiotu, który nadał uprawnienia do obsługi faktur.
+// | Type | Value |
+// | --- | --- |
+// | Nip | 10 cyfrowy numer NIP |
+// | InternalId | Dwuczłonowy identyfikator składający się z numeru NIP i 5 cyfr:
+// `{nip}-{5_cyfr}` |.
+// Ref: #/components/schemas/EntityPermissionsContextIdentifier
+type EntityPermissionsContextIdentifier struct {
+	// Typ identyfikatora.
+	Type EntityPermissionsContextIdentifierType `json:"type"`
+	// Wartość identyfikatora.
+	Value string `json:"value"`
+}
+
+// GetType returns the value of Type.
+func (s *EntityPermissionsContextIdentifier) GetType() EntityPermissionsContextIdentifierType {
+	return s.Type
+}
+
+// GetValue returns the value of Value.
+func (s *EntityPermissionsContextIdentifier) GetValue() string {
+	return s.Value
+}
+
+// SetType sets the value of Type.
+func (s *EntityPermissionsContextIdentifier) SetType(val EntityPermissionsContextIdentifierType) {
+	s.Type = val
+}
+
+// SetValue sets the value of Value.
+func (s *EntityPermissionsContextIdentifier) SetValue(val string) {
+	s.Value = val
+}
+
+// Ref: #/components/schemas/EntityPermissionsContextIdentifierType
+type EntityPermissionsContextIdentifierType string
+
+const (
+	EntityPermissionsContextIdentifierTypeNip        EntityPermissionsContextIdentifierType = "Nip"
+	EntityPermissionsContextIdentifierTypeInternalId EntityPermissionsContextIdentifierType = "InternalId"
+)
+
+// AllValues returns all EntityPermissionsContextIdentifierType values.
+func (EntityPermissionsContextIdentifierType) AllValues() []EntityPermissionsContextIdentifierType {
+	return []EntityPermissionsContextIdentifierType{
+		EntityPermissionsContextIdentifierTypeNip,
+		EntityPermissionsContextIdentifierTypeInternalId,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s EntityPermissionsContextIdentifierType) MarshalText() ([]byte, error) {
+	switch s {
+	case EntityPermissionsContextIdentifierTypeNip:
+		return []byte(s), nil
+	case EntityPermissionsContextIdentifierTypeInternalId:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *EntityPermissionsContextIdentifierType) UnmarshalText(data []byte) error {
+	switch EntityPermissionsContextIdentifierType(data) {
+	case EntityPermissionsContextIdentifierTypeNip:
+		*s = EntityPermissionsContextIdentifierTypeNip
+		return nil
+	case EntityPermissionsContextIdentifierTypeInternalId:
+		*s = EntityPermissionsContextIdentifierTypeInternalId
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -4658,6 +5023,27 @@ func (s *EntityPermissionsGrantRequest) SetDescription(val string) {
 // SetSubjectDetails sets the value of SubjectDetails.
 func (s *EntityPermissionsGrantRequest) SetSubjectDetails(val EntityDetails) {
 	s.SubjectDetails = val
+}
+
+// Ref: #/components/schemas/EntityPermissionsQueryRequest
+type EntityPermissionsQueryRequest struct {
+	// Identyfikator kontekstu podmiotu, który nadał uprawnienia do obsługi faktur.
+	// | Type | Value |
+	// | --- | --- |
+	// | Nip | 10 cyfrowy numer NIP |
+	// | InternalId | Dwuczłonowy identyfikator składający się z numeru NIP i 5 cyfr:
+	// `{nip}-{5_cyfr}` |.
+	ContextIdentifier OptNilEntityPermissionsContextIdentifier `json:"contextIdentifier"`
+}
+
+// GetContextIdentifier returns the value of ContextIdentifier.
+func (s *EntityPermissionsQueryRequest) GetContextIdentifier() OptNilEntityPermissionsContextIdentifier {
+	return s.ContextIdentifier
+}
+
+// SetContextIdentifier sets the value of ContextIdentifier.
+func (s *EntityPermissionsQueryRequest) SetContextIdentifier(val OptNilEntityPermissionsContextIdentifier) {
+	s.ContextIdentifier = val
 }
 
 // Identyfikator podmiotu.
@@ -6064,6 +6450,7 @@ func (s *ExceptionInfo) SetTimestamp(val OptDateTime) {
 	s.Timestamp = val
 }
 
+// Deprecated: schema marks this type as deprecated.
 // Ref: #/components/schemas/ExceptionResponse
 type ExceptionResponse struct {
 	Exception OptNilExceptionInfo `json:"exception"`
@@ -6113,6 +6500,7 @@ func (*ExceptionResponse) permissionsIndirectGrantsPostRes()                    
 func (*ExceptionResponse) permissionsOperationsReferenceNumberGetRes()                     {}
 func (*ExceptionResponse) permissionsPersonsGrantsPostRes()                                {}
 func (*ExceptionResponse) permissionsQueryAuthorizationsGrantsPostRes()                    {}
+func (*ExceptionResponse) permissionsQueryEntitiesGrantsPostRes()                          {}
 func (*ExceptionResponse) permissionsQueryEntitiesRolesGetRes()                            {}
 func (*ExceptionResponse) permissionsQueryEuEntitiesGrantsPostRes()                        {}
 func (*ExceptionResponse) permissionsQueryPersonalGrantsPostRes()                          {}
@@ -6174,6 +6562,207 @@ func (s *ExportInvoicesResponse) SetReferenceNumber(val ReferenceNumber) {
 }
 
 func (*ExportInvoicesResponse) invoicesExportsPostRes() {}
+
+// Ref: #/components/schemas/ForbiddenProblemDetails
+type ForbiddenProblemDetails struct {
+	// Forbidden.
+	Title string `json:"title"`
+	// 403.
+	Status int32 `json:"status"`
+	// Szczegółowy opis przyczyny odmowy dostępu.
+	Detail string `json:"detail"`
+	// URI identyfikujące konkretne wystąpienie błędu.
+	Instance OptNilString `json:"instance"`
+	// Kod przyczyny odmowy dostępu.
+	// | Code | Opis |
+	// |------|-------------|
+	// | missing-permissions | Brak wymaganych uprawnień do wykonania operacji w bieżącym kontekście.
+	// |
+	// | ip-not-allowed | Żądanie pochodzi z adresu IP innego niż wskazany podczas uwierzytelnienia. |
+	// | insufficient-resource-access | Brak dostępu do wskazanego zasobu. |
+	// | auth-method-not-allowed | Ta operacja nie jest dostępna dla użytej metody uwierzytelnienia. |
+	// | security-service-blocked | Żądanie zostało zablokowane przez mechanizmy bezpieczeństwa. |
+	// | context-type-not-allowed | Operacja nie jest dostępna dla uwierzytelnionego typu kontekstu. |.
+	ReasonCode string `json:"reasonCode"`
+	// Dodatkowe dane zależne od `reasonCode`.
+	// | Code  | Security |
+	// |------| ------------ |
+	// | missing-permissions | requiredAnyOfPermissions: string[], presentPermissions: string[] |
+	// | ip-not-allowed | clientIp: string |
+	// | insufficient-resource-access  ||
+	// | auth-method-not-allowed | authenticationMethodCategory: string  |
+	// | security-service-blocked | incidentId: string, clientIp: string  |
+	// | context-type-not-allowed | contextIdentifierType: string |.
+	Security OptNilForbiddenProblemDetailsSecurity `json:"security"`
+	// Identyfikator śledzenia błędu.
+	TraceId OptNilString `json:"traceId"`
+	// Data i czas wystąpienia błędu w UTC.
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// GetTitle returns the value of Title.
+func (s *ForbiddenProblemDetails) GetTitle() string {
+	return s.Title
+}
+
+// GetStatus returns the value of Status.
+func (s *ForbiddenProblemDetails) GetStatus() int32 {
+	return s.Status
+}
+
+// GetDetail returns the value of Detail.
+func (s *ForbiddenProblemDetails) GetDetail() string {
+	return s.Detail
+}
+
+// GetInstance returns the value of Instance.
+func (s *ForbiddenProblemDetails) GetInstance() OptNilString {
+	return s.Instance
+}
+
+// GetReasonCode returns the value of ReasonCode.
+func (s *ForbiddenProblemDetails) GetReasonCode() string {
+	return s.ReasonCode
+}
+
+// GetSecurity returns the value of Security.
+func (s *ForbiddenProblemDetails) GetSecurity() OptNilForbiddenProblemDetailsSecurity {
+	return s.Security
+}
+
+// GetTraceId returns the value of TraceId.
+func (s *ForbiddenProblemDetails) GetTraceId() OptNilString {
+	return s.TraceId
+}
+
+// GetTimestamp returns the value of Timestamp.
+func (s *ForbiddenProblemDetails) GetTimestamp() time.Time {
+	return s.Timestamp
+}
+
+// SetTitle sets the value of Title.
+func (s *ForbiddenProblemDetails) SetTitle(val string) {
+	s.Title = val
+}
+
+// SetStatus sets the value of Status.
+func (s *ForbiddenProblemDetails) SetStatus(val int32) {
+	s.Status = val
+}
+
+// SetDetail sets the value of Detail.
+func (s *ForbiddenProblemDetails) SetDetail(val string) {
+	s.Detail = val
+}
+
+// SetInstance sets the value of Instance.
+func (s *ForbiddenProblemDetails) SetInstance(val OptNilString) {
+	s.Instance = val
+}
+
+// SetReasonCode sets the value of ReasonCode.
+func (s *ForbiddenProblemDetails) SetReasonCode(val string) {
+	s.ReasonCode = val
+}
+
+// SetSecurity sets the value of Security.
+func (s *ForbiddenProblemDetails) SetSecurity(val OptNilForbiddenProblemDetailsSecurity) {
+	s.Security = val
+}
+
+// SetTraceId sets the value of TraceId.
+func (s *ForbiddenProblemDetails) SetTraceId(val OptNilString) {
+	s.TraceId = val
+}
+
+// SetTimestamp sets the value of Timestamp.
+func (s *ForbiddenProblemDetails) SetTimestamp(val time.Time) {
+	s.Timestamp = val
+}
+
+func (*ForbiddenProblemDetails) authReferenceNumberGetRes()                                      {}
+func (*ForbiddenProblemDetails) authSessionsCurrentDeleteRes()                                   {}
+func (*ForbiddenProblemDetails) authSessionsGetRes()                                             {}
+func (*ForbiddenProblemDetails) authSessionsReferenceNumberDeleteRes()                           {}
+func (*ForbiddenProblemDetails) authTokenRedeemPostRes()                                         {}
+func (*ForbiddenProblemDetails) authTokenRefreshPostRes()                                        {}
+func (*ForbiddenProblemDetails) certificatesCertificateSerialNumberRevokePostRes()               {}
+func (*ForbiddenProblemDetails) certificatesEnrollmentsDataGetRes()                              {}
+func (*ForbiddenProblemDetails) certificatesEnrollmentsPostRes()                                 {}
+func (*ForbiddenProblemDetails) certificatesEnrollmentsReferenceNumberGetRes()                   {}
+func (*ForbiddenProblemDetails) certificatesLimitsGetRes()                                       {}
+func (*ForbiddenProblemDetails) certificatesQueryPostRes()                                       {}
+func (*ForbiddenProblemDetails) certificatesRetrievePostRes()                                    {}
+func (*ForbiddenProblemDetails) invoicesExportsPostRes()                                         {}
+func (*ForbiddenProblemDetails) invoicesExportsReferenceNumberGetRes()                           {}
+func (*ForbiddenProblemDetails) invoicesKsefKsefNumberGetRes()                                   {}
+func (*ForbiddenProblemDetails) invoicesQueryMetadataPostRes()                                   {}
+func (*ForbiddenProblemDetails) limitsContextGetRes()                                            {}
+func (*ForbiddenProblemDetails) limitsSubjectGetRes()                                            {}
+func (*ForbiddenProblemDetails) permissionsAttachmentsStatusGetRes()                             {}
+func (*ForbiddenProblemDetails) permissionsAuthorizationsGrantsPermissionIdDeleteRes()           {}
+func (*ForbiddenProblemDetails) permissionsAuthorizationsGrantsPostRes()                         {}
+func (*ForbiddenProblemDetails) permissionsCommonGrantsPermissionIdDeleteRes()                   {}
+func (*ForbiddenProblemDetails) permissionsEntitiesGrantsPostRes()                               {}
+func (*ForbiddenProblemDetails) permissionsEuEntitiesAdministrationGrantsPostRes()               {}
+func (*ForbiddenProblemDetails) permissionsEuEntitiesGrantsPostRes()                             {}
+func (*ForbiddenProblemDetails) permissionsIndirectGrantsPostRes()                               {}
+func (*ForbiddenProblemDetails) permissionsOperationsReferenceNumberGetRes()                     {}
+func (*ForbiddenProblemDetails) permissionsPersonsGrantsPostRes()                                {}
+func (*ForbiddenProblemDetails) permissionsQueryAuthorizationsGrantsPostRes()                    {}
+func (*ForbiddenProblemDetails) permissionsQueryEntitiesGrantsPostRes()                          {}
+func (*ForbiddenProblemDetails) permissionsQueryEntitiesRolesGetRes()                            {}
+func (*ForbiddenProblemDetails) permissionsQueryEuEntitiesGrantsPostRes()                        {}
+func (*ForbiddenProblemDetails) permissionsQueryPersonalGrantsPostRes()                          {}
+func (*ForbiddenProblemDetails) permissionsQueryPersonsGrantsPostRes()                           {}
+func (*ForbiddenProblemDetails) permissionsQuerySubordinateEntitiesRolesPostRes()                {}
+func (*ForbiddenProblemDetails) permissionsQuerySubunitsGrantsPostRes()                          {}
+func (*ForbiddenProblemDetails) permissionsSubunitsGrantsPostRes()                               {}
+func (*ForbiddenProblemDetails) rateLimitsGetRes()                                               {}
+func (*ForbiddenProblemDetails) sessionsBatchPostRes()                                           {}
+func (*ForbiddenProblemDetails) sessionsBatchReferenceNumberClosePostRes()                       {}
+func (*ForbiddenProblemDetails) sessionsGetRes()                                                 {}
+func (*ForbiddenProblemDetails) sessionsOnlinePostRes()                                          {}
+func (*ForbiddenProblemDetails) sessionsOnlineReferenceNumberClosePostRes()                      {}
+func (*ForbiddenProblemDetails) sessionsOnlineReferenceNumberInvoicesPostRes()                   {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberGetRes()                                  {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberInvoicesFailedGetRes()                    {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberInvoicesGetRes()                          {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes()    {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes()         {}
+func (*ForbiddenProblemDetails) sessionsReferenceNumberUpoUpoReferenceNumberGetRes()             {}
+func (*ForbiddenProblemDetails) testdataLimitsContextSessionDeleteRes()                          {}
+func (*ForbiddenProblemDetails) testdataLimitsContextSessionPostRes()                            {}
+func (*ForbiddenProblemDetails) testdataLimitsSubjectCertificateDeleteRes()                      {}
+func (*ForbiddenProblemDetails) testdataLimitsSubjectCertificatePostRes()                        {}
+func (*ForbiddenProblemDetails) testdataRateLimitsDeleteRes()                                    {}
+func (*ForbiddenProblemDetails) testdataRateLimitsPostRes()                                      {}
+func (*ForbiddenProblemDetails) testdataRateLimitsProductionPostRes()                            {}
+func (*ForbiddenProblemDetails) tokensGetRes()                                                   {}
+func (*ForbiddenProblemDetails) tokensPostRes()                                                  {}
+func (*ForbiddenProblemDetails) tokensReferenceNumberDeleteRes()                                 {}
+func (*ForbiddenProblemDetails) tokensReferenceNumberGetRes()                                    {}
+
+// Dodatkowe dane zależne od `reasonCode`.
+// | Code  | Security |
+// |------| ------------ |
+// | missing-permissions | requiredAnyOfPermissions: string[], presentPermissions: string[] |
+// | ip-not-allowed | clientIp: string |
+// | insufficient-resource-access  ||
+// | auth-method-not-allowed | authenticationMethodCategory: string  |
+// | security-service-blocked | incidentId: string, clientIp: string  |
+// | context-type-not-allowed | contextIdentifierType: string |.
+type ForbiddenProblemDetailsSecurity map[string]jx.Raw
+
+func (s *ForbiddenProblemDetailsSecurity) init() ForbiddenProblemDetailsSecurity {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
+}
 
 // Ref: #/components/schemas/FormCode
 type FormCode struct {
@@ -6272,6 +6861,87 @@ func (s *GenerateTokenResponse) SetToken(val string) {
 }
 
 func (*GenerateTokenResponse) tokensPostRes() {}
+
+// Ref: #/components/schemas/GoneProblemDetails
+type GoneProblemDetails struct {
+	// Gone.
+	Title string `json:"title"`
+	// 410.
+	Status int32 `json:"status"`
+	// URI identyfikujące konkretne wystąpienie błędu.
+	Instance string `json:"instance"`
+	// Ogólny opis problemu.
+	Detail string `json:"detail"`
+	// Data i czas wystąpienia błędu w UTC.
+	Timestamp time.Time `json:"timestamp"`
+	// Identyfikator śledzenia błędu.
+	TraceId string `json:"traceId"`
+}
+
+// GetTitle returns the value of Title.
+func (s *GoneProblemDetails) GetTitle() string {
+	return s.Title
+}
+
+// GetStatus returns the value of Status.
+func (s *GoneProblemDetails) GetStatus() int32 {
+	return s.Status
+}
+
+// GetInstance returns the value of Instance.
+func (s *GoneProblemDetails) GetInstance() string {
+	return s.Instance
+}
+
+// GetDetail returns the value of Detail.
+func (s *GoneProblemDetails) GetDetail() string {
+	return s.Detail
+}
+
+// GetTimestamp returns the value of Timestamp.
+func (s *GoneProblemDetails) GetTimestamp() time.Time {
+	return s.Timestamp
+}
+
+// GetTraceId returns the value of TraceId.
+func (s *GoneProblemDetails) GetTraceId() string {
+	return s.TraceId
+}
+
+// SetTitle sets the value of Title.
+func (s *GoneProblemDetails) SetTitle(val string) {
+	s.Title = val
+}
+
+// SetStatus sets the value of Status.
+func (s *GoneProblemDetails) SetStatus(val int32) {
+	s.Status = val
+}
+
+// SetInstance sets the value of Instance.
+func (s *GoneProblemDetails) SetInstance(val string) {
+	s.Instance = val
+}
+
+// SetDetail sets the value of Detail.
+func (s *GoneProblemDetails) SetDetail(val string) {
+	s.Detail = val
+}
+
+// SetTimestamp sets the value of Timestamp.
+func (s *GoneProblemDetails) SetTimestamp(val time.Time) {
+	s.Timestamp = val
+}
+
+// SetTraceId sets the value of TraceId.
+func (s *GoneProblemDetails) SetTraceId(val string) {
+	s.TraceId = val
+}
+
+func (*GoneProblemDetails) authReferenceNumberGetRes()                    {}
+func (*GoneProblemDetails) certificatesEnrollmentsReferenceNumberGetRes() {}
+func (*GoneProblemDetails) invoicesExportsReferenceNumberGetRes()         {}
+func (*GoneProblemDetails) permissionsOperationsReferenceNumberGetRes()   {}
 
 // Dane dokumentu tożsamości osoby fizycznej.
 // Ref: #/components/schemas/IdDocument
@@ -6613,6 +7283,8 @@ type InitTokenAuthenticationRequest struct {
 	// Zaszyfrowany token wraz z timestampem z challenge'a, w postaci `token|timestamp`, zakodowany w
 	// formacie Base64.
 	EncryptedToken []byte `json:"encryptedToken"`
+	// Identyfikator klucza publicznego użytego do szyfrowania tokena.
+	PublicKeyId OptNilByte `json:"publicKeyId"`
 	// Polityka autoryzacji żądań przy każdym użyciu tokena dostępu.
 	AuthorizationPolicy OptNilAuthorizationPolicy `json:"authorizationPolicy"`
 }
@@ -6630,6 +7302,11 @@ func (s *InitTokenAuthenticationRequest) GetContextIdentifier() AuthenticationCo
 // GetEncryptedToken returns the value of EncryptedToken.
 func (s *InitTokenAuthenticationRequest) GetEncryptedToken() []byte {
 	return s.EncryptedToken
+}
+
+// GetPublicKeyId returns the value of PublicKeyId.
+func (s *InitTokenAuthenticationRequest) GetPublicKeyId() OptNilByte {
+	return s.PublicKeyId
 }
 
 // GetAuthorizationPolicy returns the value of AuthorizationPolicy.
@@ -6652,6 +7329,11 @@ func (s *InitTokenAuthenticationRequest) SetEncryptedToken(val []byte) {
 	s.EncryptedToken = val
 }
 
+// SetPublicKeyId sets the value of PublicKeyId.
+func (s *InitTokenAuthenticationRequest) SetPublicKeyId(val OptNilByte) {
+	s.PublicKeyId = val
+}
+
 // SetAuthorizationPolicy sets the value of AuthorizationPolicy.
 func (s *InitTokenAuthenticationRequest) SetAuthorizationPolicy(val OptNilAuthorizationPolicy) {
 	s.AuthorizationPolicy = val
@@ -6661,6 +7343,8 @@ func (s *InitTokenAuthenticationRequest) SetAuthorizationPolicy(val OptNilAuthor
 type InvoiceExportRequest struct {
 	// Informacje wymagane do zaszyfrowania wyniku zapytania.
 	Encryption EncryptionInfo `json:"encryption"`
+	// Określa, czy zwrócić tylko metadane faktur (plik _metadata.json bez faktur).
+	OnlyMetadata OptBool `json:"onlyMetadata"`
 	// Zestaw filtrów do wyszukiwania faktur.
 	Filters InvoiceQueryFilters `json:"filters"`
 }
@@ -6668,6 +7352,11 @@ type InvoiceExportRequest struct {
 // GetEncryption returns the value of Encryption.
 func (s *InvoiceExportRequest) GetEncryption() EncryptionInfo {
 	return s.Encryption
+}
+
+// GetOnlyMetadata returns the value of OnlyMetadata.
+func (s *InvoiceExportRequest) GetOnlyMetadata() OptBool {
+	return s.OnlyMetadata
 }
 
 // GetFilters returns the value of Filters.
@@ -6678,6 +7367,11 @@ func (s *InvoiceExportRequest) GetFilters() InvoiceQueryFilters {
 // SetEncryption sets the value of Encryption.
 func (s *InvoiceExportRequest) SetEncryption(val EncryptionInfo) {
 	s.Encryption = val
+}
+
+// SetOnlyMetadata sets the value of OnlyMetadata.
+func (s *InvoiceExportRequest) SetOnlyMetadata(val OptBool) {
+	s.OnlyMetadata = val
 }
 
 // SetFilters sets the value of Filters.
@@ -6773,7 +7467,7 @@ type InvoiceMetadata struct {
 	NetAmount float64 `json:"netAmount"`
 	// Łączna kwota brutto.
 	GrossAmount float64 `json:"grossAmount"`
-	// Łączna kwota VAT.
+	// Łączna kwota VAT wyrażona w PLN.
 	VatAmount float64 `json:"vatAmount"`
 	// Kod waluty.
 	Currency string `json:"currency"`
@@ -6792,8 +7486,8 @@ type InvoiceMetadata struct {
 	// | VatPef | (PEF) Podstawowa |
 	// | VatPefSp | (PEF) Specjalizowana |
 	// | KorPef | (PEF) Korygująca |
-	// | VatRr | (RR) Podstawowa |
-	// | KorVatRr | (RR) Korygująca |.
+	// | VatRr | (FA_RR) Podstawowa |
+	// | KorVatRr | (FA_RR) Korygująca |.
 	InvoiceType InvoiceType `json:"invoiceType"`
 	// Struktura dokumentu faktury.
 	// Obsługiwane schematy:
@@ -6807,7 +7501,8 @@ type InvoiceMetadata struct {
 	// xsd) | 2-1 | PEF |
 	// | [PEF_KOR (3)](https://github.
 	// com/CIRFMF/ksef-docs/blob/main/faktury/schemy/PEF/Schemat_PEF_KOR(3)_v2-1.xsd) | 2-1 | PEF |
-	// | FA_RR (1) | 1-0E | RR |.
+	// | [FA_RR (1)](https://github.
+	// com/CIRFMF/ksef-docs/blob/main/faktury/schemy/RR/schemat_FA_RR(1)_v1-1E.xsd) | 1-1E | FA_RR |.
 	FormCode FormCode `json:"formCode"`
 	// Czy faktura została wystawiona w trybie samofakturowania.
 	IsSelfInvoicing bool `json:"isSelfInvoicing"`
@@ -7792,7 +8487,7 @@ type InvoiceQueryFilters struct {
 	// | --- | --- |
 	// | FA | Faktura VAT |
 	// | PEF | Faktura PEF |
-	// | RR | Faktura RR |.
+	// | FA_RR | Faktura RR |.
 	FormType OptNilInvoiceQueryFormType `json:"formType"`
 	// Rodzaje faktur.
 	// | Wartość | Opis |
@@ -7807,8 +8502,8 @@ type InvoiceQueryFilters struct {
 	// | VatPef | (PEF) Podstawowa |
 	// | VatPefSp | (PEF) Specjalizowana |
 	// | KorPef | (PEF) Korygująca |
-	// | VatRr | (RR) Podstawowa |
-	// | KorVatRr | (RR) Korygująca |.
+	// | VatRr | (FA_RR) Podstawowa |
+	// | KorVatRr | (FA_RR) Korygująca |.
 	InvoiceTypes OptNilInvoiceTypeArray `json:"invoiceTypes"`
 	// Czy faktura ma załącznik.
 	HasAttachment OptNilBool `json:"hasAttachment"`
@@ -7948,14 +8643,14 @@ func (s *InvoiceQueryFilters) SetHasAttachment(val OptNilBool) {
 // | --- | --- |
 // | FA | Faktura VAT |
 // | PEF | Faktura PEF |
-// | RR | Faktura RR |.
+// | FA_RR | Faktura RR |.
 // Ref: #/components/schemas/InvoiceQueryFormType
 type InvoiceQueryFormType string
 
 const (
-	InvoiceQueryFormTypeFA  InvoiceQueryFormType = "FA"
-	InvoiceQueryFormTypePEF InvoiceQueryFormType = "PEF"
-	InvoiceQueryFormTypeRR  InvoiceQueryFormType = "RR"
+	InvoiceQueryFormTypeFA   InvoiceQueryFormType = "FA"
+	InvoiceQueryFormTypePEF  InvoiceQueryFormType = "PEF"
+	InvoiceQueryFormTypeFARR InvoiceQueryFormType = "FA_RR"
 )
 
 // AllValues returns all InvoiceQueryFormType values.
@@ -7963,7 +8658,7 @@ func (InvoiceQueryFormType) AllValues() []InvoiceQueryFormType {
 	return []InvoiceQueryFormType{
 		InvoiceQueryFormTypeFA,
 		InvoiceQueryFormTypePEF,
-		InvoiceQueryFormTypeRR,
+		InvoiceQueryFormTypeFARR,
 	}
 }
 
@@ -7974,7 +8669,7 @@ func (s InvoiceQueryFormType) MarshalText() ([]byte, error) {
 		return []byte(s), nil
 	case InvoiceQueryFormTypePEF:
 		return []byte(s), nil
-	case InvoiceQueryFormTypeRR:
+	case InvoiceQueryFormTypeFARR:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -7990,8 +8685,8 @@ func (s *InvoiceQueryFormType) UnmarshalText(data []byte) error {
 	case InvoiceQueryFormTypePEF:
 		*s = InvoiceQueryFormTypePEF
 		return nil
-	case InvoiceQueryFormTypeRR:
-		*s = InvoiceQueryFormTypeRR
+	case InvoiceQueryFormTypeFARR:
+		*s = InvoiceQueryFormTypeFARR
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -8140,8 +8835,8 @@ func (s *InvoiceStatusInfoExtensions) init() InvoiceStatusInfoExtensions {
 // | VatPef | (PEF) Podstawowa |
 // | VatPefSp | (PEF) Specjalizowana |
 // | KorPef | (PEF) Korygująca |
-// | VatRr | (RR) Podstawowa |
-// | KorVatRr | (RR) Korygująca |.
+// | VatRr | (FA_RR) Podstawowa |
+// | KorVatRr | (FA_RR) Korygująca |.
 // Ref: #/components/schemas/InvoiceType
 type InvoiceType string
 
@@ -8254,31 +8949,6 @@ func (s *InvoiceType) UnmarshalText(data []byte) error {
 	}
 }
 
-// InvoicesExportsPostForbidden is response for InvoicesExportsPost operation.
-type InvoicesExportsPostForbidden struct{}
-
-func (*InvoicesExportsPostForbidden) invoicesExportsPostRes() {}
-
-// InvoicesExportsPostUnauthorized is response for InvoicesExportsPost operation.
-type InvoicesExportsPostUnauthorized struct{}
-
-func (*InvoicesExportsPostUnauthorized) invoicesExportsPostRes() {}
-
-// InvoicesExportsReferenceNumberGetForbidden is response for InvoicesExportsReferenceNumberGet operation.
-type InvoicesExportsReferenceNumberGetForbidden struct{}
-
-func (*InvoicesExportsReferenceNumberGetForbidden) invoicesExportsReferenceNumberGetRes() {}
-
-// InvoicesExportsReferenceNumberGetUnauthorized is response for InvoicesExportsReferenceNumberGet operation.
-type InvoicesExportsReferenceNumberGetUnauthorized struct{}
-
-func (*InvoicesExportsReferenceNumberGetUnauthorized) invoicesExportsReferenceNumberGetRes() {}
-
-// InvoicesKsefKsefNumberGetForbidden is response for InvoicesKsefKsefNumberGet operation.
-type InvoicesKsefKsefNumberGetForbidden struct{}
-
-func (*InvoicesKsefKsefNumberGetForbidden) invoicesKsefKsefNumberGetRes() {}
-
 type InvoicesKsefKsefNumberGetOK struct {
 	Data io.Reader
 }
@@ -8320,21 +8990,6 @@ func (s *InvoicesKsefKsefNumberGetOKHeaders) SetResponse(val InvoicesKsefKsefNum
 }
 
 func (*InvoicesKsefKsefNumberGetOKHeaders) invoicesKsefKsefNumberGetRes() {}
-
-// InvoicesKsefKsefNumberGetUnauthorized is response for InvoicesKsefKsefNumberGet operation.
-type InvoicesKsefKsefNumberGetUnauthorized struct{}
-
-func (*InvoicesKsefKsefNumberGetUnauthorized) invoicesKsefKsefNumberGetRes() {}
-
-// InvoicesQueryMetadataPostForbidden is response for InvoicesQueryMetadataPost operation.
-type InvoicesQueryMetadataPostForbidden struct{}
-
-func (*InvoicesQueryMetadataPostForbidden) invoicesQueryMetadataPostRes() {}
-
-// InvoicesQueryMetadataPostUnauthorized is response for InvoicesQueryMetadataPost operation.
-type InvoicesQueryMetadataPostUnauthorized struct{}
-
-func (*InvoicesQueryMetadataPostUnauthorized) invoicesQueryMetadataPostRes() {}
 
 // Ref: #/components/schemas/InvoicingMode
 type InvoicingMode string
@@ -8426,16 +9081,6 @@ func (s *KsefCertificateType) UnmarshalText(data []byte) error {
 }
 
 type KsefNumber string
-
-// LimitsContextGetUnauthorized is response for LimitsContextGet operation.
-type LimitsContextGetUnauthorized struct{}
-
-func (*LimitsContextGetUnauthorized) limitsContextGetRes() {}
-
-// LimitsSubjectGetUnauthorized is response for LimitsSubjectGet operation.
-type LimitsSubjectGetUnauthorized struct{}
-
-func (*LimitsSubjectGetUnauthorized) limitsSubjectGetRes() {}
 
 // NewNilString returns new NilString with value set to v.
 func NewNilString(v string) NilString {
@@ -8573,7 +9218,9 @@ type OpenBatchSessionRequest struct {
 	// | [FA (2)](https://github.com/CIRFMF/ksef-docs/blob/main/faktury/schemy/FA/schemat_FA(2)_v1-0E.
 	// xsd) | 1-0E | FA |
 	// | [FA (3)](https://github.com/CIRFMF/ksef-docs/blob/main/faktury/schemy/FA/schemat_FA(3)_v1-0E.
-	// xsd) | 1-0E | FA |.
+	// xsd) | 1-0E | FA |
+	// | [FA_RR (1)](https://github.
+	// com/CIRFMF/ksef-docs/blob/main/faktury/schemy/RR/schemat_FA_RR(1)_v1-1E.xsd) | 1-1E | FA_RR |.
 	FormCode FormCode `json:"formCode"`
 	// Informacje o przesyłanej paczce faktur.
 	BatchFile BatchFileInfo `json:"batchFile"`
@@ -8681,7 +9328,9 @@ type OpenOnlineSessionRequest struct {
 	// | [PEF (3)](https://github.com/CIRFMF/ksef-docs/blob/main/faktury/schemy/PEF/Schemat_PEF(3)_v2-1.
 	// xsd) | 2-1 | PEF |
 	// | [PEF_KOR (3)](https://github.
-	// com/CIRFMF/ksef-docs/blob/main/faktury/schemy/PEF/Schemat_PEF_KOR(3)_v2-1.xsd) | 2-1 | PEF |.
+	// com/CIRFMF/ksef-docs/blob/main/faktury/schemy/PEF/Schemat_PEF_KOR(3)_v2-1.xsd) | 2-1 | PEF |
+	// | [FA_RR (1)](https://github.
+	// com/CIRFMF/ksef-docs/blob/main/faktury/schemy/RR/schemat_FA_RR(1)_v1-1E.xsd) | 1-1E | FA_RR |.
 	FormCode FormCode `json:"formCode"`
 	// Symetryczny klucz szyfrujący pliki XML, zaszyfrowany kluczem publicznym Ministerstwa Finansów.
 	Encryption EncryptionInfo `json:"encryption"`
@@ -8823,98 +9472,6 @@ func (o OptAttachmentPermissionRevokeRequest) Get() (v AttachmentPermissionRevok
 
 // Or returns value if set, or given parameter if does not.
 func (o OptAttachmentPermissionRevokeRequest) Or(d AttachmentPermissionRevokeRequest) AttachmentPermissionRevokeRequest {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptAuthenticationMethod returns new OptAuthenticationMethod with value set to v.
-func NewOptAuthenticationMethod(v AuthenticationMethod) OptAuthenticationMethod {
-	return OptAuthenticationMethod{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptAuthenticationMethod is optional AuthenticationMethod.
-type OptAuthenticationMethod struct {
-	Value AuthenticationMethod
-	Set   bool
-}
-
-// IsSet returns true if OptAuthenticationMethod was set.
-func (o OptAuthenticationMethod) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptAuthenticationMethod) Reset() {
-	var v AuthenticationMethod
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptAuthenticationMethod) SetTo(v AuthenticationMethod) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptAuthenticationMethod) Get() (v AuthenticationMethod, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptAuthenticationMethod) Or(d AuthenticationMethod) AuthenticationMethod {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptAuthenticationMethodInfo returns new OptAuthenticationMethodInfo with value set to v.
-func NewOptAuthenticationMethodInfo(v AuthenticationMethodInfo) OptAuthenticationMethodInfo {
-	return OptAuthenticationMethodInfo{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptAuthenticationMethodInfo is optional AuthenticationMethodInfo.
-type OptAuthenticationMethodInfo struct {
-	Value AuthenticationMethodInfo
-	Set   bool
-}
-
-// IsSet returns true if OptAuthenticationMethodInfo was set.
-func (o OptAuthenticationMethodInfo) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptAuthenticationMethodInfo) Reset() {
-	var v AuthenticationMethodInfo
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptAuthenticationMethodInfo) SetTo(v AuthenticationMethodInfo) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptAuthenticationMethodInfo) Get() (v AuthenticationMethodInfo, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptAuthenticationMethodInfo) Or(d AuthenticationMethodInfo) AuthenticationMethodInfo {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -9237,6 +9794,52 @@ func (o OptEntityPermissionsGrantRequest) Get() (v EntityPermissionsGrantRequest
 
 // Or returns value if set, or given parameter if does not.
 func (o OptEntityPermissionsGrantRequest) Or(d EntityPermissionsGrantRequest) EntityPermissionsGrantRequest {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptEntityPermissionsQueryRequest returns new OptEntityPermissionsQueryRequest with value set to v.
+func NewOptEntityPermissionsQueryRequest(v EntityPermissionsQueryRequest) OptEntityPermissionsQueryRequest {
+	return OptEntityPermissionsQueryRequest{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptEntityPermissionsQueryRequest is optional EntityPermissionsQueryRequest.
+type OptEntityPermissionsQueryRequest struct {
+	Value EntityPermissionsQueryRequest
+	Set   bool
+}
+
+// IsSet returns true if OptEntityPermissionsQueryRequest was set.
+func (o OptEntityPermissionsQueryRequest) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptEntityPermissionsQueryRequest) Reset() {
+	var v EntityPermissionsQueryRequest
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptEntityPermissionsQueryRequest) SetTo(v EntityPermissionsQueryRequest) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptEntityPermissionsQueryRequest) Get() (v EntityPermissionsQueryRequest, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptEntityPermissionsQueryRequest) Or(d EntityPermissionsQueryRequest) EntityPermissionsQueryRequest {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -9840,6 +10443,69 @@ func (o OptNilBool) Get() (v bool, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptNilBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilByte returns new OptNilByte with value set to v.
+func NewOptNilByte(v []byte) OptNilByte {
+	return OptNilByte{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilByte is optional nullable []byte.
+type OptNilByte struct {
+	Value []byte
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilByte was set.
+func (o OptNilByte) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilByte) Reset() {
+	var v []byte
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilByte) SetTo(v []byte) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilByte) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilByte) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v []byte
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilByte) Get() (v []byte, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilByte) Or(d []byte) []byte {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -10665,6 +11331,69 @@ func (o OptNilEntityByFingerprintDetails) Or(d EntityByFingerprintDetails) Entit
 	return d
 }
 
+// NewOptNilEntityPermissionsContextIdentifier returns new OptNilEntityPermissionsContextIdentifier with value set to v.
+func NewOptNilEntityPermissionsContextIdentifier(v EntityPermissionsContextIdentifier) OptNilEntityPermissionsContextIdentifier {
+	return OptNilEntityPermissionsContextIdentifier{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilEntityPermissionsContextIdentifier is optional nullable EntityPermissionsContextIdentifier.
+type OptNilEntityPermissionsContextIdentifier struct {
+	Value EntityPermissionsContextIdentifier
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilEntityPermissionsContextIdentifier was set.
+func (o OptNilEntityPermissionsContextIdentifier) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilEntityPermissionsContextIdentifier) Reset() {
+	var v EntityPermissionsContextIdentifier
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilEntityPermissionsContextIdentifier) SetTo(v EntityPermissionsContextIdentifier) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilEntityPermissionsContextIdentifier) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilEntityPermissionsContextIdentifier) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v EntityPermissionsContextIdentifier
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilEntityPermissionsContextIdentifier) Get() (v EntityPermissionsContextIdentifier, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilEntityPermissionsContextIdentifier) Or(d EntityPermissionsContextIdentifier) EntityPermissionsContextIdentifier {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptNilEntityPermissionsSubordinateEntityIdentifier returns new OptNilEntityPermissionsSubordinateEntityIdentifier with value set to v.
 func NewOptNilEntityPermissionsSubordinateEntityIdentifier(v EntityPermissionsSubordinateEntityIdentifier) OptNilEntityPermissionsSubordinateEntityIdentifier {
 	return OptNilEntityPermissionsSubordinateEntityIdentifier{
@@ -11037,6 +11766,69 @@ func (o OptNilFloat64) Get() (v float64, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptNilFloat64) Or(d float64) float64 {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilForbiddenProblemDetailsSecurity returns new OptNilForbiddenProblemDetailsSecurity with value set to v.
+func NewOptNilForbiddenProblemDetailsSecurity(v ForbiddenProblemDetailsSecurity) OptNilForbiddenProblemDetailsSecurity {
+	return OptNilForbiddenProblemDetailsSecurity{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilForbiddenProblemDetailsSecurity is optional nullable ForbiddenProblemDetailsSecurity.
+type OptNilForbiddenProblemDetailsSecurity struct {
+	Value ForbiddenProblemDetailsSecurity
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilForbiddenProblemDetailsSecurity was set.
+func (o OptNilForbiddenProblemDetailsSecurity) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilForbiddenProblemDetailsSecurity) Reset() {
+	var v ForbiddenProblemDetailsSecurity
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilForbiddenProblemDetailsSecurity) SetTo(v ForbiddenProblemDetailsSecurity) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilForbiddenProblemDetailsSecurity) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilForbiddenProblemDetailsSecurity) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v ForbiddenProblemDetailsSecurity
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilForbiddenProblemDetailsSecurity) Get() (v ForbiddenProblemDetailsSecurity, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilForbiddenProblemDetailsSecurity) Or(d ForbiddenProblemDetailsSecurity) ForbiddenProblemDetailsSecurity {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -15316,82 +16108,6 @@ func (s *PermissionState) UnmarshalText(data []byte) error {
 	}
 }
 
-// PermissionsAttachmentsStatusGetForbidden is response for PermissionsAttachmentsStatusGet operation.
-type PermissionsAttachmentsStatusGetForbidden struct{}
-
-func (*PermissionsAttachmentsStatusGetForbidden) permissionsAttachmentsStatusGetRes() {}
-
-// PermissionsAttachmentsStatusGetUnauthorized is response for PermissionsAttachmentsStatusGet operation.
-type PermissionsAttachmentsStatusGetUnauthorized struct{}
-
-func (*PermissionsAttachmentsStatusGetUnauthorized) permissionsAttachmentsStatusGetRes() {}
-
-// PermissionsAuthorizationsGrantsPermissionIdDeleteForbidden is response for PermissionsAuthorizationsGrantsPermissionIdDelete operation.
-type PermissionsAuthorizationsGrantsPermissionIdDeleteForbidden struct{}
-
-func (*PermissionsAuthorizationsGrantsPermissionIdDeleteForbidden) permissionsAuthorizationsGrantsPermissionIdDeleteRes() {
-}
-
-// PermissionsAuthorizationsGrantsPermissionIdDeleteUnauthorized is response for PermissionsAuthorizationsGrantsPermissionIdDelete operation.
-type PermissionsAuthorizationsGrantsPermissionIdDeleteUnauthorized struct{}
-
-func (*PermissionsAuthorizationsGrantsPermissionIdDeleteUnauthorized) permissionsAuthorizationsGrantsPermissionIdDeleteRes() {
-}
-
-// PermissionsAuthorizationsGrantsPostForbidden is response for PermissionsAuthorizationsGrantsPost operation.
-type PermissionsAuthorizationsGrantsPostForbidden struct{}
-
-func (*PermissionsAuthorizationsGrantsPostForbidden) permissionsAuthorizationsGrantsPostRes() {}
-
-// PermissionsAuthorizationsGrantsPostUnauthorized is response for PermissionsAuthorizationsGrantsPost operation.
-type PermissionsAuthorizationsGrantsPostUnauthorized struct{}
-
-func (*PermissionsAuthorizationsGrantsPostUnauthorized) permissionsAuthorizationsGrantsPostRes() {}
-
-// PermissionsCommonGrantsPermissionIdDeleteForbidden is response for PermissionsCommonGrantsPermissionIdDelete operation.
-type PermissionsCommonGrantsPermissionIdDeleteForbidden struct{}
-
-func (*PermissionsCommonGrantsPermissionIdDeleteForbidden) permissionsCommonGrantsPermissionIdDeleteRes() {
-}
-
-// PermissionsCommonGrantsPermissionIdDeleteUnauthorized is response for PermissionsCommonGrantsPermissionIdDelete operation.
-type PermissionsCommonGrantsPermissionIdDeleteUnauthorized struct{}
-
-func (*PermissionsCommonGrantsPermissionIdDeleteUnauthorized) permissionsCommonGrantsPermissionIdDeleteRes() {
-}
-
-// PermissionsEntitiesGrantsPostForbidden is response for PermissionsEntitiesGrantsPost operation.
-type PermissionsEntitiesGrantsPostForbidden struct{}
-
-func (*PermissionsEntitiesGrantsPostForbidden) permissionsEntitiesGrantsPostRes() {}
-
-// PermissionsEntitiesGrantsPostUnauthorized is response for PermissionsEntitiesGrantsPost operation.
-type PermissionsEntitiesGrantsPostUnauthorized struct{}
-
-func (*PermissionsEntitiesGrantsPostUnauthorized) permissionsEntitiesGrantsPostRes() {}
-
-// PermissionsEuEntitiesAdministrationGrantsPostForbidden is response for PermissionsEuEntitiesAdministrationGrantsPost operation.
-type PermissionsEuEntitiesAdministrationGrantsPostForbidden struct{}
-
-func (*PermissionsEuEntitiesAdministrationGrantsPostForbidden) permissionsEuEntitiesAdministrationGrantsPostRes() {
-}
-
-// PermissionsEuEntitiesAdministrationGrantsPostUnauthorized is response for PermissionsEuEntitiesAdministrationGrantsPost operation.
-type PermissionsEuEntitiesAdministrationGrantsPostUnauthorized struct{}
-
-func (*PermissionsEuEntitiesAdministrationGrantsPostUnauthorized) permissionsEuEntitiesAdministrationGrantsPostRes() {
-}
-
-// PermissionsEuEntitiesGrantsPostForbidden is response for PermissionsEuEntitiesGrantsPost operation.
-type PermissionsEuEntitiesGrantsPostForbidden struct{}
-
-func (*PermissionsEuEntitiesGrantsPostForbidden) permissionsEuEntitiesGrantsPostRes() {}
-
-// PermissionsEuEntitiesGrantsPostUnauthorized is response for PermissionsEuEntitiesGrantsPost operation.
-type PermissionsEuEntitiesGrantsPostUnauthorized struct{}
-
-func (*PermissionsEuEntitiesGrantsPostUnauthorized) permissionsEuEntitiesGrantsPostRes() {}
-
 // Ref: #/components/schemas/PermissionsEuEntityDetails
 type PermissionsEuEntityDetails struct {
 	// Pełna nazwa podmiotu unijnego.
@@ -15419,16 +16135,6 @@ func (s *PermissionsEuEntityDetails) SetFullName(val string) {
 func (s *PermissionsEuEntityDetails) SetAddress(val string) {
 	s.Address = val
 }
-
-// PermissionsIndirectGrantsPostForbidden is response for PermissionsIndirectGrantsPost operation.
-type PermissionsIndirectGrantsPostForbidden struct{}
-
-func (*PermissionsIndirectGrantsPostForbidden) permissionsIndirectGrantsPostRes() {}
-
-// PermissionsIndirectGrantsPostUnauthorized is response for PermissionsIndirectGrantsPost operation.
-type PermissionsIndirectGrantsPostUnauthorized struct{}
-
-func (*PermissionsIndirectGrantsPostUnauthorized) permissionsIndirectGrantsPostRes() {}
 
 // Ref: #/components/schemas/PermissionsOperationResponse
 type PermissionsOperationResponse struct {
@@ -15486,91 +16192,6 @@ func (s *PermissionsOperationStatusResponse) SetStatus(val StatusInfo) {
 }
 
 func (*PermissionsOperationStatusResponse) permissionsOperationsReferenceNumberGetRes() {}
-
-// PermissionsOperationsReferenceNumberGetUnauthorized is response for PermissionsOperationsReferenceNumberGet operation.
-type PermissionsOperationsReferenceNumberGetUnauthorized struct{}
-
-func (*PermissionsOperationsReferenceNumberGetUnauthorized) permissionsOperationsReferenceNumberGetRes() {
-}
-
-// PermissionsPersonsGrantsPostForbidden is response for PermissionsPersonsGrantsPost operation.
-type PermissionsPersonsGrantsPostForbidden struct{}
-
-func (*PermissionsPersonsGrantsPostForbidden) permissionsPersonsGrantsPostRes() {}
-
-// PermissionsPersonsGrantsPostUnauthorized is response for PermissionsPersonsGrantsPost operation.
-type PermissionsPersonsGrantsPostUnauthorized struct{}
-
-func (*PermissionsPersonsGrantsPostUnauthorized) permissionsPersonsGrantsPostRes() {}
-
-// PermissionsQueryAuthorizationsGrantsPostForbidden is response for PermissionsQueryAuthorizationsGrantsPost operation.
-type PermissionsQueryAuthorizationsGrantsPostForbidden struct{}
-
-func (*PermissionsQueryAuthorizationsGrantsPostForbidden) permissionsQueryAuthorizationsGrantsPostRes() {
-}
-
-// PermissionsQueryAuthorizationsGrantsPostUnauthorized is response for PermissionsQueryAuthorizationsGrantsPost operation.
-type PermissionsQueryAuthorizationsGrantsPostUnauthorized struct{}
-
-func (*PermissionsQueryAuthorizationsGrantsPostUnauthorized) permissionsQueryAuthorizationsGrantsPostRes() {
-}
-
-// PermissionsQueryEntitiesRolesGetForbidden is response for PermissionsQueryEntitiesRolesGet operation.
-type PermissionsQueryEntitiesRolesGetForbidden struct{}
-
-func (*PermissionsQueryEntitiesRolesGetForbidden) permissionsQueryEntitiesRolesGetRes() {}
-
-// PermissionsQueryEntitiesRolesGetUnauthorized is response for PermissionsQueryEntitiesRolesGet operation.
-type PermissionsQueryEntitiesRolesGetUnauthorized struct{}
-
-func (*PermissionsQueryEntitiesRolesGetUnauthorized) permissionsQueryEntitiesRolesGetRes() {}
-
-// PermissionsQueryEuEntitiesGrantsPostForbidden is response for PermissionsQueryEuEntitiesGrantsPost operation.
-type PermissionsQueryEuEntitiesGrantsPostForbidden struct{}
-
-func (*PermissionsQueryEuEntitiesGrantsPostForbidden) permissionsQueryEuEntitiesGrantsPostRes() {}
-
-// PermissionsQueryEuEntitiesGrantsPostUnauthorized is response for PermissionsQueryEuEntitiesGrantsPost operation.
-type PermissionsQueryEuEntitiesGrantsPostUnauthorized struct{}
-
-func (*PermissionsQueryEuEntitiesGrantsPostUnauthorized) permissionsQueryEuEntitiesGrantsPostRes() {}
-
-// PermissionsQueryPersonalGrantsPostUnauthorized is response for PermissionsQueryPersonalGrantsPost operation.
-type PermissionsQueryPersonalGrantsPostUnauthorized struct{}
-
-func (*PermissionsQueryPersonalGrantsPostUnauthorized) permissionsQueryPersonalGrantsPostRes() {}
-
-// PermissionsQueryPersonsGrantsPostForbidden is response for PermissionsQueryPersonsGrantsPost operation.
-type PermissionsQueryPersonsGrantsPostForbidden struct{}
-
-func (*PermissionsQueryPersonsGrantsPostForbidden) permissionsQueryPersonsGrantsPostRes() {}
-
-// PermissionsQueryPersonsGrantsPostUnauthorized is response for PermissionsQueryPersonsGrantsPost operation.
-type PermissionsQueryPersonsGrantsPostUnauthorized struct{}
-
-func (*PermissionsQueryPersonsGrantsPostUnauthorized) permissionsQueryPersonsGrantsPostRes() {}
-
-// PermissionsQuerySubordinateEntitiesRolesPostForbidden is response for PermissionsQuerySubordinateEntitiesRolesPost operation.
-type PermissionsQuerySubordinateEntitiesRolesPostForbidden struct{}
-
-func (*PermissionsQuerySubordinateEntitiesRolesPostForbidden) permissionsQuerySubordinateEntitiesRolesPostRes() {
-}
-
-// PermissionsQuerySubordinateEntitiesRolesPostUnauthorized is response for PermissionsQuerySubordinateEntitiesRolesPost operation.
-type PermissionsQuerySubordinateEntitiesRolesPostUnauthorized struct{}
-
-func (*PermissionsQuerySubordinateEntitiesRolesPostUnauthorized) permissionsQuerySubordinateEntitiesRolesPostRes() {
-}
-
-// PermissionsQuerySubunitsGrantsPostForbidden is response for PermissionsQuerySubunitsGrantsPost operation.
-type PermissionsQuerySubunitsGrantsPostForbidden struct{}
-
-func (*PermissionsQuerySubunitsGrantsPostForbidden) permissionsQuerySubunitsGrantsPostRes() {}
-
-// PermissionsQuerySubunitsGrantsPostUnauthorized is response for PermissionsQuerySubunitsGrantsPost operation.
-type PermissionsQuerySubunitsGrantsPostUnauthorized struct{}
-
-func (*PermissionsQuerySubunitsGrantsPostUnauthorized) permissionsQuerySubunitsGrantsPostRes() {}
 
 // Ref: #/components/schemas/PermissionsSubjectEntityByFingerprintDetails
 type PermissionsSubjectEntityByFingerprintDetails struct {
@@ -15855,16 +16476,6 @@ func (s *PermissionsSubjectPersonDetails) SetBirthDate(val OptNilDate) {
 func (s *PermissionsSubjectPersonDetails) SetIdDocument(val OptNilIdDocument) {
 	s.IdDocument = val
 }
-
-// PermissionsSubunitsGrantsPostForbidden is response for PermissionsSubunitsGrantsPost operation.
-type PermissionsSubunitsGrantsPostForbidden struct{}
-
-func (*PermissionsSubunitsGrantsPostForbidden) permissionsSubunitsGrantsPostRes() {}
-
-// PermissionsSubunitsGrantsPostUnauthorized is response for PermissionsSubunitsGrantsPost operation.
-type PermissionsSubunitsGrantsPostUnauthorized struct{}
-
-func (*PermissionsSubunitsGrantsPostUnauthorized) permissionsSubunitsGrantsPostRes() {}
 
 // Ref: #/components/schemas/PersonByFingerprintWithIdentifierDetails
 type PersonByFingerprintWithIdentifierDetails struct {
@@ -17973,6 +18584,11 @@ type Pesel string
 type PublicKeyCertificate struct {
 	// Certyfikat klucza publicznego w formacie DER, zakodowany w formacie Base64.
 	Certificate []byte `json:"certificate"`
+	// Identyfikator certyfikatu.
+	CertificateId []byte `json:"certificateId"`
+	// Identyfikator klucza, używany jako selektor w wywołaniach, w których klient wskazuje, jakiego
+	// klucza publicznego użył do szyfrowania.
+	PublicKeyId []byte `json:"publicKeyId"`
 	// Data początku obowiązywania certyfikatu.
 	ValidFrom time.Time `json:"validFrom"`
 	// Data końca obowiązywania certyfikatu.
@@ -17990,6 +18606,16 @@ type PublicKeyCertificate struct {
 // GetCertificate returns the value of Certificate.
 func (s *PublicKeyCertificate) GetCertificate() []byte {
 	return s.Certificate
+}
+
+// GetCertificateId returns the value of CertificateId.
+func (s *PublicKeyCertificate) GetCertificateId() []byte {
+	return s.CertificateId
+}
+
+// GetPublicKeyId returns the value of PublicKeyId.
+func (s *PublicKeyCertificate) GetPublicKeyId() []byte {
+	return s.PublicKeyId
 }
 
 // GetValidFrom returns the value of ValidFrom.
@@ -18010,6 +18636,16 @@ func (s *PublicKeyCertificate) GetUsage() []PublicKeyCertificateUsage {
 // SetCertificate sets the value of Certificate.
 func (s *PublicKeyCertificate) SetCertificate(val []byte) {
 	s.Certificate = val
+}
+
+// SetCertificateId sets the value of CertificateId.
+func (s *PublicKeyCertificate) SetCertificateId(val []byte) {
+	s.CertificateId = val
+}
+
+// SetPublicKeyId sets the value of PublicKeyId.
+func (s *PublicKeyCertificate) SetPublicKeyId(val []byte) {
+	s.PublicKeyId = val
 }
 
 // SetValidFrom sets the value of ValidFrom.
@@ -18218,6 +18854,36 @@ func (s *QueryEntityAuthorizationPermissionsResponse) SetHasMore(val bool) {
 }
 
 func (*QueryEntityAuthorizationPermissionsResponse) permissionsQueryAuthorizationsGrantsPostRes() {}
+
+// Ref: #/components/schemas/QueryEntityPermissionsResponse
+type QueryEntityPermissionsResponse struct {
+	// Lista odczytanych uprawnień.
+	Permissions []EntityPermissionItem `json:"permissions"`
+	// Flaga informująca o dostępności kolejnej strony wyników.
+	HasMore bool `json:"hasMore"`
+}
+
+// GetPermissions returns the value of Permissions.
+func (s *QueryEntityPermissionsResponse) GetPermissions() []EntityPermissionItem {
+	return s.Permissions
+}
+
+// GetHasMore returns the value of HasMore.
+func (s *QueryEntityPermissionsResponse) GetHasMore() bool {
+	return s.HasMore
+}
+
+// SetPermissions sets the value of Permissions.
+func (s *QueryEntityPermissionsResponse) SetPermissions(val []EntityPermissionItem) {
+	s.Permissions = val
+}
+
+// SetHasMore sets the value of HasMore.
+func (s *QueryEntityPermissionsResponse) SetHasMore(val bool) {
+	s.HasMore = val
+}
+
+func (*QueryEntityPermissionsResponse) permissionsQueryEntitiesGrantsPostRes() {}
 
 // Ref: #/components/schemas/QueryEntityRolesResponse
 type QueryEntityRolesResponse struct {
@@ -18686,11 +19352,6 @@ func (s *QueryType) UnmarshalText(data []byte) error {
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
-
-// RateLimitsGetUnauthorized is response for RateLimitsGet operation.
-type RateLimitsGetUnauthorized struct{}
-
-func (*RateLimitsGetUnauthorized) rateLimitsGetRes() {}
 
 type ReferenceNumber string
 
@@ -19309,79 +19970,15 @@ func (s *SessionType) UnmarshalText(data []byte) error {
 	}
 }
 
-// SessionsBatchPostForbidden is response for SessionsBatchPost operation.
-type SessionsBatchPostForbidden struct{}
-
-func (*SessionsBatchPostForbidden) sessionsBatchPostRes() {}
-
-// SessionsBatchPostUnauthorized is response for SessionsBatchPost operation.
-type SessionsBatchPostUnauthorized struct{}
-
-func (*SessionsBatchPostUnauthorized) sessionsBatchPostRes() {}
-
-// SessionsBatchReferenceNumberClosePostForbidden is response for SessionsBatchReferenceNumberClosePost operation.
-type SessionsBatchReferenceNumberClosePostForbidden struct{}
-
-func (*SessionsBatchReferenceNumberClosePostForbidden) sessionsBatchReferenceNumberClosePostRes() {}
-
 // SessionsBatchReferenceNumberClosePostNoContent is response for SessionsBatchReferenceNumberClosePost operation.
 type SessionsBatchReferenceNumberClosePostNoContent struct{}
 
 func (*SessionsBatchReferenceNumberClosePostNoContent) sessionsBatchReferenceNumberClosePostRes() {}
 
-// SessionsBatchReferenceNumberClosePostUnauthorized is response for SessionsBatchReferenceNumberClosePost operation.
-type SessionsBatchReferenceNumberClosePostUnauthorized struct{}
-
-func (*SessionsBatchReferenceNumberClosePostUnauthorized) sessionsBatchReferenceNumberClosePostRes() {
-}
-
-// SessionsGetForbidden is response for SessionsGet operation.
-type SessionsGetForbidden struct{}
-
-func (*SessionsGetForbidden) sessionsGetRes() {}
-
-// SessionsGetUnauthorized is response for SessionsGet operation.
-type SessionsGetUnauthorized struct{}
-
-func (*SessionsGetUnauthorized) sessionsGetRes() {}
-
-// SessionsOnlinePostForbidden is response for SessionsOnlinePost operation.
-type SessionsOnlinePostForbidden struct{}
-
-func (*SessionsOnlinePostForbidden) sessionsOnlinePostRes() {}
-
-// SessionsOnlinePostUnauthorized is response for SessionsOnlinePost operation.
-type SessionsOnlinePostUnauthorized struct{}
-
-func (*SessionsOnlinePostUnauthorized) sessionsOnlinePostRes() {}
-
-// SessionsOnlineReferenceNumberClosePostForbidden is response for SessionsOnlineReferenceNumberClosePost operation.
-type SessionsOnlineReferenceNumberClosePostForbidden struct{}
-
-func (*SessionsOnlineReferenceNumberClosePostForbidden) sessionsOnlineReferenceNumberClosePostRes() {}
-
 // SessionsOnlineReferenceNumberClosePostNoContent is response for SessionsOnlineReferenceNumberClosePost operation.
 type SessionsOnlineReferenceNumberClosePostNoContent struct{}
 
 func (*SessionsOnlineReferenceNumberClosePostNoContent) sessionsOnlineReferenceNumberClosePostRes() {}
-
-// SessionsOnlineReferenceNumberClosePostUnauthorized is response for SessionsOnlineReferenceNumberClosePost operation.
-type SessionsOnlineReferenceNumberClosePostUnauthorized struct{}
-
-func (*SessionsOnlineReferenceNumberClosePostUnauthorized) sessionsOnlineReferenceNumberClosePostRes() {
-}
-
-// SessionsOnlineReferenceNumberInvoicesPostForbidden is response for SessionsOnlineReferenceNumberInvoicesPost operation.
-type SessionsOnlineReferenceNumberInvoicesPostForbidden struct{}
-
-func (*SessionsOnlineReferenceNumberInvoicesPostForbidden) sessionsOnlineReferenceNumberInvoicesPostRes() {
-}
-
-// SessionsOnlineReferenceNumberInvoicesPostUnauthorized is response for SessionsOnlineReferenceNumberInvoicesPost operation.
-type SessionsOnlineReferenceNumberInvoicesPostUnauthorized struct{}
-
-func (*SessionsOnlineReferenceNumberInvoicesPostUnauthorized) sessionsOnlineReferenceNumberInvoicesPostRes() {
-}
 
 // Ref: #/components/schemas/SessionsQueryResponse
 type SessionsQueryResponse struct {
@@ -19514,56 +20111,6 @@ func (s *SessionsQueryResponseItem) SetFailedInvoiceCount(val int32) {
 	s.FailedInvoiceCount = val
 }
 
-// SessionsReferenceNumberGetForbidden is response for SessionsReferenceNumberGet operation.
-type SessionsReferenceNumberGetForbidden struct{}
-
-func (*SessionsReferenceNumberGetForbidden) sessionsReferenceNumberGetRes() {}
-
-// SessionsReferenceNumberGetUnauthorized is response for SessionsReferenceNumberGet operation.
-type SessionsReferenceNumberGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberGetUnauthorized) sessionsReferenceNumberGetRes() {}
-
-// SessionsReferenceNumberInvoicesFailedGetForbidden is response for SessionsReferenceNumberInvoicesFailedGet operation.
-type SessionsReferenceNumberInvoicesFailedGetForbidden struct{}
-
-func (*SessionsReferenceNumberInvoicesFailedGetForbidden) sessionsReferenceNumberInvoicesFailedGetRes() {
-}
-
-// SessionsReferenceNumberInvoicesFailedGetUnauthorized is response for SessionsReferenceNumberInvoicesFailedGet operation.
-type SessionsReferenceNumberInvoicesFailedGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberInvoicesFailedGetUnauthorized) sessionsReferenceNumberInvoicesFailedGetRes() {
-}
-
-// SessionsReferenceNumberInvoicesGetForbidden is response for SessionsReferenceNumberInvoicesGet operation.
-type SessionsReferenceNumberInvoicesGetForbidden struct{}
-
-func (*SessionsReferenceNumberInvoicesGetForbidden) sessionsReferenceNumberInvoicesGetRes() {}
-
-// SessionsReferenceNumberInvoicesGetUnauthorized is response for SessionsReferenceNumberInvoicesGet operation.
-type SessionsReferenceNumberInvoicesGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberInvoicesGetUnauthorized) sessionsReferenceNumberInvoicesGetRes() {}
-
-// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetForbidden is response for SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet operation.
-type SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetForbidden struct{}
-
-func (*SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetForbidden) sessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes() {
-}
-
-// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetUnauthorized is response for SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet operation.
-type SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetUnauthorized) sessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes() {
-}
-
-// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetForbidden is response for SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet operation.
-type SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetForbidden struct{}
-
-func (*SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetForbidden) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {
-}
-
 type SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOK struct {
 	Data io.Reader
 }
@@ -19605,18 +20152,6 @@ func (s *SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOKHeaders) S
 }
 
 func (*SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOKHeaders) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {
-}
-
-// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetUnauthorized is response for SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet operation.
-type SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetUnauthorized) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {
-}
-
-// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetForbidden is response for SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet operation.
-type SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetForbidden struct{}
-
-func (*SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetForbidden) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes() {
 }
 
 type SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOK struct {
@@ -19662,18 +20197,6 @@ func (s *SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOKHeaders) SetRespon
 func (*SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOKHeaders) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes() {
 }
 
-// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetUnauthorized is response for SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet operation.
-type SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetUnauthorized) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes() {
-}
-
-// SessionsReferenceNumberUpoUpoReferenceNumberGetForbidden is response for SessionsReferenceNumberUpoUpoReferenceNumberGet operation.
-type SessionsReferenceNumberUpoUpoReferenceNumberGetForbidden struct{}
-
-func (*SessionsReferenceNumberUpoUpoReferenceNumberGetForbidden) sessionsReferenceNumberUpoUpoReferenceNumberGetRes() {
-}
-
 type SessionsReferenceNumberUpoUpoReferenceNumberGetOK struct {
 	Data io.Reader
 }
@@ -19715,12 +20238,6 @@ func (s *SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders) SetResponse(v
 }
 
 func (*SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders) sessionsReferenceNumberUpoUpoReferenceNumberGetRes() {
-}
-
-// SessionsReferenceNumberUpoUpoReferenceNumberGetUnauthorized is response for SessionsReferenceNumberUpoUpoReferenceNumberGet operation.
-type SessionsReferenceNumberUpoUpoReferenceNumberGetUnauthorized struct{}
-
-func (*SessionsReferenceNumberUpoUpoReferenceNumberGetUnauthorized) sessionsReferenceNumberUpoUpoReferenceNumberGetRes() {
 }
 
 // Ref: #/components/schemas/SetRateLimitsRequest
@@ -21294,41 +21811,20 @@ type TestdataLimitsContextSessionDeleteOK struct{}
 
 func (*TestdataLimitsContextSessionDeleteOK) testdataLimitsContextSessionDeleteRes() {}
 
-// TestdataLimitsContextSessionDeleteUnauthorized is response for TestdataLimitsContextSessionDelete operation.
-type TestdataLimitsContextSessionDeleteUnauthorized struct{}
-
-func (*TestdataLimitsContextSessionDeleteUnauthorized) testdataLimitsContextSessionDeleteRes() {}
-
 // TestdataLimitsContextSessionPostOK is response for TestdataLimitsContextSessionPost operation.
 type TestdataLimitsContextSessionPostOK struct{}
 
 func (*TestdataLimitsContextSessionPostOK) testdataLimitsContextSessionPostRes() {}
-
-// TestdataLimitsContextSessionPostUnauthorized is response for TestdataLimitsContextSessionPost operation.
-type TestdataLimitsContextSessionPostUnauthorized struct{}
-
-func (*TestdataLimitsContextSessionPostUnauthorized) testdataLimitsContextSessionPostRes() {}
 
 // TestdataLimitsSubjectCertificateDeleteOK is response for TestdataLimitsSubjectCertificateDelete operation.
 type TestdataLimitsSubjectCertificateDeleteOK struct{}
 
 func (*TestdataLimitsSubjectCertificateDeleteOK) testdataLimitsSubjectCertificateDeleteRes() {}
 
-// TestdataLimitsSubjectCertificateDeleteUnauthorized is response for TestdataLimitsSubjectCertificateDelete operation.
-type TestdataLimitsSubjectCertificateDeleteUnauthorized struct{}
-
-func (*TestdataLimitsSubjectCertificateDeleteUnauthorized) testdataLimitsSubjectCertificateDeleteRes() {
-}
-
 // TestdataLimitsSubjectCertificatePostOK is response for TestdataLimitsSubjectCertificatePost operation.
 type TestdataLimitsSubjectCertificatePostOK struct{}
 
 func (*TestdataLimitsSubjectCertificatePostOK) testdataLimitsSubjectCertificatePostRes() {}
-
-// TestdataLimitsSubjectCertificatePostUnauthorized is response for TestdataLimitsSubjectCertificatePost operation.
-type TestdataLimitsSubjectCertificatePostUnauthorized struct{}
-
-func (*TestdataLimitsSubjectCertificatePostUnauthorized) testdataLimitsSubjectCertificatePostRes() {}
 
 // TestdataPermissionsPostOK is response for TestdataPermissionsPost operation.
 type TestdataPermissionsPostOK struct{}
@@ -21355,30 +21851,15 @@ type TestdataRateLimitsDeleteOK struct{}
 
 func (*TestdataRateLimitsDeleteOK) testdataRateLimitsDeleteRes() {}
 
-// TestdataRateLimitsDeleteUnauthorized is response for TestdataRateLimitsDelete operation.
-type TestdataRateLimitsDeleteUnauthorized struct{}
-
-func (*TestdataRateLimitsDeleteUnauthorized) testdataRateLimitsDeleteRes() {}
-
 // TestdataRateLimitsPostOK is response for TestdataRateLimitsPost operation.
 type TestdataRateLimitsPostOK struct{}
 
 func (*TestdataRateLimitsPostOK) testdataRateLimitsPostRes() {}
 
-// TestdataRateLimitsPostUnauthorized is response for TestdataRateLimitsPost operation.
-type TestdataRateLimitsPostUnauthorized struct{}
-
-func (*TestdataRateLimitsPostUnauthorized) testdataRateLimitsPostRes() {}
-
 // TestdataRateLimitsProductionPostOK is response for TestdataRateLimitsProductionPost operation.
 type TestdataRateLimitsProductionPostOK struct{}
 
 func (*TestdataRateLimitsProductionPostOK) testdataRateLimitsProductionPostRes() {}
-
-// TestdataRateLimitsProductionPostUnauthorized is response for TestdataRateLimitsProductionPost operation.
-type TestdataRateLimitsProductionPostUnauthorized struct{}
-
-func (*TestdataRateLimitsProductionPostUnauthorized) testdataRateLimitsProductionPostRes() {}
 
 // TestdataSubjectPostOK is response for TestdataSubjectPost operation.
 type TestdataSubjectPostOK struct{}
@@ -21683,6 +22164,7 @@ const (
 	TokenPermissionTypeCredentialsManage     TokenPermissionType = "CredentialsManage"
 	TokenPermissionTypeSubunitManage         TokenPermissionType = "SubunitManage"
 	TokenPermissionTypeEnforcementOperations TokenPermissionType = "EnforcementOperations"
+	TokenPermissionTypeIntrospection         TokenPermissionType = "Introspection"
 )
 
 // AllValues returns all TokenPermissionType values.
@@ -21694,6 +22176,7 @@ func (TokenPermissionType) AllValues() []TokenPermissionType {
 		TokenPermissionTypeCredentialsManage,
 		TokenPermissionTypeSubunitManage,
 		TokenPermissionTypeEnforcementOperations,
+		TokenPermissionTypeIntrospection,
 	}
 }
 
@@ -21711,6 +22194,8 @@ func (s TokenPermissionType) MarshalText() ([]byte, error) {
 	case TokenPermissionTypeSubunitManage:
 		return []byte(s), nil
 	case TokenPermissionTypeEnforcementOperations:
+		return []byte(s), nil
+	case TokenPermissionTypeIntrospection:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -21737,6 +22222,9 @@ func (s *TokenPermissionType) UnmarshalText(data []byte) error {
 		return nil
 	case TokenPermissionTypeEnforcementOperations:
 		*s = TokenPermissionTypeEnforcementOperations
+		return nil
+	case TokenPermissionTypeIntrospection:
+		*s = TokenPermissionTypeIntrospection
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -21867,31 +22355,197 @@ func (s *TokenStatusResponse) SetStatusDetails(val OptNilStringArray) {
 
 func (*TokenStatusResponse) tokensReferenceNumberGetRes() {}
 
-// TokensGetUnauthorized is response for TokensGet operation.
-type TokensGetUnauthorized struct{}
-
-func (*TokensGetUnauthorized) tokensGetRes() {}
-
-// TokensPostUnauthorized is response for TokensPost operation.
-type TokensPostUnauthorized struct{}
-
-func (*TokensPostUnauthorized) tokensPostRes() {}
-
 // TokensReferenceNumberDeleteNoContent is response for TokensReferenceNumberDelete operation.
 type TokensReferenceNumberDeleteNoContent struct{}
 
 func (*TokensReferenceNumberDeleteNoContent) tokensReferenceNumberDeleteRes() {}
 
-// TokensReferenceNumberDeleteUnauthorized is response for TokensReferenceNumberDelete operation.
-type TokensReferenceNumberDeleteUnauthorized struct{}
+// Ref: #/components/schemas/TooManyRequestsProblemDetails
+type TooManyRequestsProblemDetails struct {
+	// Too Many Requests.
+	Title string `json:"title"`
+	// 429.
+	Status int32 `json:"status"`
+	// URI identyfikujące konkretne wystąpienie błędu.
+	Instance string `json:"instance"`
+	// Informacja o przyczynie przekroczenia limitu żądań oraz wskazówki dotyczące ponowienia
+	// żądania.
+	Detail string `json:"detail"`
+	// Data i czas wystąpienia błędu w UTC.
+	Timestamp time.Time `json:"timestamp"`
+	// Identyfikator śledzenia błędu.
+	TraceId string `json:"traceId"`
+}
 
-func (*TokensReferenceNumberDeleteUnauthorized) tokensReferenceNumberDeleteRes() {}
+// GetTitle returns the value of Title.
+func (s *TooManyRequestsProblemDetails) GetTitle() string {
+	return s.Title
+}
 
-// TokensReferenceNumberGetUnauthorized is response for TokensReferenceNumberGet operation.
-type TokensReferenceNumberGetUnauthorized struct{}
+// GetStatus returns the value of Status.
+func (s *TooManyRequestsProblemDetails) GetStatus() int32 {
+	return s.Status
+}
 
-func (*TokensReferenceNumberGetUnauthorized) tokensReferenceNumberGetRes() {}
+// GetInstance returns the value of Instance.
+func (s *TooManyRequestsProblemDetails) GetInstance() string {
+	return s.Instance
+}
 
+// GetDetail returns the value of Detail.
+func (s *TooManyRequestsProblemDetails) GetDetail() string {
+	return s.Detail
+}
+
+// GetTimestamp returns the value of Timestamp.
+func (s *TooManyRequestsProblemDetails) GetTimestamp() time.Time {
+	return s.Timestamp
+}
+
+// GetTraceId returns the value of TraceId.
+func (s *TooManyRequestsProblemDetails) GetTraceId() string {
+	return s.TraceId
+}
+
+// SetTitle sets the value of Title.
+func (s *TooManyRequestsProblemDetails) SetTitle(val string) {
+	s.Title = val
+}
+
+// SetStatus sets the value of Status.
+func (s *TooManyRequestsProblemDetails) SetStatus(val int32) {
+	s.Status = val
+}
+
+// SetInstance sets the value of Instance.
+func (s *TooManyRequestsProblemDetails) SetInstance(val string) {
+	s.Instance = val
+}
+
+// SetDetail sets the value of Detail.
+func (s *TooManyRequestsProblemDetails) SetDetail(val string) {
+	s.Detail = val
+}
+
+// SetTimestamp sets the value of Timestamp.
+func (s *TooManyRequestsProblemDetails) SetTimestamp(val time.Time) {
+	s.Timestamp = val
+}
+
+// SetTraceId sets the value of TraceId.
+func (s *TooManyRequestsProblemDetails) SetTraceId(val string) {
+	s.TraceId = val
+}
+
+// TooManyRequestsProblemDetailsHeaders wraps TooManyRequestsProblemDetails with response headers.
+type TooManyRequestsProblemDetailsHeaders struct {
+	RetryAfter OptRetryAfter
+	Response   TooManyRequestsProblemDetails
+}
+
+// GetRetryAfter returns the value of RetryAfter.
+func (s *TooManyRequestsProblemDetailsHeaders) GetRetryAfter() OptRetryAfter {
+	return s.RetryAfter
+}
+
+// GetResponse returns the value of Response.
+func (s *TooManyRequestsProblemDetailsHeaders) GetResponse() TooManyRequestsProblemDetails {
+	return s.Response
+}
+
+// SetRetryAfter sets the value of RetryAfter.
+func (s *TooManyRequestsProblemDetailsHeaders) SetRetryAfter(val OptRetryAfter) {
+	s.RetryAfter = val
+}
+
+// SetResponse sets the value of Response.
+func (s *TooManyRequestsProblemDetailsHeaders) SetResponse(val TooManyRequestsProblemDetails) {
+	s.Response = val
+}
+
+func (*TooManyRequestsProblemDetailsHeaders) authChallengePostRes()                                 {}
+func (*TooManyRequestsProblemDetailsHeaders) authKsefTokenPostRes()                                 {}
+func (*TooManyRequestsProblemDetailsHeaders) authReferenceNumberGetRes()                            {}
+func (*TooManyRequestsProblemDetailsHeaders) authSessionsCurrentDeleteRes()                         {}
+func (*TooManyRequestsProblemDetailsHeaders) authSessionsGetRes()                                   {}
+func (*TooManyRequestsProblemDetailsHeaders) authSessionsReferenceNumberDeleteRes()                 {}
+func (*TooManyRequestsProblemDetailsHeaders) authTokenRedeemPostRes()                               {}
+func (*TooManyRequestsProblemDetailsHeaders) authTokenRefreshPostRes()                              {}
+func (*TooManyRequestsProblemDetailsHeaders) authXadesSignaturePostRes()                            {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesCertificateSerialNumberRevokePostRes()     {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesEnrollmentsDataGetRes()                    {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesEnrollmentsPostRes()                       {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesEnrollmentsReferenceNumberGetRes()         {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesLimitsGetRes()                             {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesQueryPostRes()                             {}
+func (*TooManyRequestsProblemDetailsHeaders) certificatesRetrievePostRes()                          {}
+func (*TooManyRequestsProblemDetailsHeaders) invoicesExportsPostRes()                               {}
+func (*TooManyRequestsProblemDetailsHeaders) invoicesExportsReferenceNumberGetRes()                 {}
+func (*TooManyRequestsProblemDetailsHeaders) invoicesKsefKsefNumberGetRes()                         {}
+func (*TooManyRequestsProblemDetailsHeaders) invoicesQueryMetadataPostRes()                         {}
+func (*TooManyRequestsProblemDetailsHeaders) limitsContextGetRes()                                  {}
+func (*TooManyRequestsProblemDetailsHeaders) limitsSubjectGetRes()                                  {}
+func (*TooManyRequestsProblemDetailsHeaders) peppolQueryGetRes()                                    {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsAttachmentsStatusGetRes()                   {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsAuthorizationsGrantsPermissionIdDeleteRes() {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsAuthorizationsGrantsPostRes()               {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsCommonGrantsPermissionIdDeleteRes()         {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsEntitiesGrantsPostRes()                     {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsEuEntitiesAdministrationGrantsPostRes()     {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsEuEntitiesGrantsPostRes()                   {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsIndirectGrantsPostRes()                     {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsOperationsReferenceNumberGetRes()           {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsPersonsGrantsPostRes()                      {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQueryAuthorizationsGrantsPostRes()          {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQueryEntitiesGrantsPostRes()                {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQueryEntitiesRolesGetRes()                  {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQueryEuEntitiesGrantsPostRes()              {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQueryPersonalGrantsPostRes()                {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQueryPersonsGrantsPostRes()                 {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQuerySubordinateEntitiesRolesPostRes()      {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsQuerySubunitsGrantsPostRes()                {}
+func (*TooManyRequestsProblemDetailsHeaders) permissionsSubunitsGrantsPostRes()                     {}
+func (*TooManyRequestsProblemDetailsHeaders) rateLimitsGetRes()                                     {}
+func (*TooManyRequestsProblemDetailsHeaders) securityPublicKeyCertificatesGetRes()                  {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsBatchPostRes()                                 {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsBatchReferenceNumberClosePostRes()             {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsGetRes()                                       {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsOnlinePostRes()                                {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsOnlineReferenceNumberClosePostRes()            {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsOnlineReferenceNumberInvoicesPostRes()         {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberGetRes()                        {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberInvoicesFailedGetRes()          {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberInvoicesGetRes()                {}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes() {
+}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {
+}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes() {
+}
+func (*TooManyRequestsProblemDetailsHeaders) sessionsReferenceNumberUpoUpoReferenceNumberGetRes() {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataAttachmentPostRes()                          {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataAttachmentRevokePostRes()                    {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataContextBlockPostRes()                        {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataContextUnblockPostRes()                      {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataLimitsContextSessionDeleteRes()              {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataLimitsContextSessionPostRes()                {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataLimitsSubjectCertificateDeleteRes()          {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataLimitsSubjectCertificatePostRes()            {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataPermissionsPostRes()                         {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataPermissionsRevokePostRes()                   {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataPersonPostRes()                              {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataPersonRemovePostRes()                        {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataRateLimitsDeleteRes()                        {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataRateLimitsPostRes()                          {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataRateLimitsProductionPostRes()                {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataSubjectPostRes()                             {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataSubjectRemovePostRes()                       {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensGetRes()                                       {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensPostRes()                                      {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensReferenceNumberDeleteRes()                     {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensReferenceNumberGetRes()                        {}
+
+// Deprecated: schema marks this type as deprecated.
 // Ref: #/components/schemas/TooManyRequestsResponse
 type TooManyRequestsResponse struct {
 	// Informacje o błędzie związanym z przekroczeniem limitu żądań.
@@ -21968,6 +22622,7 @@ func (*TooManyRequestsResponseHeaders) permissionsIndirectGrantsPostRes()       
 func (*TooManyRequestsResponseHeaders) permissionsOperationsReferenceNumberGetRes()           {}
 func (*TooManyRequestsResponseHeaders) permissionsPersonsGrantsPostRes()                      {}
 func (*TooManyRequestsResponseHeaders) permissionsQueryAuthorizationsGrantsPostRes()          {}
+func (*TooManyRequestsResponseHeaders) permissionsQueryEntitiesGrantsPostRes()                {}
 func (*TooManyRequestsResponseHeaders) permissionsQueryEntitiesRolesGetRes()                  {}
 func (*TooManyRequestsResponseHeaders) permissionsQueryEuEntitiesGrantsPostRes()              {}
 func (*TooManyRequestsResponseHeaders) permissionsQueryPersonalGrantsPostRes()                {}
@@ -22054,6 +22709,146 @@ func (s *TooManyRequestsResponseStatus) SetDescription(val string) {
 func (s *TooManyRequestsResponseStatus) SetDetails(val []string) {
 	s.Details = val
 }
+
+// Ref: #/components/schemas/UnauthorizedProblemDetails
+type UnauthorizedProblemDetails struct {
+	// Unauthorized.
+	Title string `json:"title"`
+	// 401.
+	Status int32 `json:"status"`
+	// Szczegółowy opis przyczyny odmowy dostępu.
+	Detail string `json:"detail"`
+	// URI identyfikujące konkretne wystąpienie błędu.
+	Instance OptNilString `json:"instance"`
+	// Identyfikator śledzenia błędu.
+	TraceId OptNilString `json:"traceId"`
+	// Data i czas wystąpienia błędu w UTC.
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// GetTitle returns the value of Title.
+func (s *UnauthorizedProblemDetails) GetTitle() string {
+	return s.Title
+}
+
+// GetStatus returns the value of Status.
+func (s *UnauthorizedProblemDetails) GetStatus() int32 {
+	return s.Status
+}
+
+// GetDetail returns the value of Detail.
+func (s *UnauthorizedProblemDetails) GetDetail() string {
+	return s.Detail
+}
+
+// GetInstance returns the value of Instance.
+func (s *UnauthorizedProblemDetails) GetInstance() OptNilString {
+	return s.Instance
+}
+
+// GetTraceId returns the value of TraceId.
+func (s *UnauthorizedProblemDetails) GetTraceId() OptNilString {
+	return s.TraceId
+}
+
+// GetTimestamp returns the value of Timestamp.
+func (s *UnauthorizedProblemDetails) GetTimestamp() time.Time {
+	return s.Timestamp
+}
+
+// SetTitle sets the value of Title.
+func (s *UnauthorizedProblemDetails) SetTitle(val string) {
+	s.Title = val
+}
+
+// SetStatus sets the value of Status.
+func (s *UnauthorizedProblemDetails) SetStatus(val int32) {
+	s.Status = val
+}
+
+// SetDetail sets the value of Detail.
+func (s *UnauthorizedProblemDetails) SetDetail(val string) {
+	s.Detail = val
+}
+
+// SetInstance sets the value of Instance.
+func (s *UnauthorizedProblemDetails) SetInstance(val OptNilString) {
+	s.Instance = val
+}
+
+// SetTraceId sets the value of TraceId.
+func (s *UnauthorizedProblemDetails) SetTraceId(val OptNilString) {
+	s.TraceId = val
+}
+
+// SetTimestamp sets the value of Timestamp.
+func (s *UnauthorizedProblemDetails) SetTimestamp(val time.Time) {
+	s.Timestamp = val
+}
+
+func (*UnauthorizedProblemDetails) authReferenceNumberGetRes()                                      {}
+func (*UnauthorizedProblemDetails) authSessionsCurrentDeleteRes()                                   {}
+func (*UnauthorizedProblemDetails) authSessionsGetRes()                                             {}
+func (*UnauthorizedProblemDetails) authSessionsReferenceNumberDeleteRes()                           {}
+func (*UnauthorizedProblemDetails) authTokenRedeemPostRes()                                         {}
+func (*UnauthorizedProblemDetails) authTokenRefreshPostRes()                                        {}
+func (*UnauthorizedProblemDetails) certificatesCertificateSerialNumberRevokePostRes()               {}
+func (*UnauthorizedProblemDetails) certificatesEnrollmentsDataGetRes()                              {}
+func (*UnauthorizedProblemDetails) certificatesEnrollmentsPostRes()                                 {}
+func (*UnauthorizedProblemDetails) certificatesEnrollmentsReferenceNumberGetRes()                   {}
+func (*UnauthorizedProblemDetails) certificatesLimitsGetRes()                                       {}
+func (*UnauthorizedProblemDetails) certificatesQueryPostRes()                                       {}
+func (*UnauthorizedProblemDetails) certificatesRetrievePostRes()                                    {}
+func (*UnauthorizedProblemDetails) invoicesExportsPostRes()                                         {}
+func (*UnauthorizedProblemDetails) invoicesExportsReferenceNumberGetRes()                           {}
+func (*UnauthorizedProblemDetails) invoicesKsefKsefNumberGetRes()                                   {}
+func (*UnauthorizedProblemDetails) invoicesQueryMetadataPostRes()                                   {}
+func (*UnauthorizedProblemDetails) limitsContextGetRes()                                            {}
+func (*UnauthorizedProblemDetails) limitsSubjectGetRes()                                            {}
+func (*UnauthorizedProblemDetails) permissionsAttachmentsStatusGetRes()                             {}
+func (*UnauthorizedProblemDetails) permissionsAuthorizationsGrantsPermissionIdDeleteRes()           {}
+func (*UnauthorizedProblemDetails) permissionsAuthorizationsGrantsPostRes()                         {}
+func (*UnauthorizedProblemDetails) permissionsCommonGrantsPermissionIdDeleteRes()                   {}
+func (*UnauthorizedProblemDetails) permissionsEntitiesGrantsPostRes()                               {}
+func (*UnauthorizedProblemDetails) permissionsEuEntitiesAdministrationGrantsPostRes()               {}
+func (*UnauthorizedProblemDetails) permissionsEuEntitiesGrantsPostRes()                             {}
+func (*UnauthorizedProblemDetails) permissionsIndirectGrantsPostRes()                               {}
+func (*UnauthorizedProblemDetails) permissionsOperationsReferenceNumberGetRes()                     {}
+func (*UnauthorizedProblemDetails) permissionsPersonsGrantsPostRes()                                {}
+func (*UnauthorizedProblemDetails) permissionsQueryAuthorizationsGrantsPostRes()                    {}
+func (*UnauthorizedProblemDetails) permissionsQueryEntitiesGrantsPostRes()                          {}
+func (*UnauthorizedProblemDetails) permissionsQueryEntitiesRolesGetRes()                            {}
+func (*UnauthorizedProblemDetails) permissionsQueryEuEntitiesGrantsPostRes()                        {}
+func (*UnauthorizedProblemDetails) permissionsQueryPersonalGrantsPostRes()                          {}
+func (*UnauthorizedProblemDetails) permissionsQueryPersonsGrantsPostRes()                           {}
+func (*UnauthorizedProblemDetails) permissionsQuerySubordinateEntitiesRolesPostRes()                {}
+func (*UnauthorizedProblemDetails) permissionsQuerySubunitsGrantsPostRes()                          {}
+func (*UnauthorizedProblemDetails) permissionsSubunitsGrantsPostRes()                               {}
+func (*UnauthorizedProblemDetails) rateLimitsGetRes()                                               {}
+func (*UnauthorizedProblemDetails) sessionsBatchPostRes()                                           {}
+func (*UnauthorizedProblemDetails) sessionsBatchReferenceNumberClosePostRes()                       {}
+func (*UnauthorizedProblemDetails) sessionsGetRes()                                                 {}
+func (*UnauthorizedProblemDetails) sessionsOnlinePostRes()                                          {}
+func (*UnauthorizedProblemDetails) sessionsOnlineReferenceNumberClosePostRes()                      {}
+func (*UnauthorizedProblemDetails) sessionsOnlineReferenceNumberInvoicesPostRes()                   {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberGetRes()                                  {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberInvoicesFailedGetRes()                    {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberInvoicesGetRes()                          {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes()    {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes() {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes()         {}
+func (*UnauthorizedProblemDetails) sessionsReferenceNumberUpoUpoReferenceNumberGetRes()             {}
+func (*UnauthorizedProblemDetails) testdataLimitsContextSessionDeleteRes()                          {}
+func (*UnauthorizedProblemDetails) testdataLimitsContextSessionPostRes()                            {}
+func (*UnauthorizedProblemDetails) testdataLimitsSubjectCertificateDeleteRes()                      {}
+func (*UnauthorizedProblemDetails) testdataLimitsSubjectCertificatePostRes()                        {}
+func (*UnauthorizedProblemDetails) testdataRateLimitsDeleteRes()                                    {}
+func (*UnauthorizedProblemDetails) testdataRateLimitsPostRes()                                      {}
+func (*UnauthorizedProblemDetails) testdataRateLimitsProductionPostRes()                            {}
+func (*UnauthorizedProblemDetails) tokensGetRes()                                                   {}
+func (*UnauthorizedProblemDetails) tokensPostRes()                                                  {}
+func (*UnauthorizedProblemDetails) tokensReferenceNumberDeleteRes()                                 {}
+func (*UnauthorizedProblemDetails) tokensReferenceNumberGetRes()                                    {}
 
 // Ref: #/components/schemas/UnblockContextAuthenticationRequest
 type UnblockContextAuthenticationRequest struct {

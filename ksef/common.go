@@ -85,6 +85,15 @@ func (e *ApiError) Error() string {
 	return fmt.Sprintf("KSeF returns http status %d: %s", e.Status, e.Message)
 }
 
+func (e *ApiError) hasErrorCode(code int) bool {
+	for _, detail := range e.Details {
+		if detail.Code == code {
+			return true
+		}
+	}
+	return false
+}
+
 func HandelOtherApiError(res interface{}) error {
 	return fmt.Errorf("inny typ odpowiedzi błędu: %T", res)
 }

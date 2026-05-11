@@ -40,6 +40,7 @@ const (
 	PermissionsOperationsReferenceNumberGetOperation                     OperationName = "PermissionsOperationsReferenceNumberGet"
 	PermissionsPersonsGrantsPostOperation                                OperationName = "PermissionsPersonsGrantsPost"
 	PermissionsQueryAuthorizationsGrantsPostOperation                    OperationName = "PermissionsQueryAuthorizationsGrantsPost"
+	PermissionsQueryEntitiesGrantsPostOperation                          OperationName = "PermissionsQueryEntitiesGrantsPost"
 	PermissionsQueryEntitiesRolesGetOperation                            OperationName = "PermissionsQueryEntitiesRolesGet"
 	PermissionsQueryEuEntitiesGrantsPostOperation                        OperationName = "PermissionsQueryEuEntitiesGrantsPost"
 	PermissionsQueryPersonalGrantsPostOperation                          OperationName = "PermissionsQueryPersonalGrantsPost"

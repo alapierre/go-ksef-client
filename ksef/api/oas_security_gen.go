@@ -16,6 +16,94 @@ type SecuritySource interface {
 	Bearer(ctx context.Context, operationName OperationName) (Bearer, error)
 }
 
+// operationRolesBearer is a private map storing roles per operation.
+var operationRolesBearer = map[string][]string{
+	AuthReferenceNumberGetOperation:                                      []string{},
+	AuthSessionsCurrentDeleteOperation:                                   []string{},
+	AuthSessionsGetOperation:                                             []string{},
+	AuthSessionsReferenceNumberDeleteOperation:                           []string{},
+	AuthTokenRedeemPostOperation:                                         []string{},
+	AuthTokenRefreshPostOperation:                                        []string{},
+	CertificatesCertificateSerialNumberRevokePostOperation:               []string{},
+	CertificatesEnrollmentsDataGetOperation:                              []string{},
+	CertificatesEnrollmentsPostOperation:                                 []string{},
+	CertificatesEnrollmentsReferenceNumberGetOperation:                   []string{},
+	CertificatesLimitsGetOperation:                                       []string{},
+	CertificatesQueryPostOperation:                                       []string{},
+	CertificatesRetrievePostOperation:                                    []string{},
+	InvoicesExportsPostOperation:                                         []string{},
+	InvoicesExportsReferenceNumberGetOperation:                           []string{},
+	InvoicesKsefKsefNumberGetOperation:                                   []string{},
+	InvoicesQueryMetadataPostOperation:                                   []string{},
+	LimitsContextGetOperation:                                            []string{},
+	LimitsSubjectGetOperation:                                            []string{},
+	PermissionsAttachmentsStatusGetOperation:                             []string{},
+	PermissionsAuthorizationsGrantsPermissionIdDeleteOperation:           []string{},
+	PermissionsAuthorizationsGrantsPostOperation:                         []string{},
+	PermissionsCommonGrantsPermissionIdDeleteOperation:                   []string{},
+	PermissionsEntitiesGrantsPostOperation:                               []string{},
+	PermissionsEuEntitiesAdministrationGrantsPostOperation:               []string{},
+	PermissionsEuEntitiesGrantsPostOperation:                             []string{},
+	PermissionsIndirectGrantsPostOperation:                               []string{},
+	PermissionsOperationsReferenceNumberGetOperation:                     []string{},
+	PermissionsPersonsGrantsPostOperation:                                []string{},
+	PermissionsQueryAuthorizationsGrantsPostOperation:                    []string{},
+	PermissionsQueryEntitiesGrantsPostOperation:                          []string{},
+	PermissionsQueryEntitiesRolesGetOperation:                            []string{},
+	PermissionsQueryEuEntitiesGrantsPostOperation:                        []string{},
+	PermissionsQueryPersonalGrantsPostOperation:                          []string{},
+	PermissionsQueryPersonsGrantsPostOperation:                           []string{},
+	PermissionsQuerySubordinateEntitiesRolesPostOperation:                []string{},
+	PermissionsQuerySubunitsGrantsPostOperation:                          []string{},
+	PermissionsSubunitsGrantsPostOperation:                               []string{},
+	RateLimitsGetOperation:                                               []string{},
+	SessionsBatchPostOperation:                                           []string{},
+	SessionsBatchReferenceNumberClosePostOperation:                       []string{},
+	SessionsGetOperation:                                                 []string{},
+	SessionsOnlinePostOperation:                                          []string{},
+	SessionsOnlineReferenceNumberClosePostOperation:                      []string{},
+	SessionsOnlineReferenceNumberInvoicesPostOperation:                   []string{},
+	SessionsReferenceNumberGetOperation:                                  []string{},
+	SessionsReferenceNumberInvoicesFailedGetOperation:                    []string{},
+	SessionsReferenceNumberInvoicesGetOperation:                          []string{},
+	SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetOperation:    []string{},
+	SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOperation: []string{},
+	SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOperation:         []string{},
+	SessionsReferenceNumberUpoUpoReferenceNumberGetOperation:             []string{},
+	TestdataLimitsContextSessionDeleteOperation:                          []string{},
+	TestdataLimitsContextSessionPostOperation:                            []string{},
+	TestdataLimitsSubjectCertificateDeleteOperation:                      []string{},
+	TestdataLimitsSubjectCertificatePostOperation:                        []string{},
+	TestdataRateLimitsDeleteOperation:                                    []string{},
+	TestdataRateLimitsPostOperation:                                      []string{},
+	TestdataRateLimitsProductionPostOperation:                            []string{},
+	TokensGetOperation:                                                   []string{},
+	TokensPostOperation:                                                  []string{},
+	TokensReferenceNumberDeleteOperation:                                 []string{},
+	TokensReferenceNumberGetOperation:                                    []string{},
+}
+
+// GetRolesForBearer returns the required roles for the given operation.
+//
+// This is useful for authorization scenarios where you need to know which roles
+// are required for an operation.
+//
+// Example:
+//
+//	requiredRoles := GetRolesForBearer(AddPetOperation)
+//
+// Returns nil if the operation has no role requirements or if the operation is unknown.
+func GetRolesForBearer(operation string) []string {
+	roles, ok := operationRolesBearer[operation]
+	if !ok {
+		return nil
+	}
+	// Return a copy to prevent external modification
+	result := make([]string, len(roles))
+	copy(result, roles)
+	return result
+}
+
 func (s *Client) securityBearer(ctx context.Context, operationName OperationName, req *http.Request) error {
 	t, err := s.sec.Bearer(ctx, operationName)
 	if err != nil {

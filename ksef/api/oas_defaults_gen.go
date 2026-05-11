@@ -3,6 +3,14 @@
 package api
 
 // setDefaults set default value of fields.
+func (s *InvoiceExportRequest) setDefaults() {
+	{
+		val := bool(false)
+		s.OnlyMetadata.SetTo(val)
+	}
+}
+
+// setDefaults set default value of fields.
 func (s *OpenBatchSessionRequest) setDefaults() {
 	{
 		val := bool(false)

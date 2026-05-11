@@ -175,6 +175,36 @@ func (s AmountType) Validate() error {
 	}
 }
 
+func (s *ApiError) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if value, ok := s.Details.Get(); ok {
+			if err := func() error {
+				if value == nil {
+					return errors.New("nil is invalid value")
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "details",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
 func (s *AttachmentPermissionGrantRequest) Validate() error {
 	if s == nil {
 		return validate.ErrNilPointer
@@ -312,15 +342,8 @@ func (s *AuthenticationListItem) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
-		if value, ok := s.AuthenticationMethod.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
+		if err := s.AuthenticationMethod.Validate(); err != nil {
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -330,15 +353,8 @@ func (s *AuthenticationListItem) Validate() error {
 		})
 	}
 	if err := func() error {
-		if value, ok := s.AuthenticationMethodInfo.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
+		if err := s.AuthenticationMethodInfo.Validate(); err != nil {
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -481,15 +497,8 @@ func (s *AuthenticationOperationStatusResponse) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
-		if value, ok := s.AuthenticationMethod.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
+		if err := s.AuthenticationMethod.Validate(); err != nil {
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -499,15 +508,8 @@ func (s *AuthenticationOperationStatusResponse) Validate() error {
 		})
 	}
 	if err := func() error {
-		if value, ok := s.AuthenticationMethodInfo.Get(); ok {
-			if err := func() error {
-				if err := value.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
+		if err := s.AuthenticationMethodInfo.Validate(); err != nil {
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -580,6 +582,46 @@ func (s *AuthorizationPolicy) Validate() error {
 	return nil
 }
 
+func (s *BadRequestProblemDetails) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if s.Errors == nil {
+			return errors.New("nil is invalid value")
+		}
+		var failures []validate.FieldError
+		for i, elem := range s.Errors {
+			if err := func() error {
+				if err := elem.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				failures = append(failures, validate.FieldError{
+					Name:  fmt.Sprintf("[%d]", i),
+					Error: err,
+				})
+			}
+		}
+		if len(failures) > 0 {
+			return &validate.Error{Fields: failures}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "errors",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
 func (s *BatchFileInfo) Validate() error {
 	if s == nil {
 		return validate.ErrNilPointer
@@ -604,6 +646,17 @@ func (s *BatchFileInfo) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "fileSize",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.FileHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "fileHash",
 			Error: err,
 		})
 	}
@@ -694,6 +747,17 @@ func (s *BatchFilePartInfo) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "fileSize",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.FileHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "fileHash",
 			Error: err,
 		})
 	}
@@ -915,6 +979,36 @@ func (s *CertificateEnrollmentStatusResponse) Validate() error {
 			Error: err,
 		})
 	}
+	if err := func() error {
+		if value, ok := s.CertificateSerialNumber.Get(); ok {
+			if err := func() error {
+				if err := (validate.String{
+					MinLength:     16,
+					MinLengthSet:  true,
+					MaxLength:     16,
+					MaxLengthSet:  true,
+					Email:         false,
+					Hostname:      false,
+					Regex:         regexMap["^[0-9A-F]{16}$"],
+					MinNumeric:    0,
+					MinNumericSet: false,
+					MaxNumeric:    0,
+					MaxNumericSet: false,
+				}).Validate(string(value)); err != nil {
+					return errors.Wrap(err, "string")
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "certificateSerialNumber",
+			Error: err,
+		})
+	}
 	if len(failures) > 0 {
 		return &validate.Error{Fields: failures}
 	}
@@ -927,6 +1021,29 @@ func (s *CertificateListItem) Validate() error {
 	}
 
 	var failures []validate.FieldError
+	if err := func() error {
+		if err := (validate.String{
+			MinLength:     16,
+			MinLengthSet:  true,
+			MaxLength:     16,
+			MaxLengthSet:  true,
+			Email:         false,
+			Hostname:      false,
+			Regex:         regexMap["^[0-9A-F]{16}$"],
+			MinNumeric:    0,
+			MinNumericSet: false,
+			MaxNumeric:    0,
+			MaxNumericSet: false,
+		}).Validate(string(s.CertificateSerialNumber)); err != nil {
+			return errors.Wrap(err, "string")
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "certificateSerialNumber",
+			Error: err,
+		})
+	}
 	if err := func() error {
 		if err := (validate.String{
 			MinLength:     0,
@@ -1547,6 +1664,48 @@ func (s *EffectiveContextLimits) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "batchSession",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *EncryptionInfo) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if value, ok := s.PublicKeyId.Get(); ok {
+			if err := func() error {
+				if err := (validate.String{
+					MinLength:     44,
+					MinLengthSet:  true,
+					MaxLength:     44,
+					MaxLengthSet:  true,
+					Email:         false,
+					Hostname:      false,
+					Regex:         nil,
+					MinNumeric:    0,
+					MinNumericSet: false,
+					MaxNumeric:    0,
+					MaxNumericSet: false,
+				}).Validate(string(value)); err != nil {
+					return errors.Wrap(err, "string")
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "publicKeyId",
 			Error: err,
 		})
 	}
@@ -2301,11 +2460,147 @@ func (s *EntityPermission) Validate() error {
 	return nil
 }
 
+func (s *EntityPermissionItem) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.ID.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "id",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.ContextIdentifier.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "contextIdentifier",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.PermissionScope.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "permissionScope",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := (validate.String{
+			MinLength:     5,
+			MinLengthSet:  true,
+			MaxLength:     256,
+			MaxLengthSet:  true,
+			Email:         false,
+			Hostname:      false,
+			Regex:         nil,
+			MinNumeric:    0,
+			MinNumericSet: false,
+			MaxNumeric:    0,
+			MaxNumericSet: false,
+		}).Validate(string(s.Description)); err != nil {
+			return errors.Wrap(err, "string")
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "description",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s EntityPermissionItemScope) Validate() error {
+	switch s {
+	case "InvoiceWrite":
+		return nil
+	case "InvoiceRead":
+		return nil
+	default:
+		return errors.Errorf("invalid value: %v", s)
+	}
+}
+
 func (s EntityPermissionType) Validate() error {
 	switch s {
 	case "InvoiceWrite":
 		return nil
 	case "InvoiceRead":
+		return nil
+	default:
+		return errors.Errorf("invalid value: %v", s)
+	}
+}
+
+func (s *EntityPermissionsContextIdentifier) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.Type.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "type",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := (validate.String{
+			MinLength:     10,
+			MinLengthSet:  true,
+			MaxLength:     16,
+			MaxLengthSet:  true,
+			Email:         false,
+			Hostname:      false,
+			Regex:         nil,
+			MinNumeric:    0,
+			MinNumericSet: false,
+			MaxNumeric:    0,
+			MaxNumericSet: false,
+		}).Validate(string(s.Value)); err != nil {
+			return errors.Wrap(err, "string")
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "value",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s EntityPermissionsContextIdentifierType) Validate() error {
+	switch s {
+	case "Nip":
+		return nil
+	case "InternalId":
 		return nil
 	default:
 		return errors.Errorf("invalid value: %v", s)
@@ -2388,6 +2683,36 @@ func (s *EntityPermissionsGrantRequest) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "subjectDetails",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *EntityPermissionsQueryRequest) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if value, ok := s.ContextIdentifier.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "contextIdentifier",
 			Error: err,
 		})
 	}
@@ -4110,6 +4435,36 @@ func (s *InitTokenAuthenticationRequest) Validate() error {
 		})
 	}
 	if err := func() error {
+		if value, ok := s.PublicKeyId.Get(); ok {
+			if err := func() error {
+				if err := (validate.String{
+					MinLength:     44,
+					MinLengthSet:  true,
+					MaxLength:     44,
+					MaxLengthSet:  true,
+					Email:         false,
+					Hostname:      false,
+					Regex:         nil,
+					MinNumeric:    0,
+					MinNumericSet: false,
+					MaxNumeric:    0,
+					MaxNumericSet: false,
+				}).Validate(string(value)); err != nil {
+					return errors.Wrap(err, "string")
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "publicKeyId",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if value, ok := s.AuthorizationPolicy.Get(); ok {
 			if err := func() error {
 				if err := value.Validate(); err != nil {
@@ -4139,6 +4494,17 @@ func (s *InvoiceExportRequest) Validate() error {
 	}
 
 	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.Encryption.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "encryption",
+			Error: err,
+		})
+	}
 	if err := func() error {
 		if err := s.Filters.Validate(); err != nil {
 			return err
@@ -4334,6 +4700,35 @@ func (s *InvoiceMetadata) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "invoiceType",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.InvoiceHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "invoiceHash",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if value, ok := s.HashOfCorrectedInvoice.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "hashOfCorrectedInvoice",
 			Error: err,
 		})
 	}
@@ -4868,6 +5263,17 @@ func (s *InvoicePackagePart) Validate() error {
 		})
 	}
 	if err := func() error {
+		if err := s.PartHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "partHash",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if err := (validate.Int{
 			MinSet:        true,
 			Min:           1,
@@ -4885,6 +5291,17 @@ func (s *InvoicePackagePart) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "encryptedPartSize",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.EncryptedPartHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "encryptedPartHash",
 			Error: err,
 		})
 	}
@@ -5305,7 +5722,7 @@ func (s InvoiceQueryFormType) Validate() error {
 		return nil
 	case "PEF":
 		return nil
-	case "RR":
+	case "FA_RR":
 		return nil
 	default:
 		return errors.Errorf("invalid value: %v", s)
@@ -5409,6 +5826,29 @@ func (s InvoiceType) Validate() error {
 	default:
 		return errors.Errorf("invalid value: %v", s)
 	}
+}
+
+func (s *InvoicesKsefKsefNumberGetOKHeaders) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.XMsMetaHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "XMsMetaHash",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
 }
 
 func (s InvoicingMode) Validate() error {
@@ -5640,6 +6080,17 @@ func (s *OpenBatchSessionRequest) Validate() error {
 			Error: err,
 		})
 	}
+	if err := func() error {
+		if err := s.Encryption.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "encryption",
+			Error: err,
+		})
+	}
 	if len(failures) > 0 {
 		return &validate.Error{Fields: failures}
 	}
@@ -5688,6 +6139,29 @@ func (s *OpenBatchSessionResponse) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "partUploadRequests",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *OpenOnlineSessionRequest) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.Encryption.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "encryption",
 			Error: err,
 		})
 	}
@@ -8131,6 +8605,36 @@ func (s *QueryCertificatesRequest) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
+		if value, ok := s.CertificateSerialNumber.Get(); ok {
+			if err := func() error {
+				if err := (validate.String{
+					MinLength:     16,
+					MinLengthSet:  true,
+					MaxLength:     16,
+					MaxLengthSet:  true,
+					Email:         false,
+					Hostname:      false,
+					Regex:         regexMap["^[0-9A-F]{16}$"],
+					MinNumeric:    0,
+					MinNumericSet: false,
+					MaxNumeric:    0,
+					MaxNumericSet: false,
+				}).Validate(string(value)); err != nil {
+					return errors.Wrap(err, "string")
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "certificateSerialNumber",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if value, ok := s.Type.Get(); ok {
 			if err := func() error {
 				if err := value.Validate(); err != nil {
@@ -8243,6 +8747,46 @@ func (s *QueryEntityAuthorizationPermissionsResponse) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "authorizationGrants",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *QueryEntityPermissionsResponse) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if s.Permissions == nil {
+			return errors.New("nil is invalid value")
+		}
+		var failures []validate.FieldError
+		for i, elem := range s.Permissions {
+			if err := func() error {
+				if err := elem.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				failures = append(failures, validate.FieldError{
+					Name:  fmt.Sprintf("[%d]", i),
+					Error: err,
+				})
+			}
+		}
+		if len(failures) > 0 {
+			return &validate.Error{Fields: failures}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "permissions",
 			Error: err,
 		})
 	}
@@ -8775,6 +9319,29 @@ func (s *RetrieveCertificatesListItem) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
+		if err := (validate.String{
+			MinLength:     16,
+			MinLengthSet:  true,
+			MaxLength:     16,
+			MaxLengthSet:  true,
+			Email:         false,
+			Hostname:      false,
+			Regex:         regexMap["^[0-9A-F]{16}$"],
+			MinNumeric:    0,
+			MinNumericSet: false,
+			MaxNumeric:    0,
+			MaxNumericSet: false,
+		}).Validate(string(s.CertificateSerialNumber)); err != nil {
+			return errors.Wrap(err, "string")
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "certificateSerialNumber",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if err := s.CertificateType.Validate(); err != nil {
 			return err
 		}
@@ -8808,6 +9375,35 @@ func (s *RetrieveCertificatesRequest) Validate() error {
 			MaxLengthSet: true,
 		}).ValidateLength(len(s.CertificateSerialNumbers)); err != nil {
 			return errors.Wrap(err, "array")
+		}
+		var failures []validate.FieldError
+		for i, elem := range s.CertificateSerialNumbers {
+			if err := func() error {
+				if err := (validate.String{
+					MinLength:     16,
+					MinLengthSet:  true,
+					MaxLength:     16,
+					MaxLengthSet:  true,
+					Email:         false,
+					Hostname:      false,
+					Regex:         regexMap["^[0-9A-F]{16}$"],
+					MinNumeric:    0,
+					MinNumericSet: false,
+					MaxNumeric:    0,
+					MaxNumericSet: false,
+				}).Validate(string(elem)); err != nil {
+					return errors.Wrap(err, "string")
+				}
+				return nil
+			}(); err != nil {
+				failures = append(failures, validate.FieldError{
+					Name:  fmt.Sprintf("[%d]", i),
+					Error: err,
+				})
+			}
+		}
+		if len(failures) > 0 {
+			return &validate.Error{Fields: failures}
 		}
 		return nil
 	}(); err != nil {
@@ -8924,6 +9520,17 @@ func (s *SendInvoiceRequest) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
+		if err := s.InvoiceHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "invoiceHash",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if err := (validate.Int{
 			MinSet:        true,
 			Min:           1,
@@ -8945,6 +9552,17 @@ func (s *SendInvoiceRequest) Validate() error {
 		})
 	}
 	if err := func() error {
+		if err := s.EncryptedInvoiceHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "encryptedInvoiceHash",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if err := (validate.Int{
 			MinSet:        true,
 			Min:           1,
@@ -8962,6 +9580,24 @@ func (s *SendInvoiceRequest) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "encryptedInvoiceSize",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if value, ok := s.HashOfCorrectedInvoice.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "hashOfCorrectedInvoice",
 			Error: err,
 		})
 	}
@@ -9077,6 +9713,17 @@ func (s *SessionInvoiceStatusResponse) Validate() error {
 	}(); err != nil {
 		failures = append(failures, validate.FieldError{
 			Name:  "referenceNumber",
+			Error: err,
+		})
+	}
+	if err := func() error {
+		if err := s.InvoiceHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "invoiceHash",
 			Error: err,
 		})
 	}
@@ -9458,6 +10105,75 @@ func (s *SessionsQueryResponseItem) Validate() error {
 	return nil
 }
 
+func (s *SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOKHeaders) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.XMsMetaHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "XMsMetaHash",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOKHeaders) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.XMsMetaHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "XMsMetaHash",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if err := s.XMsMetaHash.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "XMsMetaHash",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
 func (s *SetSessionLimitsRequest) Validate() error {
 	if s == nil {
 		return validate.ErrNilPointer
@@ -9554,6 +10270,26 @@ func (s *SetSubjectLimitsRequest) Validate() error {
 	}
 	if len(failures) > 0 {
 		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s Sha256HashBase64) Validate() error {
+	alias := ([]byte)(s)
+	if err := (validate.String{
+		MinLength:     44,
+		MinLengthSet:  true,
+		MaxLength:     44,
+		MaxLengthSet:  true,
+		Email:         false,
+		Hostname:      false,
+		Regex:         nil,
+		MinNumeric:    0,
+		MinNumericSet: false,
+		MaxNumeric:    0,
+		MaxNumericSet: false,
+	}).Validate(string(alias)); err != nil {
+		return errors.Wrap(err, "string")
 	}
 	return nil
 }
@@ -10934,6 +11670,8 @@ func (s TokenPermissionType) Validate() error {
 	case "SubunitManage":
 		return nil
 	case "EnforcementOperations":
+		return nil
+	case "Introspection":
 		return nil
 	default:
 		return errors.Errorf("invalid value: %v", s)

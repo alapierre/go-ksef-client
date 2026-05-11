@@ -21,3 +21,6 @@ bench-tokenprovider:
 # Integracyjne testy ksef wymagające KSEF_* (zakładamy, że env jest ustawione)
 test-ksef-integration:
 	go test ./ksef -run 'TestGetToken|TestClient_OpenInteractiveSession' -v
+
+gen:
+	go generate ./...

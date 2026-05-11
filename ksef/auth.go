@@ -191,7 +191,7 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 		return v.GetAccessToken(), nil
 
 	// specyficzny wariant błędu bez treści (401)
-	case *api.AuthTokenRefreshPostUnauthorized:
+	case *api.UnauthorizedProblemDetails:
 		return api.TokenInfo{}, ErrUnauthorized
 
 	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
@@ -214,7 +214,7 @@ func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationToke
 		return v, nil
 
 	// specyficzny wariant błędu bez treści (401)
-	case *api.AuthTokenRedeemPostUnauthorized:
+	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
 
 	case *api.ExceptionResponse:

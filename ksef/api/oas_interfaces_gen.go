@@ -137,6 +137,10 @@ type PermissionsQueryAuthorizationsGrantsPostRes interface {
 	permissionsQueryAuthorizationsGrantsPostRes()
 }
 
+type PermissionsQueryEntitiesGrantsPostRes interface {
+	permissionsQueryEntitiesGrantsPostRes()
+}
+
 type PermissionsQueryEntitiesRolesGetRes interface {
 	permissionsQueryEntitiesRolesGetRes()
 }

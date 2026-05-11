@@ -110,6 +110,14 @@ type PermissionsQueryAuthorizationsGrantsPostParams struct {
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
+// PermissionsQueryEntitiesGrantsPostParams is parameters of POST /permissions/query/entities/grants operation.
+type PermissionsQueryEntitiesGrantsPostParams struct {
+	// Numer strony wyników.
+	PageOffset OptInt32 `json:",omitempty,omitzero"`
+	// Rozmiar strony wyników.
+	PageSize OptInt32 `json:",omitempty,omitzero"`
+}
+
 // PermissionsQueryEntitiesRolesGetParams is parameters of GET /permissions/query/entities/roles operation.
 type PermissionsQueryEntitiesRolesGetParams struct {
 	// Numer strony wyników.
