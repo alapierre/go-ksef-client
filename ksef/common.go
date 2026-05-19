@@ -64,6 +64,8 @@ var (
 	ErrNoEnv        = errors.New("no KSeF environment in context.Context")
 )
 
+const PublicKeyRejectedErrorCode = 21470
+
 // ApiError błąd z kontekstem zdarzenia
 type ApiError struct {
 	Status  int // HTTP status (np. 401)
@@ -92,6 +94,11 @@ func (e *ApiError) hasErrorCode(code int) bool {
 		}
 	}
 	return false
+}
+
+func IsPublicKeyRejectedError(err error) bool {
+	var apiErr *ApiError
+	return errors.As(err, &apiErr) && apiErr.hasErrorCode(PublicKeyRejectedErrorCode)
 }
 
 func HandelOtherApiError(res interface{}) error {

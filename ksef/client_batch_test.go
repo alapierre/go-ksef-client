@@ -60,7 +60,7 @@ func TestClient_Batch(t *testing.T) {
 		return WithKsefToken(ctx, authFacade, encryptor, token)
 	})
 
-	client, err := NewClient(env, httpClient, provider)
+	client, err := NewClient(env, httpClient, provider, WithEncryptionService(encryptor))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,21 +123,11 @@ func TestClient_Batch(t *testing.T) {
 
 	// --- 3. Przygotowanie EncryptionInfo na podstawie klucza paczki ---
 
-	encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, batchResult.AESKey)
-	if err != nil {
-		t.Fatalf("EncryptSymmetricKey failed: %v", err)
-	}
-
-	enc := api.EncryptionInfo{
-		EncryptedSymmetricKey: encryptedKey,
-		InitializationVector:  batchResult.IV,
-	}
-
 	offline := api.OptBool{} // jeśli potrzebujesz offlineMode = true, użyj offline.SetTo(true)
 
 	// --- 4. Otwarcie sesji wsadowej ---
 
-	openResp, err := client.OpenBatchSession(ctx, form, enc, offline, batchFile)
+	openResp, err := client.OpenBatchSession(ctx, form, batchResult.AESKey, batchResult.IV, offline, batchFile)
 	if err != nil {
 		t.Fatalf("OpenBatchSession failed: %v", err)
 	}

@@ -105,10 +105,154 @@ EncryptionService is responsible for:
 Keys are cached separately for each usage and automatically refreshed before expiration using a safety margin (refreshSkew).
 
 Key points:
-- Two independent caches: tokenPub (KsefTokenEncryption) and symKeyPub (SymmetricKeyEncryption).
+- Two independent caches: tokenPub (KsefTokenEncryption) and symKeyPub (SymmetricKeyEncryption), each with its publicKeyId.
 - Automatic on-demand fetch from the API only when a key is missing or close to expiration.
 - ForceRefresh() refreshes both caches (does not return keys).
 - Optional preload of certificates/keys in the constructor to avoid API calls.
+
+### Public key rotation and publicKeyId
+
+KSeF now can publish more than one valid key at the same time. A new certificate can mean either:
+
+- re-certification: the certificate changes, but the public key and publicKeyId stay the same,
+- key rotation: a new public key is published with a new publicKeyId.
+
+For requests where KSeF must know which public key was used for encryption, the request should include `publicKeyId`.
+
+This affects:
+
+- `POST /auth/ksef-token`,
+- `POST /sessions/online`,
+- `POST /sessions/batch`.
+
+`/invoices/exports` also requires this selector in KSeF, but this client does not currently expose invoice exports.
+
+The library now selects the currently valid certificate for each usage. If more than one valid certificate exists for a usage, 
+it uses the one with the latest `validFrom`. When KSeF returns error `21470` ("unknown or withdrawn key"), 
+the high-level helpers force-refresh public certificates and retry the operation once with the newly selected key.
+
+Recommended APIs:
+
+- Use `WithKsefToken` or `WithKsefTokenResult` for token authentication.
+- Use `OpenInteractiveSession(ctx, form, key, iv)` for online sessions.
+- Use `OpenBatchSession(ctx, form, key, iv, offline, batchFile)` for batch sessions.
+- Let `Client` use its default `EncryptionService`, or pass a shared/custom one with `WithEncryptionService`.
+- Use `BuildEncryptionInfo` when you need to build `api.EncryptionInfo` yourself in custom code.
+- Use `EncryptKsefTokenWithKeyID`, `EncryptSymmetricKeyWithKeyID`, or `GetPublicKeyWithIDFor` only for custom low-level integrations.
+
+Lower-level APIs kept for custom integrations:
+
+- `EncryptKsefToken` / `EncryptSymmetricKey`: return encrypted bytes only and are deprecated.
+- `EncryptKsefTokenWithKeyID` / `EncryptSymmetricKeyWithKeyID`: return encrypted bytes and publicKeyId.
+- `GetPublicKeyFor`: returns only the RSA key, deprecated.
+- `GetPublicKeyWithIDFor`: returns the RSA key and publicKeyId.
+- `AuthWithToken`: accepts optional publicKeyId; direct users should pass it and handle error `21470`.
+
+### Migration guide
+
+This release changes the public `Client` session API. Session-opening methods now accept the raw AES key and IV instead of a prebuilt `api.EncryptionInfo`, because the client must be able to re-encrypt the symmetric key after refreshing KSeF public certificates.
+
+Opening an online session before this release:
+
+````go
+encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, key)
+if err != nil {
+    // handle error
+}
+
+enc := api.EncryptionInfo{
+    EncryptedSymmetricKey: encryptedKey,
+    InitializationVector:  iv,
+}
+
+session, err := client.OpenInteractiveSession(ctx, form, enc)
+````
+
+Recommended:
+
+````go
+session, err := client.OpenInteractiveSession(ctx, form, key, iv)
+````
+
+`Client.OpenInteractiveSession` now:
+
+- encrypts the symmetric key,
+- fills `EncryptionInfo.PublicKeyId`,
+- calls `POST /sessions/online`,
+- on KSeF error `21470`, refreshes public certificates and retries once.
+
+By default, `NewClient` creates an `EncryptionService` internally:
+
+````go
+client, err := ksef.NewClient(env, httpClient, provider)
+````
+
+If you already have an encryptor, for example because token authentication uses the same instance or you preload keys, pass it to the client:
+
+````go
+encryptor, err := ksef.NewEncryptionService(env, httpClient)
+if err != nil {
+    // handle error
+}
+
+client, err := ksef.NewClient(
+    env,
+    httpClient,
+    provider,
+    ksef.WithEncryptionService(encryptor),
+)
+````
+
+Opening a batch session before this release:
+
+````go
+encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, batchResult.AESKey)
+if err != nil {
+    // handle error
+}
+
+enc := api.EncryptionInfo{
+    EncryptedSymmetricKey: encryptedKey,
+    InitializationVector:  batchResult.IV,
+}
+
+openResp, err := client.OpenBatchSession(ctx, form, enc, offline, batchFile)
+````
+
+Recommended:
+
+````go
+openResp, err := client.OpenBatchSession(
+    ctx,
+    form,
+    batchResult.AESKey,
+    batchResult.IV,
+    offline,
+    batchFile,
+)
+````
+
+Token authentication with `WithKsefToken` already uses the recommended flow:
+
+````go
+tokens, err := ksef.WithKsefToken(ctx, authFacade, encryptor, token)
+````
+
+If you use low-level token authentication directly, migrate from encrypted bytes only:
+
+````go
+encryptedToken, err := encryptor.EncryptKsefTokenWithKeyID(ctx, token, challenge.Timestamp)
+if err != nil {
+    // handle error
+}
+
+initResp, err := authFacade.AuthWithToken(
+    ctx,
+    challenge.Challenge,
+    encryptedToken.Data,
+    encryptedToken.PublicKeyID,
+)
+````
 
 ### Initialization
 
@@ -119,7 +263,7 @@ Standard (keys fetched on demand from the API):
 env := ksef.Test
 httpClient := &http.Client{ Timeout: 15 * time.Second }
 
-enc, err := cipher.NewEncryptionService(env, httpClient)
+enc, err := ksef.NewEncryptionService(env, httpClient)
 if err != nil {
     // handle error
 }
@@ -129,10 +273,10 @@ No API calls — preload with existing certs or keys
 
 ````go
 // Go
-enc, err := cipher.NewEncryptionService(
+enc, err := ksef.NewEncryptionService(
     env,
     httpClient,
-    cipher.WithPreloadedKeys(cipher.PreloadedKeys{
+    ksef.WithPreloadedKeys(ksef.PreloadedKeys{
         // Option A: certificates in DER Base64 form
         TokenCertBase64:     "<base64-der-token>",
         SymmetricCertBase64: "<base64-der-symmetric>",
@@ -140,6 +284,10 @@ enc, err := cipher.NewEncryptionService(
         // Option B: ready *rsa.PublicKey instances
         // TokenRSAPub:     tokenPub,
         // SymmetricRSAPub: symPub,
+
+        // Required when preloading keys for requests that need publicKeyId.
+        // TokenPublicKeyID:     tokenPublicKeyID,
+        // SymmetricPublicKeyID: symPublicKeyID,
 
         // Optional validity dates (if omitted, they’ll be read from certs)
         // TokenValidTo:     time.Time{},
@@ -156,16 +304,22 @@ Encryption
 Encrypt KSeF token (token + timestamp in ms), RSA-OAEP(SHA-256)
 
 ````go
-encryptedTokenBytes, err := enc.EncryptKsefToken(ctx, token, challenge.Timestamp)
+encryptedToken, err := enc.EncryptKsefTokenWithKeyID(ctx, token, challenge.Timestamp)
 if err != nil {
     // handle error
 }
+
+// encryptedToken.Data is the encrypted payload.
+// encryptedToken.PublicKeyID must be sent as publicKeyId.
 ````
 
 Encrypt the invoice symmetric key (Usage=SymmetricKeyEncryption)
 
 ````go
-encryptedSymKey, err := enc.EncryptSymmetricKey(ctx, aesKey)
+encryptionInfo, err := enc.BuildEncryptionInfo(ctx, aesKey, iv)
+if err != nil {
+    // handle error
+}
 ````
 
 If a required key is missing or expired, EncryptionService will fetch/refresh the proper certificate and update its cache automatically.
@@ -176,14 +330,15 @@ if err := enc.ForceRefresh(ctx); err != nil {
 }
 ````
 
-After ForceRefresh, use the regular methods (EncryptKsefToken, EncryptSymmetricKey, or GetPublicKeyFor). ForceRefresh itself does not return keys.
+After ForceRefresh, use the regular methods (EncryptKsefTokenWithKeyID, BuildEncryptionInfo, or GetPublicKeyWithIDFor). ForceRefresh itself does not return keys.
 
 ### Implementation notes
 
 - RSA-OAEP with SHA-256 is used for all RSA encryptions.
 - Each key usage has its own key and validity tracked independently.
 - refreshSkew is a safety margin checked on-demand: when a key is requested and its ValidTo − now ≤ refreshSkew (default 2 minutes), the service refreshes it; there is no periodic timer.
-- GetPublicKeyFor(ctx, usage) returns the current key for the given usage and will fetch/cache it if needed.
+- GetPublicKeyWithIDFor(ctx, usage) returns the current key and publicKeyId for the given usage and will fetch/cache it if needed.
+- If KSeF returns error 21470, token authentication and the client session methods force-refresh public certificates and retry once with the new key.
 
 ## Authentication with KSeF Token 
 
@@ -293,7 +448,7 @@ func openSession() {
 		return ksef.WithKsefToken(ctx, authFacade, encryptor, token)
 	})
 
-	client, err := ksef.NewClient(env, httpClient, provider)
+	client, err := ksef.NewClient(env, httpClient, provider, ksef.WithEncryptionService(encryptor))
 
 	form := api.FormCode{
 		SystemCode:    "FA (3)",
@@ -303,14 +458,8 @@ func openSession() {
 
 	key, err := ksef.GenerateRandom256BitsKey()
 	iv, err := ksef.GenerateRandom16BytesIv()
-	encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, key)
 
-	enc := api.EncryptionInfo{
-		EncryptedSymmetricKey: encryptedKey,
-		InitializationVector:  iv,
-	}
-
-	session, err := client.OpenInteractiveSession(ctx, form, enc)
+	session, err := client.OpenInteractiveSession(ctx, form, key, iv)
 	if err != nil {
 		panic(err)
 	}
@@ -467,4 +616,3 @@ to:
 - `return d.Skip()`
 
 on generated parser [oas_json_gen.go](ksef/api/oas_json_gen.go) 
-

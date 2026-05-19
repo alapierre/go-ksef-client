@@ -27,12 +27,24 @@ func WithKsefTokenResult(ctx context.Context, authFacade *AuthFacade, encryptor 
 		return nil, err
 	}
 
-	encryptedToken, err := encryptor.EncryptKsefToken(ctx, token, challenge.Timestamp)
+	encryptedToken, err := encryptor.EncryptKsefTokenWithKeyID(ctx, token, challenge.Timestamp)
 	if err != nil {
 		return nil, err
 	}
 
-	initResp, err := authFacade.AuthWithToken(ctx, challenge.Challenge, encryptedToken)
+	initResp, err := authFacade.AuthWithToken(ctx, challenge.Challenge, encryptedToken.Data, encryptedToken.PublicKeyID)
+	if IsPublicKeyRejectedError(err) {
+		logger.Info("Public key rejected, refreshing encryption key")
+		if refreshErr := encryptor.ForceRefresh(ctx); refreshErr != nil {
+			return nil, refreshErr
+		}
+		encryptedToken, err = encryptor.EncryptKsefTokenWithKeyID(ctx, token, challenge.Timestamp)
+		if err != nil {
+			return nil, err
+		}
+		logger.Infof("trying to auth in KSeF again with newly encrypted token")
+		initResp, err = authFacade.AuthWithToken(ctx, challenge.Challenge, encryptedToken.Data, encryptedToken.PublicKeyID)
+	}
 	if err != nil {
 		return nil, err
 	}

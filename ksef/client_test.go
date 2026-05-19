@@ -57,7 +57,7 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 		return WithKsefToken(ctx, authFacade, encryptor, token)
 	})
 
-	client, err := NewClient(env, httpClient, provider)
+	client, err := NewClient(env, httpClient, provider, WithEncryptionService(encryptor))
 
 	if err != nil {
 		t.Fatal(err)
@@ -79,17 +79,7 @@ func TestClient_OpenInteractiveSession(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	encryptedKey, err := encryptor.EncryptSymmetricKey(ctx, key)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	enc := api.EncryptionInfo{
-		EncryptedSymmetricKey: encryptedKey,
-		InitializationVector:  iv,
-	}
-
-	session, err := client.OpenInteractiveSession(ctx, form, enc)
+	session, err := client.OpenInteractiveSession(ctx, form, key, iv)
 	if err != nil {
 		t.Fatal(err)
 	}

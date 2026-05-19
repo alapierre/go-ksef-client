@@ -15,9 +15,18 @@ type Client struct {
 	raw        *api.Client
 	env        Environment
 	httpClient *http.Client
+	encryptor  *EncryptionService
 }
 
-func NewClient(env Environment, httpClient *http.Client, sec api.SecuritySource) (*Client, error) {
+type ClientOption func(*Client)
+
+func WithEncryptionService(encryptor *EncryptionService) ClientOption {
+	return func(c *Client) {
+		c.encryptor = encryptor
+	}
+}
+
+func NewClient(env Environment, httpClient *http.Client, sec api.SecuritySource, opts ...ClientOption) (*Client, error) {
 	cli, err := api.NewClient(
 		env.BaseURL(),
 		sec,
@@ -26,11 +35,45 @@ func NewClient(env Environment, httpClient *http.Client, sec api.SecuritySource)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{raw: cli, env: env, httpClient: httpClient}, nil
+
+	c := &Client{raw: cli, env: env, httpClient: httpClient}
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.encryptor == nil {
+		c.encryptor, err = NewEncryptionService(env, httpClient)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
 }
 
-func (c *Client) OpenInteractiveSession(ctx context.Context, form api.FormCode, enc api.EncryptionInfo) (*api.OpenOnlineSessionResponse, error) {
+func (c *Client) OpenInteractiveSession(ctx context.Context, form api.FormCode, symmetricKey, iv []byte) (*api.OpenOnlineSessionResponse, error) {
+	enc, err := c.encryptor.BuildEncryptionInfo(ctx, symmetricKey, iv)
+	if err != nil {
+		return nil, err
+	}
 
+	res, err := c.openInteractiveSession(ctx, form, enc)
+	if !IsPublicKeyRejectedError(err) {
+		return res, err
+	}
+
+	logger.Info("Public key rejected, refreshing encryption key")
+
+	if refreshErr := c.encryptor.ForceRefresh(ctx); refreshErr != nil {
+		return nil, refreshErr
+	}
+	enc, err = c.encryptor.BuildEncryptionInfo(ctx, symmetricKey, iv)
+	if err != nil {
+		return nil, err
+	}
+	return c.openInteractiveSession(ctx, form, enc)
+}
+
+func (c *Client) openInteractiveSession(ctx context.Context, form api.FormCode, enc api.EncryptionInfo) (*api.OpenOnlineSessionResponse, error) {
 	req := api.OptOpenOnlineSessionRequest{}
 	req.SetTo(api.OpenOnlineSessionRequest{
 		FormCode:   form,
@@ -45,9 +88,9 @@ func (c *Client) OpenInteractiveSession(ctx context.Context, form api.FormCode, 
 	switch v := res.(type) {
 	case *api.OpenOnlineSessionResponse:
 		return v, nil
-	case *api.SessionsOnlinePostUnauthorized:
+	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
-	case *api.SessionsOnlinePostForbidden:
+	case *api.ForbiddenProblemDetails:
 		return nil, ErrForbidden
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
@@ -88,9 +131,9 @@ func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.
 	switch v := res.(type) {
 	case *api.SendInvoiceResponse:
 		return string(v.GetReferenceNumber()), nil
-	case *api.SessionsOnlineReferenceNumberInvoicesPostUnauthorized:
+	case *api.UnauthorizedProblemDetails:
 		return "", ErrUnauthorized
-	case *api.SessionsOnlineReferenceNumberInvoicesPostForbidden:
+	case *api.ForbiddenProblemDetails:
 		return "", ErrForbidden
 	case *api.ExceptionResponse:
 		return "", HandleAPIError(v)
@@ -99,7 +142,30 @@ func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.
 	}
 }
 
-func (c *Client) OpenBatchSession(ctx context.Context, form api.FormCode, enc api.EncryptionInfo, offline api.OptBool, info api.BatchFileInfo) (*api.OpenBatchSessionResponse, error) {
+func (c *Client) OpenBatchSession(ctx context.Context, form api.FormCode, symmetricKey, iv []byte, offline api.OptBool, info api.BatchFileInfo) (*api.OpenBatchSessionResponse, error) {
+	enc, err := c.encryptor.BuildEncryptionInfo(ctx, symmetricKey, iv)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.openBatchSession(ctx, form, enc, offline, info)
+	if !IsPublicKeyRejectedError(err) {
+		return res, err
+	}
+
+	logger.Info("Public key rejected, refreshing encryption key")
+
+	if refreshErr := c.encryptor.ForceRefresh(ctx); refreshErr != nil {
+		return nil, refreshErr
+	}
+	enc, err = c.encryptor.BuildEncryptionInfo(ctx, symmetricKey, iv)
+	if err != nil {
+		return nil, err
+	}
+	return c.openBatchSession(ctx, form, enc, offline, info)
+}
+
+func (c *Client) openBatchSession(ctx context.Context, form api.FormCode, enc api.EncryptionInfo, offline api.OptBool, info api.BatchFileInfo) (*api.OpenBatchSessionResponse, error) {
 
 	req := api.OptOpenBatchSessionRequest{}
 
@@ -120,9 +186,9 @@ func (c *Client) OpenBatchSession(ctx context.Context, form api.FormCode, enc ap
 		return v, nil
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
-	case *api.SessionsBatchPostUnauthorized:
+	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
-	case *api.SessionsBatchPostForbidden:
+	case *api.ForbiddenProblemDetails:
 		return nil, ErrForbidden
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
@@ -190,9 +256,9 @@ func (c *Client) CloseBatchSession(ctx context.Context, reference string) (strin
 	case *api.SessionsBatchReferenceNumberClosePostNoContent:
 		// sukces – API zwraca 204 bez treści
 		return reference, nil
-	case *api.SessionsBatchReferenceNumberClosePostUnauthorized:
+	case *api.UnauthorizedProblemDetails:
 		return "", ErrUnauthorized
-	case *api.SessionsBatchReferenceNumberClosePostForbidden:
+	case *api.ForbiddenProblemDetails:
 		return "", ErrForbidden
 	case *api.ExceptionResponse:
 		return "", HandleAPIError(v)

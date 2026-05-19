@@ -11159,8 +11159,6 @@
             "format": "byte"
           },
           "publicKeyId": {
-            "maxLength": 44,
-            "minLength": 44,
             "type": "string",
             "description": "Identyfikator klucza publicznego użytego do szyfrowania.",
             "format": "byte",
@@ -12898,8 +12896,6 @@
             "format": "byte"
           },
           "publicKeyId": {
-            "maxLength": 44,
-            "minLength": 44,
             "type": "string",
             "description": "Identyfikator klucza publicznego użytego do szyfrowania tokena.",
             "format": "byte",
@@ -16292,8 +16288,6 @@
         }
       },
       "Sha256HashBase64": {
-        "maxLength": 44,
-        "minLength": 44,
         "type": "string",
         "description": "SHA-256 w Base64.",
         "format": "byte"

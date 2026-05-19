@@ -55,11 +55,17 @@ func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChall
 	}
 }
 
-func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte) (*api.AuthenticationInitResponse, error) {
+// AuthWithToken starts token-based authentication with an already encrypted token.
+// Pass publicKeyID when the encrypted token was created with EncryptKsefTokenWithKeyID.
+func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte, publicKeyID ...[]byte) (*api.AuthenticationInitResponse, error) {
 
 	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
 		return nil, ErrNoNip
+	}
+
+	if len(publicKeyID) > 1 {
+		return nil, fmt.Errorf("only one publicKeyID is supported")
 	}
 
 	req := api.InitTokenAuthenticationRequest{
@@ -69,6 +75,7 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 			Value: nip,
 		},
 		EncryptedToken:      encryptedTokenBytes,
+		PublicKeyId:         optPublicKeyID(firstPublicKeyID(publicKeyID)),
 		AuthorizationPolicy: api.OptNilAuthorizationPolicy{},
 	}
 
