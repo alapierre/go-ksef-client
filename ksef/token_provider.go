@@ -18,6 +18,8 @@ type TokenProvider struct {
 	mu    sync.Mutex
 	cache map[string]*nipTokens
 
+	onTokenUpdate TokenUpdateCallback
+
 	// o ile wcześniej przed wygaśnięciem spróbować odświeżyć
 	refreshSkew time.Duration
 }
@@ -29,15 +31,74 @@ type nipTokens struct {
 	refreshExp   time.Time
 }
 
+// TokenUpdate opisuje zmianę tokenów zapisaną w TokenProviderze.
+type TokenUpdate struct {
+	NIP                 string
+	AccessToken         api.TokenInfo
+	RefreshToken        api.TokenInfo
+	AccessTokenChanged  bool
+	RefreshTokenChanged bool
+}
+
+// TokenUpdateCallback jest wywoływany po odświeżeniu access tokena lub refresh tokena.
+type TokenUpdateCallback func(ctx context.Context, update TokenUpdate) error
+
+type TokenProviderOption func(*TokenProvider)
+
+// WithTokenUpdateCallback ustawia callback wywoływany po zmianie tokenów.
+func WithTokenUpdateCallback(callback TokenUpdateCallback) TokenProviderOption {
+	return func(p *TokenProvider) {
+		p.onTokenUpdate = callback
+	}
+}
+
+type pendingTokenUpdate struct {
+	callback TokenUpdateCallback
+	update   TokenUpdate
+}
+
 // NewTokenProvider tworzy provider bez wstępnego logowania; pełne uwierzytelnienie nastąpi on-demand
 // przy pierwszym żądaniu dla danego NIP w Bearer().
-func NewTokenProvider(auth TokenRefresher, authenticator FullAuthenticator) *TokenProvider {
-	return &TokenProvider{
+func NewTokenProvider(auth TokenRefresher, authenticator FullAuthenticator, opts ...TokenProviderOption) *TokenProvider {
+	p := &TokenProvider{
 		auth:          auth,
 		authenticator: authenticator,
 		cache:         make(map[string]*nipTokens),
 		refreshSkew:   30 * time.Second, // bufor bezpieczeństwa
 	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p
+}
+
+// SetTokenUpdateCallback ustawia lub czyści callback wywoływany po zmianie tokenów.
+func (p *TokenProvider) SetTokenUpdateCallback(callback TokenUpdateCallback) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.onTokenUpdate = callback
+}
+
+// SeedTokens zapisuje w providerze znaną parę access/refresh tokenów dla NIP.
+// Dzięki temu Bearer() użyje access tokena, jeśli jest nadal ważny, albo spróbuje odświeżyć
+// go przez refresh token przed przejściem do pełnego uwierzytelnienia.
+func (p *TokenProvider) SeedTokens(ctx context.Context, accessToken api.TokenInfo, refreshToken api.TokenInfo) error {
+	nip, ok := NipFromContext(ctx)
+	if !ok || nip == "" {
+		return ErrNoNip
+	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.cache[nip] = &nipTokens{
+		accessToken:  accessToken.Token,
+		accessExp:    accessToken.GetValidUntil().UTC(),
+		refreshToken: refreshToken.Token,
+		refreshExp:   refreshToken.GetValidUntil().UTC(),
+	}
+
+	return nil
 }
 
 // Bearer spełnia interfejs api.SecuritySource.
@@ -54,8 +115,15 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 	if IsForceAuth(ctx) {
 		logger.Debug("TokenProvider: Force auth requested")
 		p.mu.Lock()
-		defer p.mu.Unlock()
-		return p.fullAuthLocked(ctx)
+		bearer, update, err := p.fullAuthLocked(ctx)
+		p.mu.Unlock()
+		if err != nil {
+			return api.Bearer{}, err
+		}
+		if err := update.notify(ctx); err != nil {
+			return api.Bearer{}, err
+		}
+		return bearer, nil
 	}
 
 	// szybka ścieżka bez blokady
@@ -66,10 +134,10 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 
 	// ścieżka z odświeżeniem / pełnym uwierzytelnieniem
 	p.mu.Lock()
-	defer p.mu.Unlock()
 
 	// podwójne sprawdzenie po złapaniu blokady
 	if token, ok := p.currentIfValidLocked(nip); ok {
+		p.mu.Unlock()
 		return api.Bearer{Token: token}, nil
 	}
 
@@ -78,26 +146,56 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 	if !found {
 		// brak – pełne uwierzytelnienie
 		logger.Debug("TokenProvider: No entry for context NIP, performing full authentication")
-		return p.fullAuthLocked(ctx)
+		bearer, update, err := p.fullAuthLocked(ctx)
+		p.mu.Unlock()
+		if err != nil {
+			return api.Bearer{}, err
+		}
+		if err := update.notify(ctx); err != nil {
+			return api.Bearer{}, err
+		}
+		return bearer, nil
 	}
 
 	// czy refresh token jest nadal ważny?
 	if entry.refreshToken != "" && p.isTokenValid(entry.refreshExp) {
 		// spróbuj odświeżyć access token
-		logger.Debug("TokenProvider: Refresh token expired or empty, trying to refresh access token")
+		logger.Debug("TokenProvider: Refresh token is valid, trying to refresh access token")
 
 		var err error
-		if err = p.refreshAccessTokenLocked(ctx); err == nil {
-			return api.Bearer{Token: p.cache[nip].accessToken}, nil
+		var update pendingTokenUpdate
+		if update, err = p.refreshAccessTokenLocked(ctx); err == nil {
+			token := p.cache[nip].accessToken
+			p.mu.Unlock()
+			if err := update.notify(ctx); err != nil {
+				return api.Bearer{}, err
+			}
+			return api.Bearer{Token: token}, nil
 		}
 		// jeśli refresh nie powiódł się, spróbuj pełnego uwierzytelnienia
 		logger.Debugf("TokenProvider: Refresh failed: %v, performing full authentication", err)
-		return p.fullAuthLocked(ctx)
+		bearer, update, err := p.fullAuthLocked(ctx)
+		p.mu.Unlock()
+		if err != nil {
+			return api.Bearer{}, err
+		}
+		if err := update.notify(ctx); err != nil {
+			return api.Bearer{}, err
+		}
+		return bearer, nil
 	}
 
 	// refresh token brak lub wygasł -> pełne uwierzytelnienie
 	logger.Debug("All others options failed, finally performing full authentication")
-	return p.fullAuthLocked(ctx)
+	bearer, update, err := p.fullAuthLocked(ctx)
+	p.mu.Unlock()
+	if err != nil {
+		return api.Bearer{}, err
+	}
+	if err := update.notify(ctx); err != nil {
+		return api.Bearer{}, err
+	}
+	return bearer, nil
 }
 
 // Invalidate usuwa tokeny z cache dla NIP pobranego z kontekstu.
@@ -146,39 +244,53 @@ func (p *TokenProvider) isTokenValid(exp time.Time) bool {
 	return exp.Sub(now) > p.refreshSkew
 }
 
-func (p *TokenProvider) refreshAccessTokenLocked(ctx context.Context) error {
+func (p *TokenProvider) refreshAccessTokenLocked(ctx context.Context) (pendingTokenUpdate, error) {
 
 	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
-		return ErrNoNip
+		return pendingTokenUpdate{}, ErrNoNip
 	}
 
 	entry, ok := p.cache[nip]
 	if !ok || entry.refreshToken == "" {
-		return ErrNoRefreshToken
+		return pendingTokenUpdate{}, ErrNoRefreshToken
 	}
 
 	ti, err := p.auth.RefreshToken(ctx, entry.refreshToken)
 	if err != nil {
-		return err
+		return pendingTokenUpdate{}, err
 	}
 
 	entry.accessToken = ti.Token
 	entry.accessExp = ti.GetValidUntil().UTC()
-	return nil
+	return pendingTokenUpdate{
+		callback: p.onTokenUpdate,
+		update: TokenUpdate{
+			NIP: nip,
+			AccessToken: api.TokenInfo{
+				Token:      entry.accessToken,
+				ValidUntil: entry.accessExp,
+			},
+			RefreshToken: api.TokenInfo{
+				Token:      entry.refreshToken,
+				ValidUntil: entry.refreshExp,
+			},
+			AccessTokenChanged: true,
+		},
+	}, nil
 }
 
-func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, error) {
+func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, pendingTokenUpdate, error) {
 
 	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
-		return api.Bearer{}, ErrNoNip
+		return api.Bearer{}, pendingTokenUpdate{}, ErrNoNip
 	}
 
 	logger.Debug("TokenProvider: Performing full authentication - calling authenticator func")
 	tokens, err := p.authenticator(ctx)
 	if err != nil {
-		return api.Bearer{}, err
+		return api.Bearer{}, pendingTokenUpdate{}, err
 	}
 	at := tokens.GetAccessToken()
 	rt := tokens.GetRefreshToken()
@@ -189,7 +301,23 @@ func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, error) 
 		refreshExp:   rt.GetValidUntil().UTC(),
 	}
 	logger.Debug("TokenProvider: Full authentication completed, tokens cached")
-	return api.Bearer{Token: at.Token}, nil
+	return api.Bearer{Token: at.Token}, pendingTokenUpdate{
+		callback: p.onTokenUpdate,
+		update: TokenUpdate{
+			NIP:                 nip,
+			AccessToken:         at,
+			RefreshToken:        rt,
+			AccessTokenChanged:  true,
+			RefreshTokenChanged: true,
+		},
+	}, nil
+}
+
+func (u pendingTokenUpdate) notify(ctx context.Context) error {
+	if u.callback == nil {
+		return nil
+	}
+	return u.callback(ctx, u.update)
 }
 
 // ErrNoRefreshToken sygnalizuje brak refresh tokena w źródle.

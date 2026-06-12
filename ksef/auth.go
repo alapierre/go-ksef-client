@@ -160,7 +160,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 				case 100: // w toku – kolejna pętla
 					continue
 				case 200: // gotowe
-					logger.Infof("%v+", v.GetStatus())
+					logger.Infof("%+v", v.GetStatus())
 					return redeemTokens(ctx, cli)
 				default:
 					desc := v.GetStatus().Description

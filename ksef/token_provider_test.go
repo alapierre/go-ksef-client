@@ -2,6 +2,7 @@ package ksef
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -157,6 +158,113 @@ func TestTokenProvider_ConcurrentSameNip_SingleFullAuth(t *testing.T) {
 
 	if got := atomic.LoadInt64(&full.callCount); got != 1 {
 		t.Fatalf("expected 1 full auth call, got %d", got)
+	}
+}
+
+func TestTokenProvider_FullAuthCallsTokenUpdateCallback(t *testing.T) {
+	full := &mockFullAuthenticator{delay: 10 * time.Millisecond}
+	ref := &mockTokenRefresher{delay: 5 * time.Millisecond}
+
+	var callbackCalls int64
+	var got TokenUpdate
+	p := NewTokenProvider(ref, full.Auth, WithTokenUpdateCallback(func(ctx context.Context, update TokenUpdate) error {
+		atomic.AddInt64(&callbackCalls, 1)
+		got = update
+		return nil
+	}))
+	p.refreshSkew = 500 * time.Millisecond
+
+	ctx := ctxWithNip("1234567890")
+	bearer, err := p.Bearer(ctx, "Op")
+	if err != nil {
+		t.Fatalf("Bearer() error = %v", err)
+	}
+
+	if gotCalls := atomic.LoadInt64(&callbackCalls); gotCalls != 1 {
+		t.Fatalf("expected 1 callback call, got %d", gotCalls)
+	}
+	if got.NIP != "1234567890" {
+		t.Fatalf("expected NIP from context, got %q", got.NIP)
+	}
+	if got.AccessToken.Token == "" || got.RefreshToken.Token == "" {
+		t.Fatalf("expected access and refresh token in callback")
+	}
+	if got.AccessToken.Token != bearer.Token {
+		t.Fatalf("expected callback access token %q to match bearer %q", got.AccessToken.Token, bearer.Token)
+	}
+	if !got.AccessTokenChanged || !got.RefreshTokenChanged {
+		t.Fatalf("expected both tokens marked as changed, got access=%v refresh=%v", got.AccessTokenChanged, got.RefreshTokenChanged)
+	}
+}
+
+func TestTokenProvider_RefreshAccessTokenCallsTokenUpdateCallback(t *testing.T) {
+	full := &mockFullAuthenticator{delay: 10 * time.Millisecond}
+	ref := &mockTokenRefresher{delay: 5 * time.Millisecond}
+	p := newTestTokenProvider(ref, full)
+
+	var callbackCalls int64
+	var got TokenUpdate
+	p.SetTokenUpdateCallback(func(ctx context.Context, update TokenUpdate) error {
+		atomic.AddInt64(&callbackCalls, 1)
+		got = update
+		return nil
+	})
+
+	ctx := ctxWithNip("1234567890")
+	now := time.Now().UTC()
+	if err := p.SeedTokens(ctx, api.TokenInfo{
+		Token:      "expired-access",
+		ValidUntil: now.Add(-time.Minute),
+	}, api.TokenInfo{
+		Token:      "valid-refresh",
+		ValidUntil: now.Add(30 * time.Minute),
+	}); err != nil {
+		t.Fatalf("SeedTokens() error = %v", err)
+	}
+
+	bearer, err := p.Bearer(ctx, "Op")
+	if err != nil {
+		t.Fatalf("Bearer() error = %v", err)
+	}
+
+	if gotCalls := atomic.LoadInt64(&callbackCalls); gotCalls != 1 {
+		t.Fatalf("expected 1 callback call, got %d", gotCalls)
+	}
+	if got.NIP != "1234567890" {
+		t.Fatalf("expected NIP from context, got %q", got.NIP)
+	}
+	if got.AccessToken.Token == "" || got.AccessToken.Token == "expired-access" {
+		t.Fatalf("expected refreshed access token, got %q", got.AccessToken.Token)
+	}
+	if got.AccessToken.Token != bearer.Token {
+		t.Fatalf("expected callback access token %q to match bearer %q", got.AccessToken.Token, bearer.Token)
+	}
+	if got.RefreshToken.Token != "valid-refresh" {
+		t.Fatalf("expected existing refresh token in callback, got %q", got.RefreshToken.Token)
+	}
+	if !got.AccessTokenChanged || got.RefreshTokenChanged {
+		t.Fatalf("expected only access token marked as changed, got access=%v refresh=%v", got.AccessTokenChanged, got.RefreshTokenChanged)
+	}
+	if got := atomic.LoadInt64(&full.callCount); got != 0 {
+		t.Fatalf("expected 0 full auth calls, got %d", got)
+	}
+	if got := atomic.LoadInt64(&ref.callCount); got != 1 {
+		t.Fatalf("expected 1 refresh call, got %d", got)
+	}
+}
+
+func TestTokenProvider_TokenUpdateCallbackErrorIsReturned(t *testing.T) {
+	full := &mockFullAuthenticator{delay: 10 * time.Millisecond}
+	ref := &mockTokenRefresher{delay: 5 * time.Millisecond}
+	callbackErr := errors.New("persist tokens")
+	p := NewTokenProvider(ref, full.Auth, WithTokenUpdateCallback(func(ctx context.Context, update TokenUpdate) error {
+		return callbackErr
+	}))
+	p.refreshSkew = 500 * time.Millisecond
+
+	_, err := p.Bearer(ctxWithNip("1234567890"), "Op")
+	if !errors.Is(err, callbackErr) {
+		t.Fatalf("expected callback error, got %v", err)
 	}
 }
 

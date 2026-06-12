@@ -93,6 +93,24 @@ Use ctx for all API calls that require NIP
 TokenProvider is a simple in-memory cache for KSeF tokens. It is thread-safe and can be used concurrently from multiple goroutines.
 In the next implementation, locks will be contextual — currently, the mutex is locked regardless of the NIP
 
+TokenProvider can notify the caller when tokens are updated. This is useful when the application wants to persist the newest access token or refresh token in a database, distributed cache, or other durable storage.
+
+```go
+provider := ksef.NewTokenProvider(
+	authFacade,
+	func(ctx context.Context) (*api.AuthenticationTokensResponse, error) {
+		return ksef.WithKsefToken(ctx, authFacade, encryptor, token)
+	},
+	ksef.WithTokenUpdateCallback(func(ctx context.Context, update ksef.TokenUpdate) error {
+		// Save update.AccessToken and update.RefreshToken for update.NIP.
+		// update.AccessTokenChanged/update.RefreshTokenChanged show which value changed.
+		return nil
+	}),
+)
+```
+
+If the callback returns an error, `Bearer` returns that error to the caller. The callback is invoked after TokenProvider updates its in-memory cache.
+
 ## EncryptionService
 
 EncryptionService is responsible for:
