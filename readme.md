@@ -36,6 +36,10 @@ Currently supported (beyond authentication):
 
 - Opening interactive sessions
 - Sending invoices in interactive mode
+- Closing interactive sessions
+- Checking invoice processing status in a session
+- Querying invoice metadata
+- Downloading invoices by KSeF number
 - Batch invoice submission
 
 Other areas of the KSeF API may be added gradually based on demand and real-world usage.
@@ -414,6 +418,10 @@ func main() {
 
 	fmt.Println(refreshToken.GetToken())
 	fmt.Println("Refreshed")
+
+	if err := authFacade.CloseAuthSession(ctx, refreshToken.GetToken()); err != nil {
+		panic(err)
+	}
 }
 ````
 
@@ -501,7 +509,60 @@ func openSession() {
 	}
 
 	fmt.Println(ir)
+
+	statuses, err := client.SessionInvoices(ctx, string(session.ReferenceNumber), api.OptString{}, api.NewOptInt32(10))
+	if err != nil {
+		panic(err)
+	}
+	for _, invoiceStatus := range statuses.GetInvoices() {
+		fmt.Println(invoiceStatus.GetReferenceNumber(), invoiceStatus.GetStatus().Code)
+	}
+
+	closedRef, err := client.CloseInteractiveSession(ctx, string(session.ReferenceNumber))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(closedRef)
 }
+````
+
+## Querying and downloading invoices
+
+Use `QueryInvoicesMetadata` to search invoice metadata and `GetInvoiceByKsefNumber` to download the invoice XML.
+
+````go
+filters := api.InvoiceQueryFilters{
+	SubjectType: api.InvoiceQuerySubjectTypeSubject1,
+	DateRange: api.InvoiceQueryDateRange{
+		DateType: api.InvoiceQueryDateTypeIssue,
+		From:     time.Now().AddDate(0, -1, 0),
+		To:       api.NewOptNilDateTime(time.Now()),
+	},
+}
+
+metadata, err := client.QueryInvoicesMetadata(ctx, filters, api.InvoicesQueryMetadataPostParams{
+	SortOrder:  api.NewOptSortOrder(api.SortOrderDesc),
+	PageOffset: api.NewOptInt32(0),
+	PageSize:   api.NewOptInt32(50),
+})
+if err != nil {
+	panic(err)
+}
+
+for _, invoice := range metadata.GetInvoices() {
+	fmt.Println(invoice.GetKsefNumber())
+}
+
+downloaded, err := client.GetInvoiceByKsefNumber(ctx, "1234567890-20260101-ABCDEF123456-12")
+if err != nil {
+	panic(err)
+}
+
+xmlReader := downloaded.GetResponse()
+hash := downloaded.GetXMsMetaHash()
+
+fmt.Println(hash)
+_ = xmlReader
 ````
 
 
