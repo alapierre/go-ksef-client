@@ -210,6 +210,35 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 	}
 }
 
+func (c *AuthFacade) CloseAuthSession(ctx context.Context, token string) error {
+	cli, err := api.NewClient(
+		c.env.BaseURL(),
+		localStaticBearer{Token: token},
+		api.WithClient(c.httpClient),
+	)
+	if err != nil {
+		return err
+	}
+
+	res, err := cli.AuthSessionsCurrentDelete(ctx)
+	if err != nil {
+		return fmt.Errorf("APIV2AuthSessionsCurrentDelete: %w", err)
+	}
+
+	switch v := res.(type) {
+	case *api.AuthSessionsCurrentDeleteNoContent:
+		return nil
+	case *api.UnauthorizedProblemDetails:
+		return ErrUnauthorized
+	case *api.ForbiddenProblemDetails:
+		return ErrForbidden
+	case *api.ExceptionResponse:
+		return HandleAPIError(v)
+	default:
+		return fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
 func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationTokensResponse, error) {
 	res, err := cli.AuthTokenRedeemPost(ctx)
 	if err != nil {

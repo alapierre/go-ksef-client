@@ -36,6 +36,10 @@ Currently supported (beyond authentication):
 
 - Opening interactive sessions
 - Sending invoices in interactive mode
+- Closing interactive sessions
+- Checking invoice processing status in a session
+- Querying invoice metadata
+- Downloading invoices by KSeF number
 - Batch invoice submission
 
 Other areas of the KSeF API may be added gradually based on demand and real-world usage.
@@ -414,6 +418,10 @@ func main() {
 
 	fmt.Println(refreshToken.GetToken())
 	fmt.Println("Refreshed")
+
+	if err := authFacade.CloseAuthSession(ctx, refreshToken.GetToken()); err != nil {
+		panic(err)
+	}
 }
 ````
 
@@ -501,8 +509,113 @@ func openSession() {
 	}
 
 	fmt.Println(ir)
+
+	statuses, err := client.SessionInvoices(ctx, string(session.ReferenceNumber), api.OptString{}, api.NewOptInt32(10))
+	if err != nil {
+		panic(err)
+	}
+	for _, invoiceStatus := range statuses.GetInvoices() {
+		fmt.Println(invoiceStatus.GetReferenceNumber(), invoiceStatus.GetStatus().Code)
+	}
+
+	closedRef, err := client.CloseInteractiveSession(ctx, string(session.ReferenceNumber))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(closedRef)
 }
 ````
+
+## Querying and downloading invoices
+
+Use `QueryInvoicesMetadata` to search invoice metadata and `GetInvoiceByKsefNumber` to download the invoice XML.
+
+````go
+filters := api.InvoiceQueryFilters{
+	SubjectType: api.InvoiceQuerySubjectTypeSubject1,
+	DateRange: api.InvoiceQueryDateRange{
+		DateType: api.InvoiceQueryDateTypeIssue,
+		From:     time.Now().AddDate(0, -1, 0),
+		To:       api.NewOptNilDateTime(time.Now()),
+	},
+}
+
+metadata, err := client.QueryInvoicesMetadata(ctx, filters, api.InvoicesQueryMetadataPostParams{
+	SortOrder:  api.NewOptSortOrder(api.SortOrderDesc),
+	PageOffset: api.NewOptInt32(0),
+	PageSize:   api.NewOptInt32(50),
+})
+if err != nil {
+	panic(err)
+}
+
+for _, invoice := range metadata.GetInvoices() {
+	fmt.Println(invoice.GetKsefNumber())
+}
+
+downloaded, err := client.GetInvoiceByKsefNumber(ctx, "1234567890-20260101-ABCDEF123456-12")
+if err != nil {
+	panic(err)
+}
+
+xmlReader := downloaded.GetResponse()
+hash := downloaded.GetXMsMetaHash()
+
+fmt.Println(hash)
+_ = xmlReader
+````
+
+## Exporting invoices as ZIP
+
+Invoice export is asynchronous. Start the export with filters and an AES key/IV, poll the status until KSeF returns status code `200`, then download and decrypt the package parts into any `io.Writer`.
+
+The downloaded output is one complete ZIP stream assembled from decrypted package parts. The example below writes it to a file, but the writer can also be a buffer, pipe, object-storage writer, HTTP response writer, etc.
+
+````go
+filters := api.InvoiceQueryFilters{
+	SubjectType: api.InvoiceQuerySubjectTypeSubject1,
+	DateRange: api.InvoiceQueryDateRange{
+		DateType: api.InvoiceQueryDateTypePermanentStorage,
+		From:     time.Now().AddDate(0, 0, -7),
+		To:       api.NewOptNilDateTime(time.Now()),
+	},
+}
+
+export, err := client.StartInvoiceExportWithGeneratedKey(ctx, filters, api.OptBool{})
+if err != nil {
+	panic(err)
+}
+
+var status *api.InvoiceExportStatusResponse
+for {
+	status, err = client.InvoiceExportStatus(ctx, export.ReferenceNumber)
+	if err != nil {
+		panic(err)
+	}
+	if status.GetStatus().Code == 200 {
+		break
+	}
+	if status.GetStatus().Code != 100 {
+		panic(fmt.Errorf("invoice export failed with status %d: %s", status.GetStatus().Code, status.GetStatus().Description))
+	}
+	time.Sleep(5 * time.Second)
+}
+
+out, err := os.Create("ksef-invoices-export.zip")
+if err != nil {
+	panic(err)
+}
+defer out.Close()
+
+result, err := client.DownloadInvoiceExport(ctx, status, export.Key, export.IV, out)
+if err != nil {
+	panic(err)
+}
+
+fmt.Println(result.InvoiceCount, result.BytesWritten, result.IsTruncated)
+````
+
+If you need to control the AES key and IV yourself, use `StartInvoiceExport(ctx, filters, onlyMetadata, key, iv)`. Persist `export.Key` and `export.IV` together with `export.ReferenceNumber` if the export will be downloaded later.
 
 
 ### Client validation

@@ -142,6 +142,128 @@ func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.
 	}
 }
 
+func (c *Client) CloseInteractiveSession(ctx context.Context, reference string) (string, error) {
+	params := api.SessionsOnlineReferenceNumberClosePostParams{
+		ReferenceNumber: api.ReferenceNumber(reference),
+	}
+
+	res, err := c.raw.SessionsOnlineReferenceNumberClosePost(ctx, params)
+	if err != nil {
+		return "", err
+	}
+
+	switch v := res.(type) {
+	case *api.SessionsOnlineReferenceNumberClosePostNoContent:
+		return reference, nil
+	case *api.UnauthorizedProblemDetails:
+		return "", ErrUnauthorized
+	case *api.ForbiddenProblemDetails:
+		return "", ErrForbidden
+	case *api.ExceptionResponse:
+		return "", HandleAPIError(v)
+	default:
+		return "", fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
+func (c *Client) SessionInvoices(ctx context.Context, reference string, continuationToken api.OptString, pageSize api.OptInt32) (*api.SessionInvoicesResponse, error) {
+	params := api.SessionsReferenceNumberInvoicesGetParams{
+		XContinuationToken: continuationToken,
+		ReferenceNumber:    api.ReferenceNumber(reference),
+		PageSize:           pageSize,
+	}
+
+	res, err := c.raw.SessionsReferenceNumberInvoicesGet(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	switch v := res.(type) {
+	case *api.SessionInvoicesResponse:
+		return v, nil
+	case *api.UnauthorizedProblemDetails:
+		return nil, ErrUnauthorized
+	case *api.ForbiddenProblemDetails:
+		return nil, ErrForbidden
+	case *api.ExceptionResponse:
+		return nil, HandleAPIError(v)
+	default:
+		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
+func (c *Client) QueryInvoicesMetadata(ctx context.Context, filters api.InvoiceQueryFilters, params api.InvoicesQueryMetadataPostParams) (*api.QueryInvoicesMetadataResponse, error) {
+	req := api.OptInvoiceQueryFilters{}
+	req.SetTo(filters)
+
+	res, err := c.raw.InvoicesQueryMetadataPost(ctx, req, params)
+	if err != nil {
+		return nil, err
+	}
+
+	switch v := res.(type) {
+	case *api.QueryInvoicesMetadataResponse:
+		return v, nil
+	case *api.UnauthorizedProblemDetails:
+		return nil, ErrUnauthorized
+	case *api.ForbiddenProblemDetails:
+		return nil, ErrForbidden
+	case *api.ExceptionResponse:
+		return nil, HandleAPIError(v)
+	default:
+		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
+func (c *Client) GetInvoiceByKsefNumber(ctx context.Context, ksefNumber string) (*api.InvoicesKsefKsefNumberGetOKHeaders, error) {
+	params := api.InvoicesKsefKsefNumberGetParams{
+		KsefNumber: api.KsefNumber(ksefNumber),
+	}
+
+	res, err := c.raw.InvoicesKsefKsefNumberGet(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	switch v := res.(type) {
+	case *api.InvoicesKsefKsefNumberGetOKHeaders:
+		return v, nil
+	case *api.UnauthorizedProblemDetails:
+		return nil, ErrUnauthorized
+	case *api.ForbiddenProblemDetails:
+		return nil, ErrForbidden
+	case *api.ExceptionResponse:
+		return nil, HandleAPIError(v)
+	default:
+		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
+func (c *Client) GetUPO(ctx context.Context, reference, upoReference string) (*api.SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders, error) {
+	params := api.SessionsReferenceNumberUpoUpoReferenceNumberGetParams{
+		ReferenceNumber:    api.ReferenceNumber(reference),
+		UpoReferenceNumber: api.ReferenceNumber(upoReference),
+	}
+
+	res, err := c.raw.SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	switch v := res.(type) {
+	case *api.SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders:
+		return v, nil
+	case *api.UnauthorizedProblemDetails:
+		return nil, ErrUnauthorized
+	case *api.ForbiddenProblemDetails:
+		return nil, ErrForbidden
+	case *api.ExceptionResponse:
+		return nil, HandleAPIError(v)
+	default:
+		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
 func (c *Client) OpenBatchSession(ctx context.Context, form api.FormCode, symmetricKey, iv []byte, offline api.OptBool, info api.BatchFileInfo) (*api.OpenBatchSessionResponse, error) {
 	enc, err := c.encryptor.BuildEncryptionInfo(ctx, symmetricKey, iv)
 	if err != nil {
