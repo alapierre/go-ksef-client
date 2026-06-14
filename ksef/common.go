@@ -77,10 +77,14 @@ type ApiError struct {
 type ErrorDetail struct {
 	Code    int
 	Message string
+	Details []string
 }
 
 func (e *ErrorDetail) Error() string {
-	return fmt.Sprintf("%d: %s", e.Code, e.Message)
+	if len(e.Details) == 0 {
+		return fmt.Sprintf("%d: %s", e.Code, e.Message)
+	}
+	return fmt.Sprintf("%d: %s (%s)", e.Code, e.Message, strings.Join(e.Details, "; "))
 }
 
 func (e *ApiError) Error() string {
@@ -108,21 +112,16 @@ func HandelOtherApiError(res interface{}) error {
 // HandleAPIError obsługuje generyczne błędy API (4xx/5xx)
 func HandleAPIError(ex *api.ExceptionResponse) error {
 
-	// Stwórz podstawowy komunikat o błędzie
-	errorMsg := fmt.Sprintf("błąd API: %v", ex.GetException().Value)
-
 	var d []ErrorDetail
+	errorMsg := "błąd API KSeF"
 
 	// Sprawdź czy mamy listę szczegółów błędów
 	if details, ok := ex.GetException().Value.ExceptionDetailList.Get(); ok && len(details) > 0 {
-
-		errorMsg += "\nSzczegóły:"
 		for i, detail := range details {
-			errorMsg += fmt.Sprintf("\n  %d: %+v", i+1, detail)
-
 			var (
-				code int
-				msg  string
+				code       int
+				msg        string
+				textDetail []string
 			)
 
 			if v, ok := detail.ExceptionCode.Get(); ok {
@@ -131,14 +130,21 @@ func HandleAPIError(ex *api.ExceptionResponse) error {
 			if s, ok := detail.ExceptionDescription.Get(); ok {
 				msg = s
 			}
-			// Jeżeli brak opisu, spróbuj złożyć z tablicy Details
-			if msg == "" {
-				if arr, ok := detail.Details.Get(); ok && len(arr) > 0 {
+			if arr, ok := detail.Details.Get(); ok && len(arr) > 0 {
+				textDetail = append(textDetail, arr...)
+				if msg == "" {
 					msg = arr[0]
 				}
 			}
 
-			d = append(d, ErrorDetail{Message: msg, Code: code})
+			if msg == "" {
+				msg = "błąd API KSeF"
+			}
+
+			if i == 0 {
+				errorMsg = msg
+			}
+			d = append(d, ErrorDetail{Message: msg, Code: code, Details: textDetail})
 		}
 	}
 
