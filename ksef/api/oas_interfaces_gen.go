@@ -65,6 +65,22 @@ type CertificatesRetrievePostRes interface {
 	certificatesRetrievePostRes()
 }
 
+type CollectiveIdentifiersInvoicesPostRes interface {
+	collectiveIdentifiersInvoicesPostRes()
+}
+
+type CollectiveIdentifiersKsefKsefNumberGetRes interface {
+	collectiveIdentifiersKsefKsefNumberGetRes()
+}
+
+type CollectiveIdentifiersPostRes interface {
+	collectiveIdentifiersPostRes()
+}
+
+type CollectiveIdentifiersQueryPostRes interface {
+	collectiveIdentifiersQueryPostRes()
+}
+
 type InvoicesExportsPostRes interface {
 	invoicesExportsPostRes()
 }
@@ -235,6 +251,10 @@ type TestdataAttachmentPostRes interface {
 
 type TestdataAttachmentRevokePostRes interface {
 	testdataAttachmentRevokePostRes()
+}
+
+type TestdataCertificatesSerialNumberPutRes interface {
+	testdataCertificatesSerialNumberPutRes()
 }
 
 type TestdataContextBlockPostRes interface {

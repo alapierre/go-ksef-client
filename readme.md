@@ -13,40 +13,74 @@ especially authentication and signing workflows.
 
 This project is actively used in production environments (70+ commercial deployments) and is considered stable for its core use cases.
 
-The current implementation focuses primarily on authentication and QR code generation for KSeF 2.0:
+The client provides high-level operations for authentication, invoice submission and retrieval, batch processing, invoice export, collective identifiers and QR verification links. It does not yet expose every KSeF API operation through its facades.
 
-- Authentication using:
- - KSeF Token
- - KSeF Certificate
-- QR code (one and two) generation compliant with KSeF requirements
+## Supported features
 
-Additionally, thanks to integration with `github.com/alapierre/godss`, the client supports:
-
-- Qualified electronic signature
-- Qualified electronic seal
-
-These features are fully production-proven and widely used in real-world integrations.
-
-At this stage, the library does not aim to provide full coverage of the KSeF API.
-
-- Many API operations are not yet exposed through high-level abstractions (facades)
-- The focus has been on reliability and correctness of critical paths rather than breadth of features
-
-Currently supported (beyond authentication):
-
-- Opening interactive sessions
-- Sending invoices in interactive mode
-- Closing interactive sessions
-- Checking invoice processing status in a session
-- Querying invoice metadata
-- Downloading invoices by KSeF number
-- Batch invoice submission
+- **Authentication** — KSeF Token and XAdES authentication, including KSeF certificates, qualified electronic signatures and qualified electronic seals through `github.com/alapierre/godss`; waiting for authentication to complete, redeeming and refreshing tokens, and closing authentication sessions.
+- **Multi-NIP token management** — a concurrent token cache, automatic token refresh and reauthentication, loading persisted tokens with `SeedTokens`, and callbacks for persisting token updates. See [TokenProvider](#tokenprovider-multi-nip-token-cache).
+- **Encryption and public key rotation** — encryption of KSeF tokens and session keys, cached public keys, `publicKeyId` support, and key refresh with a retry when KSeF rejects a public key. See [EncryptionService](#encryptionservice).
+- **Interactive invoice submission** — opening a session, encrypting and sending invoices, and closing the session. See [Interactive sessions](#opening-an-interactive-session-and-sending-invoices).
+- **Batch invoice submission** — building ZIP batches from files or an `InvoiceSource`, splitting and encrypting upload parts, opening a batch session, uploading its parts, and closing the session.
+- **Session results and UPO** — retrieving paginated session invoice lists with processing statuses and downloading UPO documents.
+- **Invoice search and download** — querying invoice metadata with filters and pagination, and downloading invoice XML by its KSeF number. See [Querying and downloading invoices](#querying-and-downloading-invoices).
+- **Invoice export** — starting asynchronous exports, checking their status, and downloading, decrypting and joining package parts into a ZIP stream, with size and hash verification. Exports can include invoice metadata only. See [Exporting invoices as ZIP](#exporting-invoices-as-zip).
+- **Collective identifiers** — generating identifiers, retrieving their invoices, finding identifiers by KSeF number, and searching identifiers with filters and pagination. Invoice entries support optional payment amounts, currencies and descriptions. See [Collective identifiers](#collective-identifiers).
+- **QR verification links** — generating invoice and certificate verification links for QR codes, including signing certificate verification links.
 
 Other areas of the KSeF API may be added gradually based on demand and real-world usage.
 
-# Ready futures
+## Backward compatibility after the OpenAPI update
 
-- Sending invoices — interactively and in batch  
+**The update that adds collective identifiers is not fully source-compatible with the previous generated client.** The four new collective identifier methods are additive, but the accompanying OpenAPI and ogen update changes existing models in `ksef/api`.
+
+Existing high-level method signatures in `Client`, `AuthFacade` and `TokenProvider` have been retained. However, these methods expose generated models, so application code using their fields, constructors or return values may still require changes. [ksef/api/compat.go](ksef/api/compat.go) preserves selected names such as `TokenInfo`, `FormCode`, `EncryptionInfo` and `InvoiceQueryFilters`; it is not a complete compatibility layer for the previous `api` package.
+
+### Migrating token handling
+
+Previously, access and refresh tokens both used `api.TokenInfo`. The generated authentication response now uses separate types. For example, this previous call no longer compiles:
+
+```go
+err := provider.SeedTokens(ctx, tokens.GetAccessToken(), tokens.GetRefreshToken())
+```
+
+Convert the refresh token when passing it to `SeedTokens`:
+
+```go
+err := provider.SeedTokens(ctx, tokens.GetAccessToken(), api.TokenInfo(tokens.GetRefreshToken()))
+```
+
+When constructing an authentication response from an `api.TokenInfo`, the conversion goes in the other direction:
+
+```go
+response.SetRefreshToken(api.AuthenticationTokensResponseRefreshToken(refreshToken))
+```
+
+### Migrating filter constructors
+
+Some optional wrapper types and constructors were renamed and are not restored by the compatibility aliases. Examples:
+
+| Previous name | Current name |
+| --- | --- |
+| `api.NewOptNilInvoiceQueryAmount` | `api.NewOptNilInvoicesQueryMetadataPostReqAmount` |
+| `api.OptNilInvoiceQueryAmount` | `api.OptNilInvoicesQueryMetadataPostReqAmount` |
+| `api.NewOptNilInvoiceQueryBuyerIdentifier` | `api.NewOptNilInvoicesQueryMetadataPostReqBuyerIdentifier` |
+| `api.OptNilInvoiceQueryBuyerIdentifier` | `api.OptNilInvoicesQueryMetadataPostReqBuyerIdentifier` |
+| `api.NewOptInvoiceQueryFilters` | `api.NewOptInvoicesQueryMetadataPostReq` |
+
+The retained `api.InvoiceQueryAmount` alias can be passed to the new constructor:
+
+```go
+filters.Amount = api.NewOptNilInvoicesQueryMetadataPostReqAmount(amount)
+```
+
+### Generated responses and toolchain
+
+Successful low-level responses can now be wrapped in `...ResponseHeaders` types. For example, a type switch on the result of `api.Client.SessionsOnlinePost` must handle `*api.OpenOnlineSessionResponseHeaders` and read its `Response` field. The high-level `Client.OpenInteractiveSession` already unwraps this response and still returns `*api.OpenOnlineSessionResponse`.
+
+The module now requires **Go 1.27**, up from Go 1.26, and specifies `go1.27.3` as its preferred toolchain.
+
+These examples are not an exhaustive list of changes in the generated package. Rebuild and test consuming applications when upgrading, including code that constructs models or implements authentication callbacks. Passing this repository's tests does not establish source compatibility for downstream applications.
 
 ## Design assumptions
 
@@ -565,6 +599,74 @@ fmt.Println(hash)
 _ = xmlReader
 ````
 
+## Collective identifiers
+
+The client supports all four collective identifier operations:
+
+- `GenerateCollectiveIdentifier` creates an identifier for at least two invoices issued by the same seller. Each invoice can include a payment amount, currency and description.
+- `GetCollectiveIdentifierInvoices` retrieves a page of invoices for up to ten collective identifiers. Each item contains its `CollectiveIdentifierNumber` and `DetailsHidden` flag.
+- `GetCollectiveIdentifiersByKsefNumber` retrieves a page of identifiers containing a given invoice.
+- `QueryCollectiveIdentifiers` searches identifiers using a required creation date range (up to 100 days) and optional filters.
+
+These methods use the existing authenticated client and NIP context. Responses expose the generated body models, including optional fields and continuation tokens.
+
+```go
+created, err := client.GenerateCollectiveIdentifier(ctx, []api.CollectiveIdentifierInvoice{
+    {
+        KsefNumber: api.KsefNumber("1111111111-20260101-111111111111-11"),
+        Payment: api.NewOptNilCollectiveIdentifierInvoicePayment(api.CollectiveIdentifierInvoicePayment{
+            Amount: 123.45,
+            Currency: api.CurrencyCodePLN,
+        }),
+        Description: api.NewOptNilString("Payment for invoice 1"),
+    },
+    {KsefNumber: api.KsefNumber("1111111111-20260101-222222222222-22")},
+})
+if err != nil {
+    panic(err)
+}
+
+// Keep the same identifiers and page size when requesting subsequent pages.
+identifiers := []string{created.CollectiveIdentifierNumber}
+var continuationToken api.OptString
+for {
+    page, err := client.GetCollectiveIdentifierInvoices(ctx, identifiers, continuationToken, api.NewOptInt32(50))
+    if err != nil {
+        panic(err)
+    }
+    for _, invoice := range page.Invoices {
+        fmt.Println(invoice.KsefNumber, invoice.CollectiveIdentifierNumber, invoice.DetailsHidden)
+    }
+    next, ok := page.ContinuationToken.Get()
+    if !ok || next == "" {
+        break
+    }
+    continuationToken.SetTo(next)
+}
+
+related, err := client.GetCollectiveIdentifiersByKsefNumber(ctx,
+    "1111111111-20260101-111111111111-11", api.OptString{}, api.NewOptInt32(20))
+if err != nil {
+    panic(err)
+}
+fmt.Println(related.CollectiveIdentifiers)
+
+now := time.Now().UTC()
+page, err := client.QueryCollectiveIdentifiers(ctx, api.CollectiveIdentifiersQueryPostReq{
+    DateCreatedFrom: now.AddDate(0, 0, -30),
+    DateCreatedTo: now,
+    CreatedInCurrentContext: api.NewOptNilBool(true),
+}, api.OptString{}, api.NewOptInt32(20))
+if err != nil {
+    panic(err)
+}
+fmt.Println(page.CollectiveIdentifiers)
+```
+
+For the first page, pass `api.OptString{}`; `api.OptInt32{}` leaves the page size to the API default. All three query methods return a `ContinuationToken` for the next page. A missing, null or empty token ends pagination. Keep the same filters for subsequent pages.
+
+As with other client methods, HTTP 401 and 403 map to `ErrUnauthorized` and `ErrForbidden`; JSON API exceptions map to `*ApiError`. Rate limiting follows the limitations described below under “Too many requests support”.
+
 ## Exporting invoices as ZIP
 
 Invoice export is asynchronous. Start the export with filters and an AES key/IV, poll the status until KSeF returns status code `200`, then download and decrypt the package parts into any `io.Writer`.
@@ -620,32 +722,11 @@ If you need to control the AES key and IV yourself, use `StartInvoiceExport(ctx,
 
 ### Client validation
 
-Cause by ogen issue: https://github.com/ogen-go/ogen/issues/1570 validation of SHA-256 Base64 string is not working corectly. 
-So in the generated code, the validation is commented out. Alternative is to change the following definition in the openapi.json: 
+Ogen currently validates `format: byte` string lengths against decoded bytes ([ogen-go/ogen#1570](https://github.com/ogen-go/ogen/issues/1570)). OpenAPI defines these limits for the Base64 text instead.
 
-from:
+`go generate ./...` runs `tools/fix-byte-validation.go` after ogen to correct validation of SHA-256 hashes and `publicKeyId` fields. The fix validates the Base64 representation while keeping raw `[]byte` values in Go. Do not Base64-encode these fields yourself or change the limits in OpenAPI. The post-processing step fails if a targeted validator changes, so the workaround can be reviewed on generator upgrades.
 
-````json
-      "Sha256HashBase64": {
-        "maxLength": 44,
-        "minLength": 44,
-        "type": "string",
-        "description": "SHA-256 w Base64.",
-        "format": "byte"
-      },
-````
-
-to:
-
-````json
-      "Sha256HashBase64": {
-        "maxLength": 32,
-        "minLength": 32,
-        "type": "string",
-        "description": "SHA-256 w Base64.",
-        "format": "byte"
-      },
-````
+For changes to generated model names, constructors and response types, see [Backward compatibility after the OpenAPI update](#backward-compatibility-after-the-openapi-update).
 
 ### Too many requests support
 
@@ -724,26 +805,26 @@ PASS
 ok      github.com/alapierre/go-ksef-client/ksef        21.349s
 ````
 
-### Regenerating client form OpenAPI
+## Regenerating the client from OpenAPI
 
-Because of how ogen handles size validation for string fields with the byte format, the maxLength and minLength constraints must be removed from the Sha256HashBase64 type or set to a value of 31. Ogen validates the length of the underlying byte array rather than the length of the Base64-encoded string.
+Update [openapi/openapi.json](openapi/openapi.json), then run from the repository root:
 
-````json
-      "Sha256HashBase64": {
-        "type": "string",
-        "description": "SHA-256 w Base64.",
-        "format": "byte"
-      },
-````
+```shell
+go generate ./...
+```
 
-Prevent failure when parsing JSON with unknown fields:
+`make gen` runs the same command. The directives in [generate.go](generate.go) execute two steps in order:
 
-replace:
+1. Generate the client in `ksef/api` using the ogen version declared in `go.mod` and the configuration in `ogen.yml`.
+2. Run [tools/fix-byte-validation.go](tools/fix-byte-validation.go) to correct Base64 length validation in the generated validators, as described in [Client validation](#client-validation).
 
-- `return errors.Errorf("unexpected field %q", k)`
+Running ogen directly skips the second step. If you do so, run `go run tools/fix-byte-validation.go` afterwards. Keep the Base64 length constraints in OpenAPI; do not remove them or replace them with decoded-byte lengths. The correction is safe to run repeatedly and stops with an error if it cannot recognize a targeted validator after a generator update.
 
-to:
+The current generated JSON decoders already skip unknown fields with `d.Skip()`. The previous manual replacement of `unexpected field` errors is no longer needed.
 
-- `return d.Skip()`
+The handwritten aliases in `ksef/api/compat.go` survive generation, but they may need updating when ogen changes model names. Review generated changes for compatibility with both the facade and consuming applications, then run:
 
-on generated parser [oas_json_gen.go](ksef/api/oas_json_gen.go) 
+```shell
+go test ./...
+go vet ./...
+```

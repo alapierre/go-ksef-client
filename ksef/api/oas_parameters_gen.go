@@ -50,6 +50,28 @@ type CertificatesQueryPostParams struct {
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 }
 
+// CollectiveIdentifiersInvoicesPostParams is parameters of POST /collective-identifiers/invoices operation.
+type CollectiveIdentifiersInvoicesPostParams struct {
+	// Token służący do pobrania kolejnej strony wyników.
+	XContinuationToken OptString `json:",omitempty,omitzero"`
+	PageSize           OptInt32  `json:",omitempty,omitzero"`
+}
+
+// CollectiveIdentifiersKsefKsefNumberGetParams is parameters of GET /collective-identifiers/ksef/{ksefNumber} operation.
+type CollectiveIdentifiersKsefKsefNumberGetParams struct {
+	KsefNumber KsefNumber
+	// Token służący do pobrania kolejnej strony wyników.
+	XContinuationToken OptString `json:",omitempty,omitzero"`
+	PageSize           OptInt32  `json:",omitempty,omitzero"`
+}
+
+// CollectiveIdentifiersQueryPostParams is parameters of POST /collective-identifiers/query operation.
+type CollectiveIdentifiersQueryPostParams struct {
+	// Token służący do pobrania kolejnej strony wyników.
+	XContinuationToken OptString `json:",omitempty,omitzero"`
+	PageSize           OptInt32  `json:",omitempty,omitzero"`
+}
+
 // InvoicesExportsReferenceNumberGetParams is parameters of GET /invoices/exports/{referenceNumber} operation.
 type InvoicesExportsReferenceNumberGetParams struct {
 	// Numer referencyjny eksportu faktur.
@@ -65,11 +87,12 @@ type InvoicesKsefKsefNumberGetParams struct {
 // InvoicesQueryMetadataPostParams is parameters of POST /invoices/query/metadata operation.
 type InvoicesQueryMetadataPostParams struct {
 	// Kolejność sortowania wyników.
-	// | Wartość | Opis |
-	// | --- | --- |
-	// | Asc | Sortowanie rosnąco. |
-	// | Desc | Sortowanie malejąco. |.
-	SortOrder OptSortOrder `json:",omitempty,omitzero"`
+	//
+	// 	Wartość | Opis
+	// 	----------+----------------------
+	// 	Asc       | Sortowanie rosnąco.
+	// 	Desc      | Sortowanie malejąco.
+	SortOrder OptInvoicesQueryMetadataPostSortOrder `json:",omitempty,omitzero"`
 	// Indeks pierwszej strony wyników (0 = pierwsza strona).
 	PageOffset OptInt32 `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
@@ -177,10 +200,11 @@ type SessionsGetParams struct {
 	// Rozmiar strony.
 	PageSize OptInt32 `json:",omitempty,omitzero"`
 	// Typ sesji.
-	// | Wartość | Opis |
-	// | --- | --- |
-	// | Online | Wysyłka interaktywna (pojedyncze faktury). |
-	// | Batch | Wysyłka wsadowa (paczka faktur). |.
+	//
+	// 	Wartość | Opis
+	// 	----------+--------------------------------------------
+	// 	Online    | Wysyłka interaktywna (pojedyncze faktury).
+	// 	Batch     | Wysyłka wsadowa (paczka faktur).
 	SessionType SessionType
 	// Numer referencyjny sesji.
 	ReferenceNumber OptReferenceNumber `json:",omitempty,omitzero"`
@@ -197,15 +221,13 @@ type SessionsGetParams struct {
 	// Data ostatniej aktywności (wysyłka faktury lub zmiana statusu) w ramach sesji (do).
 	DateModifiedTo OptDateTime `json:",omitempty,omitzero"`
 	// Statusy sesji.
-	// | Wartość | Opis |
-	// | --- | --- |
-	// | InProgress | Sesja aktywna. |
-	// | Succeeded | Sesja przetworzona poprawnie.            W trakcie przetwarzania sesji nie
-	// wystąpiły żadne błędy, ale część faktur nadal mogła zostać odrzucona. |
-	// | Failed | Sesja nie przetworzona z powodu błędów.            Na etapie rozpoczynania lub
-	// kończenia sesji wystąpiły błędy, które nie pozwoliły na jej poprawne przetworzenie. |
-	// | Cancelled | Sesja anulowania.            Został przekroczony czas na wysyłkę w sesji wsadowej,
-	//  lub nie przesłano żadnych faktur w sesji interaktywnej. |.
+	//
+	// 	Wartość  | Opis
+	// 	-----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 	InProgress | Sesja aktywna.
+	// 	Succeeded  | Sesja przetworzona poprawnie. W trakcie przetwarzania sesji nie wystąpiły żadne błędy, ale część faktur nadal mogła zostać odrzucona.
+	// 	Failed     | Sesja nie przetworzona z powodu błędów. Na etapie rozpoczynania lub kończenia sesji wystąpiły błędy, które nie pozwoliły na jej poprawne przetworzenie.
+	// 	Cancelled  | Sesja anulowania. Został przekroczony czas na wysyłkę w sesji wsadowej, lub nie przesłano żadnych faktur w sesji interaktywnej.
 	Statuses []CommonSessionStatus `json:",omitempty"`
 	// Token służący do pobrania kolejnej strony wyników.
 	XContinuationToken OptString `json:",omitempty,omitzero"`
@@ -281,20 +303,24 @@ type SessionsReferenceNumberUpoUpoReferenceNumberGetParams struct {
 	UpoReferenceNumber ReferenceNumber
 }
 
+// TestdataCertificatesSerialNumberPutParams is parameters of PUT /testdata/certificates/{serialNumber} operation.
+type TestdataCertificatesSerialNumberPutParams struct {
+	// Numer seryjny certyfikatu (w formacie szesnastkowym).
+	SerialNumber string
+}
+
 // TokensGetParams is parameters of GET /tokens operation.
 type TokensGetParams struct {
 	// Status tokenów do zwrócenia. W przypadku braku parametru zwracane są wszystkie tokeny. Parametr
 	// można przekazać wielokrotnie.
-	// | Wartość | Opis |
-	// | --- | --- |
-	// | Pending | Token został utworzony ale jest jeszcze w trakcie aktywacji i nadawania uprawnień.
-	// Nie może być jeszcze wykorzystywany do uwierzytelniania. |
-	// | Active | Token jest aktywny i może być wykorzystywany do uwierzytelniania. |
-	// | Revoking | Token jest w trakcie unieważniania. Nie może już być wykorzystywany do
-	// uwierzytelniania. |
-	// | Revoked | Token został unieważniony i nie może być wykorzystywany do uwierzytelniania. |
-	// | Failed | Nie udało się aktywować tokena. Należy wygenerować nowy token, obecny nie może
-	// być wykorzystywany do uwierzytelniania. |.
+	//
+	// 	Wartość | Opis
+	// 	----------+------------------------------------------------------------------------------------------------------------------------------------------------
+	// 	Pending   | Token został utworzony ale jest jeszcze w trakcie aktywacji i nadawania uprawnień. Nie może być jeszcze wykorzystywany do uwierzytelniania.
+	// 	Active    | Token jest aktywny i może być wykorzystywany do uwierzytelniania.
+	// 	Revoking  | Token jest w trakcie unieważniania. Nie może już być wykorzystywany do uwierzytelniania.
+	// 	Revoked   | Token został unieważniony i nie może być wykorzystywany do uwierzytelniania.
+	// 	Failed    | Nie udało się aktywować tokena. Należy wygenerować nowy token, obecny nie może być wykorzystywany do uwierzytelniania.
 	Status []AuthenticationTokenStatus `json:",omitempty"`
 	// Umożliwia filtrowanie tokenów po opisie. Wartość parametru jest wyszukiwana w opisie tokena
 	// (operacja nie rozróżnia wielkości liter). Należy podać co najmniej 3 znaki.
@@ -304,11 +330,12 @@ type TokensGetParams struct {
 	AuthorIdentifier OptString `json:",omitempty,omitzero"`
 	// Umożliwia filtrowanie tokenów po ich twórcy. Wartość parametru określa typ identyfikatora w
 	// którym będzie wyszukiwany ciąg znaków przekazany w parametrze `authorIdentifier`.
-	// | Wartość | Opis |
-	// | --- | --- |
-	// | Nip | NIP. |
-	// | Pesel | PESEL. |
-	// | Fingerprint | Odcisk palca certyfikatu. |.
+	//
+	// 	Wartość   | Opis
+	// 	------------+--------------------------
+	// 	Nip         | NIP.
+	// 	Pesel       | PESEL.
+	// 	Fingerprint | Odcisk palca certyfikatu.
 	AuthorIdentifierType OptTokenAuthorIdentifierType `json:",omitempty,omitzero"`
 	// Rozmiar strony wyników.
 	PageSize OptInt32 `json:",omitempty,omitzero"`

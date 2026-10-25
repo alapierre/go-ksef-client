@@ -3,7 +3,7 @@
 package api
 
 // setDefaults set default value of fields.
-func (s *InvoiceExportRequest) setDefaults() {
+func (s *InvoicesExportsPostReq) setDefaults() {
 	{
 		val := bool(false)
 		s.OnlyMetadata.SetTo(val)
@@ -11,7 +11,7 @@ func (s *InvoiceExportRequest) setDefaults() {
 }
 
 // setDefaults set default value of fields.
-func (s *OpenBatchSessionRequest) setDefaults() {
+func (s *SessionsBatchPostReq) setDefaults() {
 	{
 		val := bool(false)
 		s.OfflineMode.SetTo(val)
@@ -19,7 +19,7 @@ func (s *OpenBatchSessionRequest) setDefaults() {
 }
 
 // setDefaults set default value of fields.
-func (s *SendInvoiceRequest) setDefaults() {
+func (s *SessionsOnlineReferenceNumberInvoicesPostReq) setDefaults() {
 	{
 		val := bool(false)
 		s.OfflineMode.SetTo(val)

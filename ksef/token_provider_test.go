@@ -46,7 +46,7 @@ func (m *mockFullAuthenticator) Auth(ctx context.Context) (*api.AuthenticationTo
 
 	resp := &api.AuthenticationTokensResponse{}
 	resp.SetAccessToken(access)
-	resp.SetRefreshToken(refresh)
+	resp.SetRefreshToken(api.AuthenticationTokensResponseRefreshToken(refresh))
 	return resp, nil
 }
 

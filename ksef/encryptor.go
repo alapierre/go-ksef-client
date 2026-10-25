@@ -258,8 +258,8 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context, force bool) erro
 
 	var certs []api.PublicKeyCertificate
 	switch v := res.(type) {
-	case *api.SecurityPublicKeyCertificatesGetOKApplicationJSON:
-		certs = *v
+	case *api.SecurityPublicKeyCertificatesGetOKHeaders:
+		certs = v.Response
 	default:
 		return fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
 	}

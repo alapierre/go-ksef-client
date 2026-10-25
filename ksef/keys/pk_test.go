@@ -1,14 +1,16 @@
 package keys
 
 import (
+	"os"
 	"testing"
-
-	"github.com/alapierre/go-ksef-client/ksef/util"
 )
 
 func TestRead(t *testing.T) {
 
-	pass := util.GetEnvOrFailed("KSEF_CERT_PASS")
+	pass := os.Getenv("KSEF_CERT_PASS")
+	if pass == "" {
+		t.Skip("KSEF_CERT_PASS not set – skipping certificate test")
+	}
 
 	_, err := LoadEncryptedPKCS8SignerFromFile("../../test/test-sign.key", []byte(pass))
 	if err != nil {

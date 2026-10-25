@@ -4,6 +4,7 @@ package api
 
 import (
 	"context"
+	"io"
 	"net/url"
 	"strings"
 
@@ -24,94 +25,118 @@ type Invoker interface {
 	// AuthChallengePost invokes POST /auth/challenge operation.
 	//
 	// Generuje unikalny challenge wymagany w kolejnym kroku operacji uwierzytelnienia.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /auth/challenge
 	AuthChallengePost(ctx context.Context) (AuthChallengePostRes, error)
 	// AuthKsefTokenPost invokes POST /auth/ksef-token operation.
 	//
 	// Rozpoczyna operację uwierzytelniania z wykorzystaniem wcześniej wygenerowanego tokena KSeF.
+	//
 	// Token KSeF wraz z timestampem ze wcześniej wygenerowanego challenge'a (w formacie
-	// ```token|timestamp```) powinien zostać zaszyfrowany dedykowanym do tego celu kluczem publicznym.
-	// - Timestamp powinien zostać przekazany jako **liczba milisekund od 1 stycznia 1970 roku (Unix
-	// timestamp)**.
-	// - Algorytm szyfrowania: **RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu)**.
-	// **Headers:**
+	// `token|timestamp`) powinien zostać zaszyfrowany dedykowanym do tego celu kluczem publicznym.
+	//
+	//  - Timestamp powinien zostać przekazany jako liczba milisekund od 1 stycznia 1970 roku (Unix
+	//    timestamp).
+	//  - Algorytm szyfrowania: RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu).
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /auth/ksef-token
-	AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (AuthKsefTokenPostRes, error)
+	AuthKsefTokenPost(ctx context.Context, request OptAuthKsefTokenPostReq) (AuthKsefTokenPostRes, error)
 	// AuthReferenceNumberGet invokes GET /auth/{referenceNumber} operation.
 	//
 	// Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
+	//
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
-	// uwierzytelniania.
-	// Operacja jest dostępna przez 7 dni.
-	// **Headers:**
+	// uwierzytelniania. Operacja jest dostępna przez 7 dni.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /auth/{referenceNumber}
 	AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error)
 	// AuthSessionsCurrentDelete invokes DELETE /auth/sessions/current operation.
 	//
 	// Unieważnia sesję powiązaną z tokenem użytym do wywołania tej operacji.
+	//
 	// Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
-	// już za jego pomocą uzyskać kolejnych access tokenów.
-	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
+	// już za jego pomocą uzyskać kolejnych access tokenów. Aktywne access tokeny działają do czasu
+	// minięcia ich termin ważności.
+	//
 	// Sposób uwierzytelnienia: `RefreshToken` lub `AccessToken`.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// DELETE /auth/sessions/current
 	AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error)
 	// AuthSessionsGet invokes GET /auth/sessions operation.
 	//
 	// Zwraca listę aktywnych sesji uwierzytelnienia.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
 	//
 	// GET /auth/sessions
 	AuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (AuthSessionsGetRes, error)
 	// AuthSessionsReferenceNumberDelete invokes DELETE /auth/sessions/{referenceNumber} operation.
 	//
 	// Unieważnia sesję o podanym numerze referencyjnym.
+	//
 	// Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
-	// już za jego pomocą uzyskać kolejnych access tokenów.
-	// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
-	// **Headers:**
+	// już za jego pomocą uzyskać kolejnych access tokenów. Aktywne access tokeny działają do czasu
+	// minięcia ich termin ważności.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// DELETE /auth/sessions/{referenceNumber}
 	AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error)
 	// AuthTokenRedeemPost invokes POST /auth/token/redeem operation.
 	//
 	// Pobiera parę tokenów (access token i refresh token) wygenerowanych w ramach pozytywnie
-	// zakończonego procesu uwierzytelniania.
-	// **Tokeny można pobrać tylko raz.**
+	// zakończonego procesu uwierzytelniania. Tokeny można pobrać tylko raz.
+	//
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 	// uwierzytelniania.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /auth/token/redeem
 	AuthTokenRedeemPost(ctx context.Context) (AuthTokenRedeemPostRes, error)
 	// AuthTokenRefreshPost invokes POST /auth/token/refresh operation.
 	//
 	// Generuje nowy token dostępu na podstawie ważnego refresh tokena.
+	//
 	// Sposób uwierzytelnienia: `RefreshToken`.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /auth/token/refresh
 	AuthTokenRefreshPost(ctx context.Context) (AuthTokenRefreshPostRes, error)
@@ -119,17 +144,25 @@ type Invoker interface {
 	//
 	// Rozpoczyna operację uwierzytelniania za pomocą dokumentu XML podpisanego podpisem elektronicznym
 	// XAdES.
-	// > Więcej informacji:
-	// > - [Przygotowanie dokumentu XML](https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.
-	// md#1-przygotowanie-dokumentu-xml-authtokenrequest)
-	// > - [Podpis dokumentu XML](https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.
-	// md#2-podpisanie-dokumentu-xades)
-	// > - Obsługiwane schematy:
-	// >   - [auth v2.0](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-0.xsd)
-	// >   - [auth v2.1](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-1.xsd)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Przygotowanie dokumentu XML]
+	// 	 - [Podpis dokumentu XML]
+	// 	 - Obsługiwane schematy:
+	//
+	// 	    - [auth v2.0]
+	// 	    - [auth v2.1]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// [Przygotowanie dokumentu XML]: https://github.com/CIRFMF/ksef-api/blob/main/uwierzytelnianie.md#1-przygotowanie-dokumentu-xml-authtokenrequest
+	// [Podpis dokumentu XML]: https://github.com/CIRFMF/ksef-api/blob/main/uwierzytelnianie.md#2-podpisanie-dokumentu-xades
+	// [auth v2.0]: https://github.com/CIRFMF/ksef-api/blob/main/auth/schemy/schemat_auth_v2-0.xsd
+	// [auth v2.1]: https://github.com/CIRFMF/ksef-api/blob/main/auth/schemy/schemat_auth_v2-1.xsd
 	//
 	// POST /auth/xades-signature
 	AuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (AuthXadesSignaturePostRes, error)
@@ -137,63 +170,85 @@ type Invoker interface {
 	//
 	// Unieważnia certyfikat o podanym numerze seryjnym. Operacja nie jest dostępna dla podmiotu
 	// uwierzytelnionego tokenem KSeF.
+	//
 	// Podmiot może unieważnić wyłącznie certyfikat wygenerowany na jego identyfikator
-	// uwierzytelnienia
-	// lub na identyfikator powiązany w ramach powiązania NIP–PESEL.
-	// **Headers:**
+	// uwierzytelnienia lub na identyfikator powiązany w ramach powiązania NIP–PESEL.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /certificates/{certificateSerialNumber}/revoke
 	CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (CertificatesCertificateSerialNumberRevokePostRes, error)
 	// CertificatesEnrollmentsDataGet invokes GET /certificates/enrollments/data operation.
 	//
 	// Zwraca dane wymagane do przygotowania wniosku certyfikacyjnego PKCS#10.
+	//
 	// Dane te są zwracane na podstawie certyfikatu użytego w procesie uwierzytelnienia i identyfikują
 	// podmiot, który składa wniosek o certyfikat.
-	// > Więcej informacji:
-	// > - [Pobranie danych do wniosku certyfikacyjnego](https://github.
-	// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#2-pobranie-danych-do-wniosku-certyfikacyjnego)
-	// > - [Przygotowanie wniosku](https://github.com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.
-	// md#3-przygotowanie-csr-certificate-signing-request)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobranie danych do wniosku certyfikacyjnego]
+	// 	 - [Przygotowanie wniosku]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// [Pobranie danych do wniosku certyfikacyjnego]: https://github.com/CIRFMF/ksef-api/blob/main/certyfikaty-KSeF.md#2-pobranie-danych-do-wniosku-certyfikacyjnego
+	// [Przygotowanie wniosku]: https://github.com/CIRFMF/ksef-api/blob/main/certyfikaty-KSeF.md#3-przygotowanie-csr-certificate-signing-request
 	//
 	// GET /certificates/enrollments/data
 	CertificatesEnrollmentsDataGet(ctx context.Context) (CertificatesEnrollmentsDataGetRes, error)
 	// CertificatesEnrollmentsPost invokes POST /certificates/enrollments operation.
 	//
 	// Przyjmuje wniosek certyfikacyjny i rozpoczyna jego przetwarzanie.
+	//
 	// Dozwolone typy kluczy prywatnych:
-	// - RSA (OID: 1.2.840.113549.1.1.1), długość klucza równa 2048 bitów,
-	// - EC (klucze oparte na krzywych eliptycznych, OID: 1.2.840.10045.2.1), krzywa NIST P-256
-	// (secp256r1)
+	//
+	//  - RSA (OID: 1.2.840.113549.1.1.1), długość klucza równa 2048 bitów,
+	//  - EC (klucze oparte na krzywych eliptycznych, OID: 1.2.840.10045.2.1), krzywa NIST P-256
+	//    (secp256r1)
+	//
 	// Zalecane jest stosowanie kluczy EC.
+	//
 	// Dozwolone algorytmy podpisu:
-	// - RSA PKCS#1 v1.5,
-	// - RSA PSS,
-	// - ECDSA (format podpisu zgodny z RFC 3279)
+	//
+	//  - RSA PKCS#1 v1.5,
+	//  - RSA PSS,
+	//  - ECDSA (format podpisu zgodny z RFC 3279)
+	//
 	// Dozwolone funkcje skrótu użyte do podpisu CSR:
-	// - SHA1,
-	// - SHA256,
-	// - SHA384,
-	// - SHA512
-	// > Więcej informacji:
-	// > - [Wysłanie wniosku certyfikacyjnego](https://github.
-	// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego)
-	// **Headers:**
+	//
+	//  - SHA1,
+	//  - SHA256,
+	//  - SHA384,
+	//  - SHA512
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Wysłanie wniosku certyfikacyjnego]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// [Wysłanie wniosku certyfikacyjnego]: https://github.com/CIRFMF/ksef-api/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego
 	//
 	// POST /certificates/enrollments
-	CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (CertificatesEnrollmentsPostRes, error)
+	CertificatesEnrollmentsPost(ctx context.Context, request OptCertificatesEnrollmentsPostReq) (CertificatesEnrollmentsPostRes, error)
 	// CertificatesEnrollmentsReferenceNumberGet invokes GET /certificates/enrollments/{referenceNumber} operation.
 	//
 	// Zwraca informacje o statusie wniosku certyfikacyjnego.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /certificates/enrollments/{referenceNumber}
 	CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (CertificatesEnrollmentsReferenceNumberGetRes, error)
@@ -201,164 +256,294 @@ type Invoker interface {
 	//
 	// Zwraca informacje o limitach certyfikatów oraz informacje czy użytkownik może zawnioskować o
 	// certyfikat KSeF.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /certificates/limits
 	CertificatesLimitsGet(ctx context.Context) (CertificatesLimitsGetRes, error)
 	// CertificatesQueryPost invokes POST /certificates/query operation.
 	//
-	// Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania.
-	// W przypadku braku podania kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
-	// **Headers:**
+	// Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania. W przypadku braku podania
+	// kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - requestDate (Desc).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - requestDate (Desc)
 	//
 	// POST /certificates/query
 	CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params CertificatesQueryPostParams) (CertificatesQueryPostRes, error)
 	// CertificatesRetrievePost invokes POST /certificates/retrieve operation.
 	//
 	// Zwraca certyfikaty o podanych numerach seryjnych w formacie DER zakodowanym w Base64.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /certificates/retrieve
-	CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (CertificatesRetrievePostRes, error)
+	CertificatesRetrievePost(ctx context.Context, request OptCertificatesRetrievePostReq) (CertificatesRetrievePostRes, error)
+	// CollectiveIdentifiersInvoicesPost invokes POST /collective-identifiers/invoices operation.
+	//
+	// Zwraca listę numerów KSeF faktur wchodzących w skład identyfikatora zbiorczego.
+	//
+	// Informacje o opisie, kwocie i walucie płatności są zwracane wyłącznie podmiotowi, który
+	// utworzył identyfikator zbiorczy, lub podmiotowi występującemu w roli na danej fakturze.
+	//
+	// Jeżeli opis, kwota i waluta płatności zostały określone podczas tworzenia identyfikatora
+	// zbiorczego, a podmiot nie ma dostępu do tych informacji, pola dotyczące opisu, kwoty i waluty
+	// płatności nie są zwracane, a pole detailsHidden przyjmuje wartość true.
+	//
+	// Jeżeli opis, kwota i waluta płatności nie zostały określone podczas tworzenia identyfikatora
+	// zbiorczego, ich wartości pozostają puste, a pole detailsHidden przyjmuje wartość false.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - ksefNumber (Desc)
+	//
+	// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+	//
+	// POST /collective-identifiers/invoices
+	CollectiveIdentifiersInvoicesPost(ctx context.Context, request OptCollectiveIdentifiersInvoicesPostReq, params CollectiveIdentifiersInvoicesPostParams) (CollectiveIdentifiersInvoicesPostRes, error)
+	// CollectiveIdentifiersKsefKsefNumberGet invokes GET /collective-identifiers/ksef/{ksefNumber} operation.
+	//
+	// Zwraca listę identyfikatorów zbiorczych związanych z podanym numerem KSeF.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - dateCreated (Desc)
+	//  - collectiveIdentifierNumber (Desc)
+	//
+	// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+	//
+	// GET /collective-identifiers/ksef/{ksefNumber}
+	CollectiveIdentifiersKsefKsefNumberGet(ctx context.Context, params CollectiveIdentifiersKsefKsefNumberGetParams) (CollectiveIdentifiersKsefKsefNumberGetRes, error)
+	// CollectiveIdentifiersPost invokes POST /collective-identifiers operation.
+	//
+	// Generuje identyfikator zbiorczy dla przekazanej listy numerów KSeF faktur wystawionych przez tego
+	// samego sprzedawcę.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+	//
+	// POST /collective-identifiers
+	CollectiveIdentifiersPost(ctx context.Context, request OptCollectiveIdentifiersPostReq) (CollectiveIdentifiersPostRes, error)
+	// CollectiveIdentifiersQueryPost invokes POST /collective-identifiers/query operation.
+	//
+	// Zwraca listę identyfikatorów zbiorczych wygenerowanych w kontekście. Dla kontekstu typu NIP
+	// zwracane są również identyfikatory zbiorcze, dla których podmiot występuje w roli Podmiotu 1 na
+	// fakturze.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - dateCreated (Desc)
+	//  - collectiveIdentifierNumber (Desc)
+	//
+	// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+	//
+	// POST /collective-identifiers/query
+	CollectiveIdentifiersQueryPost(ctx context.Context, request OptCollectiveIdentifiersQueryPostReq, params CollectiveIdentifiersQueryPostParams) (CollectiveIdentifiersQueryPostRes, error)
 	// InvoicesExportsPost invokes POST /invoices/exports operation.
 	//
 	// Rozpoczyna asynchroniczny proces wyszukiwania faktur w systemie KSeF na podstawie przekazanych
-	// filtrów oraz przygotowania ich w formie zaszyfrowanej paczki.
-	// Wymagane jest przekazanie informacji o szyfrowaniu w polu <b>Encryption</b>, które służą do
-	// zabezpieczenia przygotowanej paczki z fakturami.
+	// filtrów oraz przygotowania ich w formie zaszyfrowanej paczki. Wymagane jest przekazanie informacji
+	// o szyfrowaniu w polu Encryption, które służą do zabezpieczenia przygotowanej paczki z fakturami.
 	// Maksymalnie można uruchomić 10 równoczesnych eksportów w zalogowanym kontekście.
+	//
 	// System pobiera faktury rosnąco według daty określonej w filtrze (Invoicing, Issue,
-	// PermanentStorage) i dodaje faktury(nazwa pliku: <b>{ksefNumber}.xml</b>) do paczki aż do
-	// osiągnięcia jednego z poniższych limitów:
-	// * Limit liczby faktur: 10 000 sztuk
-	// * Limit rozmiaru danych(skompresowanych): 1GB
+	// PermanentStorage) i dodaje faktury(nazwa pliku: {ksefNumber}.xml) do paczki aż do osiągnięcia
+	// jednego z poniższych limitów:
+	//
+	//  - Limit liczby faktur: 10 000 sztuk
+	//  - Limit rozmiaru danych(skompresowanych): 1GB
+	//
 	// Paczka eksportu zawiera dodatkowy plik z metadanymi faktur w formacie JSON (`_metadata.json`).
-	// Zawartość pliku to
-	// obiekt z tablicą <b>invoices</b>, gdzie każdy element jest obiektem typu <b>InvoiceMetadata</b>
-	// (taki jak zwracany przez endpoint `POST /invoices/query/metadata`).
-	// <b>Plik z metadanymi(_metadata.json) nie jest wliczany do limitów algorytmu budowania paczki</b>.
+	// Zawartość pliku to obiekt z tablicą invoices, gdzie każdy element jest obiektem typu
+	// InvoiceMetadata (taki jak zwracany przez endpoint `POST /invoices/query/metadata`).
+	//
+	// Plik z metadanymi(_metadata.json) nie jest wliczany do limitów algorytmu budowania paczki.
+	//
 	// `Do realizacji pobierania przyrostowego należy stosować filtrowanie po dacie PermanentStorage`.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
-	// **Wymagane uprawnienia**: `InvoiceRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
+	//
+	// Wymagane uprawnienie: `InvoiceRead`.
 	//
 	// POST /invoices/exports
-	InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (InvoicesExportsPostRes, error)
+	InvoicesExportsPost(ctx context.Context, request OptInvoicesExportsPostReq) (InvoicesExportsPostRes, error)
 	// InvoicesExportsReferenceNumberGet invokes GET /invoices/exports/{referenceNumber} operation.
 	//
 	// Paczka faktur jest dzielona na części o maksymalnym rozmiarze 50 MB. Każda część jest
 	// zaszyfrowana algorytmem AES-256-CBC z dopełnieniem PKCS#7, przy użyciu klucza symetrycznego
 	// przekazanego podczas inicjowania eksportu.
+	//
 	// W przypadku ucięcia wyniku eksportu z powodu przekroczenia limitów, zwracana jest flaga
-	// <b>IsTruncated = true</b> oraz odpowiednia data, którą należy wykorzystać do wykonania
-	// kolejnego eksportu, aż do momentu, gdy flaga <b>IsTruncated = false</b>.
+	// IsTruncated = true oraz odpowiednia data, którą należy wykorzystać do wykonania kolejnego
+	// eksportu, aż do momentu, gdy flaga IsTruncated = false.
+	//
 	// Status eksportu paczki faktur jest dostępny przez 7 dni.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
-	// **Wymagane uprawnienia**: `InvoiceRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
+	//
+	// Wymagane uprawnienie: `InvoiceRead`.
 	//
 	// GET /invoices/exports/{referenceNumber}
 	InvoicesExportsReferenceNumberGet(ctx context.Context, params InvoicesExportsReferenceNumberGetParams) (InvoicesExportsReferenceNumberGetRes, error)
 	// InvoicesKsefKsefNumberGet invokes GET /invoices/ksef/{ksefNumber} operation.
 	//
 	// Zwraca fakturę o podanym numerze KSeF.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `InvoiceRead`.
 	//
 	// GET /invoices/ksef/{ksefNumber}
 	InvoicesKsefKsefNumberGet(ctx context.Context, params InvoicesKsefKsefNumberGetParams) (InvoicesKsefKsefNumberGetRes, error)
 	// InvoicesQueryMetadataPost invokes POST /invoices/query/metadata operation.
 	//
 	// Zwraca metadane faktur spełniających filtry.
-	// Limit techniczny: ≤ 10 000 rekordów na zestaw filtrów, po jego osiągnięciu <b>isTruncated =
-	// true</b> i należy ponownie ustawić <b>dateRange</b>, używając ostatniej daty z wyników (tj.
-	// ustawić from/to - w zależności od kierunku sortowania, od daty ostatniego zwróconego rekordu)
-	// oraz wyzerować <b>pageOffset</b>.
-	// `Do scenariusza przyrostowego należy używać daty PermanentStorage oraz kolejność sortowania
-	// Asc`.
-	// <b>Scenariusz pobierania przyrostowego (skrót):</b>
-	// * Gdy <b>hasMore = false</b>, należy zakończyć,
-	// * Gdy <b>hasMore = true</b> i <b>isTruncated = false</b>, należy zwiększyć <b>pageOffset</b>,
-	// * Gdy <b>hasMore = true</b> i <b>isTruncated = true</b>, należy zawęzić <b>dateRange</b>
-	// (ustawić from od daty ostatniego rekordu), wyzerować <b>pageOffset</b> i kontynuować
-	// **Headers:**
+	//
+	// Limit techniczny: ≤ 10 000 rekordów na zestaw filtrów, po jego osiągnięciu isTruncated = true
+	// i należy ponownie ustawić dateRange, używając ostatniej daty z wyników (tj. ustawić from/to -
+	// w zależności od kierunku sortowania, od daty ostatniego zwróconego rekordu) oraz wyzerować
+	// pageOffset.
+	//
+	// `Do scenariusza przyrostowego należy używać daty PermanentStorage oraz kolejność sortowania Asc`.
+	//
+	// Scenariusz pobierania przyrostowego (skrót):
+	//
+	//  - Gdy hasMore = false, należy zakończyć,
+	//  - Gdy hasMore = true i isTruncated = false, należy zwiększyć pageOffset,
+	//  - Gdy hasMore = true i isTruncated = true, należy zawęzić dateRange (ustawić from od daty
+	//    ostatniego rekordu), wyzerować pageOffset i kontynuować
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - permanentStorageDate | invoicingDate | issueDate (Asc | Desc) - pole wybierane na podstawie
-	// filtrów
-	// **Wymagane uprawnienia**: `InvoiceRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - permanentStorageDate | invoicingDate | issueDate (Asc | Desc) - pole wybierane na podstawie
+	//    filtrów
+	//
+	// Wymagane uprawnienie: `InvoiceRead`.
 	//
 	// POST /invoices/query/metadata
-	InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params InvoicesQueryMetadataPostParams) (InvoicesQueryMetadataPostRes, error)
+	InvoicesQueryMetadataPost(ctx context.Context, request OptInvoicesQueryMetadataPostReq, params InvoicesQueryMetadataPostParams) (InvoicesQueryMetadataPostRes, error)
 	// LimitsContextGet invokes GET /limits/context operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego kontekstu.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /limits/context
 	LimitsContextGet(ctx context.Context) (LimitsContextGetRes, error)
 	// LimitsSubjectGet invokes GET /limits/subject operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów dla bieżącego podmiotu.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /limits/subject
 	LimitsSubjectGet(ctx context.Context) (LimitsSubjectGetRes, error)
 	// PeppolQueryGet invokes GET /peppol/query operation.
 	//
 	// Zwraca listę dostawców usług Peppol zarejestrowanych w systemie.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - dateCreated (Desc)
-	// - id (Asc).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - dateCreated (Desc)
+	//  - id (Asc)
 	//
 	// GET /peppol/query
 	PeppolQueryGet(ctx context.Context, params PeppolQueryGetParams) (PeppolQueryGetRes, error)
 	// PermissionsAttachmentsStatusGet invokes GET /permissions/attachments/status operation.
 	//
 	// Sprawdzenie czy obecny kontekst posiada zgodę na wystawianie faktur z załącznikiem.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`.
 	//
 	// GET /permissions/attachments/status
 	PermissionsAttachmentsStatusGet(ctx context.Context) (PermissionsAttachmentsStatusGetRes, error)
 	// PermissionsAuthorizationsGrantsPermissionIdDelete invokes DELETE /permissions/authorizations/grants/{permissionId} operation.
 	//
-	// Metoda pozwala na odebranie uprawnienia podmiotowego o wskazanym identyfikatorze.
-	// Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
-	// identyfikatora uprawnienia, które ma zostać odebrane.
-	// > Więcej informacji:
-	// > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#odebranie-uprawnie%C5%84-podmiotowych)
-	// **Headers:**
+	// Metoda pozwala na odebranie uprawnienia podmiotowego o wskazanym identyfikatorze. Wymagane jest
+	// wcześniejsze odczytanie uprawnień w celu uzyskania identyfikatora uprawnienia, które ma zostać
+	// odebrane.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Odbieranie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `CredentialsManage`.
+	//
+	// [Odbieranie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#odebranie-uprawnie%C5%84-podmiotowych
 	//
 	// DELETE /permissions/authorizations/grants/{permissionId}
 	PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (PermissionsAuthorizationsGrantsPermissionIdDeleteRes, error)
@@ -366,286 +551,412 @@ type Invoker interface {
 	//
 	// Metoda pozwala na nadanie jednego z uprawnień podmiotowych do obsługi podmiotu kontekstu
 	// podmiotowi wskazanemu w żądaniu.
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadanie-uprawnie%C5%84-podmiotowych)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `CredentialsManage`.
+	//
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-podmiotowych
 	//
 	// POST /permissions/authorizations/grants
-	PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (PermissionsAuthorizationsGrantsPostRes, error)
+	PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptPermissionsAuthorizationsGrantsPostReq) (PermissionsAuthorizationsGrantsPostRes, error)
 	// PermissionsCommonGrantsPermissionIdDelete invokes DELETE /permissions/common/grants/{permissionId} operation.
 	//
-	// Metoda pozwala na odebranie uprawnienia o wskazanym identyfikatorze.
-	// Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
-	// identyfikatora uprawnienia, które ma zostać odebrane.
-	// > Więcej informacji:
-	// > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#odebranie-uprawnie%C5%84)
-	// **Headers:**
+	// Metoda pozwala na odebranie uprawnienia o wskazanym identyfikatorze. Wymagane jest wcześniejsze
+	// odczytanie uprawnień w celu uzyskania identyfikatora uprawnienia, które ma zostać odebrane.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Odbieranie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
+	//
+	// [Odbieranie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#odebranie-uprawnie%C5%84
 	//
 	// DELETE /permissions/common/grants/{permissionId}
 	PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params PermissionsCommonGrantsPermissionIdDeleteParams) (PermissionsCommonGrantsPermissionIdDeleteRes, error)
 	// PermissionsEntitiesGrantsPost invokes POST /permissions/entities/grants operation.
 	//
 	// Metoda pozwala na nadanie podmiotowi wskazanemu w żądaniu uprawnień do obsługi faktur podmiotu
-	// kontekstu.
-	// W żądaniu określane są nadawane uprawnienia ze zbioru:
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
-	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-	// Dla każdego uprawnienia może być ustawiona flaga **canDelegate**, mówiąca o możliwości jego
-	// dalszego przekazywania poprzez nadawanie w sposób pośredni.
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur)
-	// **Headers:**
+	// kontekstu. W żądaniu określane są nadawane uprawnienia ze zbioru:
+	//
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+	//
+	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień. Dla każdego uprawnienia może
+	// być ustawiona flaga canDelegate, mówiąca o możliwości jego dalszego przekazywania poprzez
+	// nadawanie w sposób pośredni.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `CredentialsManage`.
+	//
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur
 	//
 	// POST /permissions/entities/grants
-	PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (PermissionsEntitiesGrantsPostRes, error)
+	PermissionsEntitiesGrantsPost(ctx context.Context, request OptPermissionsEntitiesGrantsPostReq) (PermissionsEntitiesGrantsPostRes, error)
 	// PermissionsEuEntitiesAdministrationGrantsPost invokes POST /permissions/eu-entities/administration/grants operation.
 	//
 	// Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 	// administratora w kontekście złożonym z identyfikatora NIP podmiotu kontekstu bieżącego oraz
-	// numeru VAT UE podmiotu unijnego wskazanego w żądaniu.
-	// Wraz z utworzeniem administratora podmiotu unijnego tworzony jest kontekst złożony składający
-	// się z numeru NIP podmiotu kontekstu logowania oraz wskazanego numeru identyfikacyjnego VAT UE
-	// podmiotu unijnego.
-	// W żądaniu podaje się również nazwę i adres podmiotu unijnego.
+	// numeru VAT UE podmiotu unijnego wskazanego w żądaniu. Wraz z utworzeniem administratora podmiotu
+	// unijnego tworzony jest kontekst złożony składający się z numeru NIP podmiotu kontekstu
+	// logowania oraz wskazanego numeru identyfikacyjnego VAT UE podmiotu unijnego. W żądaniu podaje się
+	// również nazwę i adres podmiotu unijnego.
+	//
 	// Jedynym sposobem identyfikacji uprawnianego jest odcisk palca certyfikatu kwalifikowanego:
-	// - certyfikat podpisu elektronicznego dla osób fizycznych
-	// - certyfikat pieczęci elektronicznej dla podmiotów
+	//
+	//  - certyfikat podpisu elektronicznego dla osób fizycznych
+	//  - certyfikat pieczęci elektronicznej dla podmiotów
+	//
 	// Uprawnienia administratora podmiotu unijnego obejmują:
-	// - **VatEuManage** – zarządzanie uprawnieniami w ramach podmiotu unijnego
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
-	// - **Introspection** – przeglądanie historii sesji
+	//
+	//  - VatEuManage – zarządzanie uprawnieniami w ramach podmiotu unijnego
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - Introspection – przeglądanie historii sesji
+	//
 	// Metoda automatycznie nadaje wszystkie powyższe uprawnienia, bez konieczności ich wskazywania w
 	// żądaniu.
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `CredentialsManage`.
+	//
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego
 	//
 	// POST /permissions/eu-entities/administration/grants
-	PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (PermissionsEuEntitiesAdministrationGrantsPostRes, error)
+	PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptPermissionsEuEntitiesAdministrationGrantsPostReq) (PermissionsEuEntitiesAdministrationGrantsPostRes, error)
 	// PermissionsEuEntitiesGrantsPost invokes POST /permissions/eu-entities/grants operation.
 	//
 	// Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień do
 	// wystawiania i/lub przeglądania faktur w kontekście złożonym kontekstu bieżącego.
+	//
 	// Jedynym sposobem identyfikacji uprawnianego jest odcisk palca certyfikatu kwalifikowanego:
-	// - certyfikat podpisu elektronicznego dla osób fizycznych
-	// - certyfikat pieczęci elektronicznej dla podmiotów
+	//
+	//  - certyfikat podpisu elektronicznego dla osób fizycznych
+	//  - certyfikat pieczęci elektronicznej dla podmiotów
+	//
 	// W żądaniu określane są nadawane uprawnienia ze zbioru:
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
+	//
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//
 	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `VatUeManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `VatUeManage`.
+	//
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego
 	//
 	// POST /permissions/eu-entities/grants
-	PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (PermissionsEuEntitiesGrantsPostRes, error)
+	PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptPermissionsEuEntitiesGrantsPostReq) (PermissionsEuEntitiesGrantsPostRes, error)
 	// PermissionsIndirectGrantsPost invokes POST /permissions/indirect/grants operation.
 	//
 	// Metoda pozwala na nadanie w sposób pośredni osobie wskazanej w żądaniu uprawnień do obsługi
-	// faktur innego podmiotu – klienta.
-	// Może to być jedna z możliwości:
-	// - nadanie uprawnień generalnych – do obsługi wszystkich klientów
-	// - nadanie uprawnień selektywnych – do obsługi wskazanego klienta
-	// Uprawnienie selektywne może być nadane wyłącznie wtedy, gdy klient nadał wcześniej
-	// podmiotowi bieżącego kontekstu dowolne uprawnienie z prawem do jego dalszego przekazywania
-	// (patrz [POST /v2/permissions/entities/grants](/docs/v2/index.
-	// html#tag/Nadawanie-uprawnien/paths/~1permissions~1entities~1grants/post)).
+	// faktur innego podmiotu – klienta. Może to być jedna z możliwości:
+	//
+	//  - nadanie uprawnień generalnych – do obsługi wszystkich klientów
+	//  - nadanie uprawnień selektywnych – do obsługi wskazanego klienta
+	//
+	// Uprawnienie selektywne może być nadane wyłącznie wtedy, gdy klient nadał wcześniej podmiotowi
+	// bieżącego kontekstu dowolne uprawnienie z prawem do jego dalszego przekazywania (patrz
+	// [POST /v2/permissions/entities/grants]).
+	//
 	// W żądaniu określane są nadawane uprawnienia ze zbioru:
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
+	//
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+	//
 	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `CredentialsManage`.
+	//
+	// [POST /v2/permissions/entities/grants]: /docs/v2/index.html#tag/Nadawanie-uprawnien/paths/~1permissions~1entities~1grants/post
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni
 	//
 	// POST /permissions/indirect/grants
-	PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (PermissionsIndirectGrantsPostRes, error)
+	PermissionsIndirectGrantsPost(ctx context.Context, request OptPermissionsIndirectGrantsPostReq) (PermissionsIndirectGrantsPostRes, error)
 	// PermissionsOperationsReferenceNumberGet invokes GET /permissions/operations/{referenceNumber} operation.
 	//
 	// Zwraca status operacji asynchronicznej związanej z nadaniem lub odebraniem uprawnień.
+	//
 	// Status operacji jest dostępny przez 30 dni.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /permissions/operations/{referenceNumber}
 	PermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (PermissionsOperationsReferenceNumberGetRes, error)
 	// PermissionsPersonsGrantsPost invokes POST /permissions/persons/grants operation.
 	//
-	// Metoda pozwala na nadanie osobie wskazanej w żądaniu uprawnień do pracy w KSeF
-	// w kontekście bieżącym.
+	// Metoda pozwala na nadanie osobie wskazanej w żądaniu uprawnień do pracy w KSeF w kontekście
+	// bieżącym.
+	//
 	// W żądaniu określane są nadawane uprawnienia ze zbioru:
-	// - **InvoiceWrite** – wystawianie faktur,
-	// - **InvoiceRead** – przeglądanie faktur,
-	// - **CredentialsManage** – zarządzanie uprawnieniami,
-	// - **CredentialsRead** – przeglądanie uprawnień,
-	// - **Introspection** – przeglądanie historii sesji i generowanie UPO,
-	// - **SubunitManage** – zarządzanie jednostkami podrzędnymi,
-	// - **EnforcementOperations** – wykonywanie operacji egzekucyjnych.
-	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-	// Uprawnienie **EnforcementOperations** może być nadane wyłącznie wtedy,
-	// gdy podmiot kontekstu ma rolę **EnforcementAuthority** (organ egzekucyjny)
-	// lub **CourtBailiff** (komornik sądowy).
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef)
-	// **Headers:**
+	//
+	//  - InvoiceWrite – wystawianie faktur,
+	//  - InvoiceRead – przeglądanie faktur,
+	//  - CredentialsManage – zarządzanie uprawnieniami,
+	//  - CredentialsRead – przeglądanie uprawnień,
+	//  - Introspection – przeglądanie historii sesji i generowanie UPO,
+	//  - SubunitManage – zarządzanie jednostkami podrzędnymi,
+	//  - EnforcementOperations – wykonywanie operacji egzekucyjnych.
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+	//
+	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień. Uprawnienie
+	// EnforcementOperations może być nadane wyłącznie wtedy, gdy podmiot kontekstu ma rolę
+	// EnforcementAuthority (organ egzekucyjny) lub CourtBailiff (komornik sądowy).
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `CredentialsManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `CredentialsManage`.
+	//
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef
 	//
 	// POST /permissions/persons/grants
-	PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (PermissionsPersonsGrantsPostRes, error)
+	PermissionsPersonsGrantsPost(ctx context.Context, request OptPermissionsPersonsGrantsPostReq) (PermissionsPersonsGrantsPostRes, error)
 	// PermissionsQueryAuthorizationsGrantsPost invokes POST /permissions/query/authorizations/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień podmiotowych:
-	// - otrzymanych przez podmiot bieżącego kontekstu
-	// - nadanych przez podmiot bieżącego kontekstu
-	// Wybór listy nadanych lub otrzymanych uprawnień odbywa się przy użyciu parametru **queryType**.
+	//
+	//  - otrzymanych przez podmiot bieżącego kontekstu
+	//  - nadanych przez podmiot bieżącego kontekstu
+	//
+	// Wybór listy nadanych lub otrzymanych uprawnień odbywa się przy użyciu parametru queryType.
+	//
 	// Uprawnienia zwracane przez operację obejmują:
-	// - **SelfInvoicing** – wystawianie faktur w trybie samofakturowania
-	// - **TaxRepresentative** – wykonywanie operacji przedstawiciela podatkowego
-	// - **RRInvoicing** – wystawianie faktur VAT RR
-	// - **PefInvoicing** – wystawianie faktur PEF
+	//
+	//  - SelfInvoicing – wystawianie faktur w trybie samofakturowania
+	//  - TaxRepresentative – wykonywanie operacji przedstawiciela podatkowego
+	//  - RRInvoicing – wystawianie faktur VAT RR
+	//  - PefInvoicing – wystawianie faktur PEF
+	//
 	// Odpowiedź może być filtrowana na podstawie następujących parametrów:
-	// - **authorizingIdentifier** – identyfikator podmiotu uprawniającego (stosowane przy queryType =
-	// Received)
-	// - **authorizedIdentifier** – identyfikator podmiotu uprawnionego (stosowane przy queryType =
-	// Granted)
-	// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur)
-	// **Headers:**
+	//
+	//  - authorizingIdentifier – identyfikator podmiotu uprawniającego (stosowane przy queryType =
+	//    Received)
+	//  - authorizedIdentifier – identyfikator podmiotu uprawnionego (stosowane przy queryType = Granted)
+	//  - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `PefInvoiceWrite`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `PefInvoiceWrite`.
+	//
+	// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur
 	//
 	// POST /permissions/query/authorizations/grants
-	PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error)
+	PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptPermissionsQueryAuthorizationsGrantsPostReq, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error)
 	// PermissionsQueryEntitiesGrantsPost invokes POST /permissions/query/entities/grants operation.
 	//
 	// Metoda pozwala na odczytanie otrzymanych uprawnień do obsługi faktur w bieżącym kontekście
 	// logowania.
+	//
 	// W odpowiedzi przekazywane są następujące uprawnienia:
-	// - nadane podmiotowi do obsługi faktur przez inny podmiot
+	//
+	//  - nadane podmiotowi do obsługi faktur przez inny podmiot
+	//
 	// Uprawnienia zwracane przez operację obejmują:
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
+	//
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+	//
 	// Odpowiedź może być filtrowana na podstawie następujących parametrów:
-	// - **contextIdentifier** – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-uprawnie%C5%84-do-obs%C5%82ugi-faktur-w-bie%C5%BC%C4%85cym-kontek%C5%9Bcie)
-	// **Headers:**
+	//
+	//  - contextIdentifier – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`.
+	//
+	// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-do-obs%C5%82ugi-faktur-w-bie%C5%BC%C4%85cym-kontek%C5%9Bcie
 	//
 	// POST /permissions/query/entities/grants
 	PermissionsQueryEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsQueryRequest, params PermissionsQueryEntitiesGrantsPostParams) (PermissionsQueryEntitiesGrantsPostRes, error)
 	// PermissionsQueryEntitiesRolesGet invokes GET /permissions/query/entities/roles operation.
 	//
-	// Metoda pozwala na **odczytanie listy ról podmiotu bieżącego kontekstu logowania**.
-	// #### Role podmiotów zwracane przez operację:
-	// - **CourtBailiff** – komornik sądowy
-	// - **EnforcementAuthority** – organ egzekucyjny
-	// - **LocalGovernmentUnit** – nadrzędna JST
-	// - **LocalGovernmentSubUnit** – podrzędne JST
-	// - **VatGroupUnit** – grupa VAT
-	// - **VatGroupSubUnit** – członek grupy VAT
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy ról](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-r%C3%B3l-podmiotu)
-	// **Headers:**
+	// Metoda pozwala na odczytanie listy ról podmiotu bieżącego kontekstu logowania.
+	//
+	// # Role podmiotów zwracane przez operację:
+	//
+	//  - CourtBailiff – komornik sądowy
+	//  - EnforcementAuthority – organ egzekucyjny
+	//  - LocalGovernmentUnit – nadrzędna JST
+	//  - LocalGovernmentSubUnit – podrzędne JST
+	//  - VatGroupUnit – grupa VAT
+	//  - VatGroupSubUnit – członek grupy VAT
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy ról]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`.
+	//
+	// [Pobieranie listy ról]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-r%C3%B3l-podmiotu
 	//
 	// GET /permissions/query/entities/roles
 	PermissionsQueryEntitiesRolesGet(ctx context.Context, params PermissionsQueryEntitiesRolesGetParams) (PermissionsQueryEntitiesRolesGetRes, error)
 	// PermissionsQueryEuEntitiesGrantsPost invokes POST /permissions/query/eu-entities/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień administratorów lub reprezentantów podmiotów unijnych:
-	// - Jeżeli kontekstem logowania jest NIP, możliwe jest odczytanie uprawnień administratorów
-	// podmiotów unijnych powiązanych z podmiotem bieżącego kontekstu, czyli takich, dla których
-	// pierwszy człon kontekstu złożonego jest równy NIP-owi kontekstu logowania.
-	// - Jeżeli kontekst logowania jest złożony (NIP-VAT UE), możliwe jest pobranie wszystkich
-	// uprawnień administratorów i reprezentantów podmiotu w bieżącym kontekście złożonym.
+	//
+	//  - Jeżeli kontekstem logowania jest NIP, możliwe jest odczytanie uprawnień administratorów
+	//    podmiotów unijnych powiązanych z podmiotem bieżącego kontekstu, czyli takich, dla których
+	//    pierwszy człon kontekstu złożonego jest równy NIP-owi kontekstu logowania.
+	//  - Jeżeli kontekst logowania jest złożony (NIP-VAT UE), możliwe jest pobranie wszystkich
+	//    uprawnień administratorów i reprezentantów podmiotu w bieżącym kontekście złożonym.
+	//
 	// Uprawnienia zwracane przez operację obejmują:
-	// - **VatUeManage** – zarządzanie uprawnieniami w ramach podmiotu unijnego
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
-	// - **Introspection** – przeglądanie historii sesji
+	//
+	//  - VatUeManage – zarządzanie uprawnieniami w ramach podmiotu unijnego
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - Introspection – przeglądanie historii sesji
+	//
 	// Odpowiedź może być filtrowana na podstawie następujących parametrów:
-	// - **vatUeIdentifier** – identyfikator podmiotu unijnego
-	// - **authorizedFingerprintIdentifier** – odcisk palca certyfikatu uprawnionej osoby lub podmiotu
-	// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania)
-	// **Headers:**
+	//
+	//  - vatUeIdentifier – identyfikator podmiotu unijnego
+	//  - authorizedFingerprintIdentifier – odcisk palca certyfikatu uprawnionej osoby lub podmiotu
+	//  - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `VatUeManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `VatUeManage`.
+	//
+	// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania
 	//
 	// POST /permissions/query/eu-entities/grants
 	PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params PermissionsQueryEuEntitiesGrantsPostParams) (PermissionsQueryEuEntitiesGrantsPostRes, error)
@@ -653,149 +964,217 @@ type Invoker interface {
 	//
 	// Metoda pozwala na odczytanie własnych uprawnień uwierzytelnionego klienta API w bieżącym
 	// kontekście logowania.
+	//
 	// W odpowiedzi przekazywane są następujące uprawnienia:
-	// - nadane w sposób bezpośredni w bieżącym kontekście
-	// - nadane przez podmiot nadrzędny
-	// - nadane w sposób pośredni, jeżeli podmiot kontekstu logowania jest w uprawnieniu pośrednikiem
-	// lub podmiotem docelowym
-	// - nadane podmiotowi do obsługi faktur przez inny podmiot, jeśli podmiot uwierzytelniony ma w
-	// bieżącym kontekście uprawnienia właścicielskie
+	//
+	//  - nadane w sposób bezpośredni w bieżącym kontekście
+	//  - nadane przez podmiot nadrzędny
+	//  - nadane w sposób pośredni, jeżeli podmiot kontekstu logowania jest w uprawnieniu pośrednikiem
+	//    lub podmiotem docelowym
+	//  - nadane podmiotowi do obsługi faktur przez inny podmiot, jeśli podmiot uwierzytelniony ma w
+	//    bieżącym kontekście uprawnienia właścicielskie
+	//
 	// Uprawnienia zwracane przez operację obejmują:
-	// - **CredentialsManage** – zarządzanie uprawnieniami
-	// - **CredentialsRead** – przeglądanie uprawnień
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
-	// - **Introspection** – przeglądanie historii sesji
-	// - **SubunitManage** – zarządzanie podmiotami podrzędnymi
-	// - **EnforcementOperations** – wykonywanie operacji egzekucyjnych
-	// - **VatEuManage** – zarządzanie uprawnieniami w ramach podmiotu unijnego
+	//
+	//  - CredentialsManage – zarządzanie uprawnieniami
+	//  - CredentialsRead – przeglądanie uprawnień
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - Introspection – przeglądanie historii sesji
+	//  - SubunitManage – zarządzanie podmiotami podrzędnymi
+	//  - EnforcementOperations – wykonywanie operacji egzekucyjnych
+	//  - VatEuManage – zarządzanie uprawnieniami w ramach podmiotu unijnego
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+	//
 	// Odpowiedź może być filtrowana na podstawie następujących parametrów:
-	// - **contextIdentifier** – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
-	// - **targetIdentifier** – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
-	// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-	// - **permissionState** – status uprawnienia
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84)
-	// **Headers:**
+	//
+	//  - contextIdentifier – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
+	//  - targetIdentifier – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
+	//  - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+	//  - permissionState – status uprawnienia
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84
 	//
 	// POST /permissions/query/personal/grants
 	PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params PermissionsQueryPersonalGrantsPostParams) (PermissionsQueryPersonalGrantsPostRes, error)
 	// PermissionsQueryPersonsGrantsPost invokes POST /permissions/query/persons/grants operation.
 	//
-	// Metoda pozwala na odczytanie uprawnień nadanych osobie fizycznej lub podmiotowi.
-	// Lista pobranych uprawnień może być dwóch rodzajów:
-	// - Lista wszystkich uprawnień obowiązujących w bieżącym kontekście logowania (używana, gdy
-	// administrator chce przejrzeć uprawnienia wszystkich użytkowników w bieżącym kontekście)
-	// - Lista wszystkich uprawnień nadanych w bieżącym kontekście przez uwierzytelnionego klienta
-	// API (używana, gdy administrator chce przejrzeć listę nadanych przez siebie uprawnień w
-	// bieżącym kontekście)
+	// Metoda pozwala na odczytanie uprawnień nadanych osobie fizycznej lub podmiotowi. Lista pobranych
+	// uprawnień może być dwóch rodzajów:
+	//
+	//  - Lista wszystkich uprawnień obowiązujących w bieżącym kontekście logowania (używana, gdy
+	//    administrator chce przejrzeć uprawnienia wszystkich użytkowników w bieżącym kontekście)
+	//  - Lista wszystkich uprawnień nadanych w bieżącym kontekście przez uwierzytelnionego klienta API
+	//    (używana, gdy administrator chce przejrzeć listę nadanych przez siebie uprawnień w bieżącym
+	//    kontekście)
+	//
 	// Dla pierwszej listy (obowiązujących uprawnień) w odpowiedzi przekazywane są:
-	// - osoby i podmioty mogące pracować w bieżącym kontekście z wyjątkiem osób uprawnionych w
-	// sposób pośredni
-	// - osoby uprawnione w sposób pośredni przez podmiot bieżącego kontekstu
+	//
+	//  - osoby i podmioty mogące pracować w bieżącym kontekście z wyjątkiem osób uprawnionych w
+	//    sposób pośredni
+	//  - osoby uprawnione w sposób pośredni przez podmiot bieżącego kontekstu
+	//
 	// Dla drugiej listy (nadanych uprawnień) w odpowiedzi przekazywane są:
-	// - uprawnienia nadane w sposób bezpośredni do pracy w bieżącym kontekście lub w kontekście
-	// jednostek podrzędnych
-	// - uprawnienia nadane w sposób pośredni do obsługi klientów podmiotu bieżącego kontekstu
+	//
+	//  - uprawnienia nadane w sposób bezpośredni do pracy w bieżącym kontekście lub w kontekście
+	//    jednostek podrzędnych
+	//  - uprawnienia nadane w sposób pośredni do obsługi klientów podmiotu bieżącego kontekstu
+	//
 	// Uprawnienia zwracane przez operację obejmują:
-	// - **CredentialsManage** – zarządzanie uprawnieniami
-	// - **CredentialsRead** – przeglądanie uprawnień
-	// - **InvoiceWrite** – wystawianie faktur
-	// - **InvoiceRead** – przeglądanie faktur
-	// - **Introspection** – przeglądanie historii sesji
-	// - **SubunitManage** – zarządzanie podmiotami podrzędnymi
-	// - **EnforcementOperations** – wykonywanie operacji egzekucyjnych
+	//
+	//  - CredentialsManage – zarządzanie uprawnieniami
+	//  - CredentialsRead – przeglądanie uprawnień
+	//  - InvoiceWrite – wystawianie faktur
+	//  - InvoiceRead – przeglądanie faktur
+	//  - Introspection – przeglądanie historii sesji
+	//  - SubunitManage – zarządzanie podmiotami podrzędnymi
+	//  - EnforcementOperations – wykonywanie operacji egzekucyjnych
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+	//
 	// Odpowiedź może być filtrowana na podstawie parametrów:
-	// - **authorIdentifier** – identyfikator osoby, która nadała uprawnienie
-	// - **authorizedIdentifier** – identyfikator osoby lub podmiotu uprawnionego
-	// - **targetIdentifier** – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
-	// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-	// - **permissionState** – status uprawnienia
-	// - **queryType** – typ zapytania określający, która z dwóch list ma zostać zwrócona
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom)
-	// **Headers:**
+	//
+	//  - authorIdentifier – identyfikator osoby, która nadała uprawnienie
+	//  - authorizedIdentifier – identyfikator osoby lub podmiotu uprawnionego
+	//  - targetIdentifier – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
+	//  - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+	//  - permissionState – status uprawnienia
+	//  - queryType – typ zapytania określający, która z dwóch list ma zostać zwrócona
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+	//
+	// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom
 	//
 	// POST /permissions/query/persons/grants
-	PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params PermissionsQueryPersonsGrantsPostParams) (PermissionsQueryPersonsGrantsPostRes, error)
+	PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPermissionsQueryPersonsGrantsPostReq, params PermissionsQueryPersonsGrantsPostParams) (PermissionsQueryPersonsGrantsPostRes, error)
 	// PermissionsQuerySubordinateEntitiesRolesPost invokes POST /permissions/query/subordinate-entities/roles operation.
 	//
-	// Metoda pozwala na odczytanie listy podmiotów podrzędnych,
-	// jeżeli podmiot bieżącego kontekstu ma rolę podmiotu nadrzędnego:
-	// - **nadrzędna JST** – odczytywane są podrzędne JST,
-	// - **grupa VAT** – odczytywane są podmioty będące członkami grupy VAT.
+	// Metoda pozwala na odczytanie listy podmiotów podrzędnych, jeżeli podmiot bieżącego kontekstu ma
+	// rolę podmiotu nadrzędnego:
+	//
+	//  - nadrzędna JST – odczytywane są podrzędne JST,
+	//  - grupa VAT – odczytywane są podmioty będące członkami grupy VAT.
+	//
 	// Role podmiotów zwracane przez operację obejmują:
-	// - **LocalGovernmentSubUnit** – podrzędne JST,
-	// - **VatGroupSubUnit** – członek grupy VAT.
+	//
+	//  - LocalGovernmentSubUnit – podrzędne JST,
+	//  - VatGroupSubUnit – członek grupy VAT.
+	//
 	// Odpowiedź może być filtrowana według parametru:
-	// - **subordinateEntityIdentifier** – identyfikator podmiotu podrzędnego.
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy podmiotów podrzędnych](https://github.
-	// com/CIRFMF/ksef-docs/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych)
-	// **Headers:**
+	//
+	//  - subordinateEntityIdentifier – identyfikator podmiotu podrzędnego.
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy podmiotów podrzędnych]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+	//
+	// [Pobieranie listy podmiotów podrzędnych]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych
 	//
 	// POST /permissions/query/subordinate-entities/roles
 	PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params PermissionsQuerySubordinateEntitiesRolesPostParams) (PermissionsQuerySubordinateEntitiesRolesPostRes, error)
 	// PermissionsQuerySubunitsGrantsPost invokes POST /permissions/query/subunits/grants operation.
 	//
 	// Metoda pozwala na odczytanie uprawnień do zarządzania uprawnieniami nadanych administratorom:
-	// - jednostek podrzędnych identyfikowanych identyfikatorem wewnętrznym
-	// - podmiotów podrzędnych (podrzędnych JST lub członków grupy VAT) identyfikowanych przez NIP
-	// Lista zwraca wyłącznie uprawnienia do zarządzania uprawnieniami nadane z kontekstu bieżącego
-	// (z podmiotu nadrzędnego).
-	// Nie są odczytywane uprawnienia nadane przez administratorów jednostek podrzędnych wewnątrz
-	// tych jednostek.
+	//
+	//  - jednostek podrzędnych identyfikowanych identyfikatorem wewnętrznym
+	//  - podmiotów podrzędnych (podrzędnych JST lub członków grupy VAT) identyfikowanych przez NIP
+	//
+	// Lista zwraca wyłącznie uprawnienia do zarządzania uprawnieniami nadane z kontekstu bieżącego (z
+	// podmiotu nadrzędnego). Nie są odczytywane uprawnienia nadane przez administratorów jednostek
+	// podrzędnych wewnątrz tych jednostek.
+	//
 	// Odpowiedź może być filtrowana na podstawie parametru:
-	// - **subunitIdentifier** – identyfikator jednostki lub podmiotu podrzędnego
-	// #### Stronicowanie wyników
-	// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-	// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-	// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-	// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-	// > Więcej informacji:
-	// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych)
-	// **Headers:**
+	//
+	//  - subunitIdentifier – identyfikator jednostki lub podmiotu podrzędnego
+	//
+	// # Stronicowanie wyników
+	//
+	// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+	//
+	//  - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+	//  - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+	//  - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Pobieranie listy uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - startDate (Desc)
-	// - id (Asc)
-	// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//  - id (Asc)
+	//
+	// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+	//
+	// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych
 	//
 	// POST /permissions/query/subunits/grants
 	PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params PermissionsQuerySubunitsGrantsPostParams) (PermissionsQuerySubunitsGrantsPostRes, error)
@@ -803,56 +1182,73 @@ type Invoker interface {
 	//
 	// Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 	// administratora w kontekście:
-	// - wskazanego NIP podmiotu podrzędnego – wyłącznie jeżeli podmiot bieżącego kontekstu
-	// logowania ma rolę podmiotu nadrzędnego:
-	// - **LocalGovernmentUnit**
-	// - **VatGroupUnit**
-	// - wskazanego lub utworzonego identyfikatora wewnętrznego
+	//
+	//  - wskazanego NIP podmiotu podrzędnego – wyłącznie jeżeli podmiot bieżącego kontekstu
+	//    logowania ma rolę podmiotu nadrzędnego:
+	//
+	//     - LocalGovernmentUnit
+	//     - VatGroupUnit
+	//  - wskazanego lub utworzonego identyfikatora wewnętrznego
+	//
 	// Wraz z utworzeniem administratora jednostki podrzędnej tworzony jest identyfikator wewnętrzny
-	// składający się z numeru NIP podmiotu kontekstu logowania oraz 5 cyfr unikalnie
-	// identyfikujących jednostkę wewnętrzną.
-	// Ostatnia cyfra musi być poprawną sumą kontrolną, która jest obliczana według poniższego
-	// algorytmu.
+	// składający się z numeru NIP podmiotu kontekstu logowania oraz 5 cyfr unikalnie identyfikujących
+	// jednostkę wewnętrzną. Ostatnia cyfra musi być poprawną sumą kontrolną, która jest obliczana
+	// według poniższego algorytmu.
+	//
 	// Algorytm używa naprzemiennych wag (1×, 3×, 1×, 3×, ...), sumuje wyniki i zwraca resztę z
 	// dzielenia przez 10.
+	//
 	// Przykład:
-	// - Wejście: "6824515772-1234" (bez cyfry kontrolnej)
-	// - Pozycja 0 (1. cyfra): 6 × 1 = 6
-	// - Pozycja 1 (2. cyfra): 8 × 3 = 24
-	// - Pozycja 2 (3. cyfra): 2 × 1 = 2
-	// - Pozycja 3 (4. cyfra): 4 × 3 = 12
-	// - Pozycja 4 (5. cyfra): 5 × 1 = 5
-	// - Pozycja 5 (6. cyfra): 1 × 3 = 3
-	// - Pozycja 6 (7. cyfra): 5 × 1 = 5
-	// - Pozycja 7 (8. cyfra): 7 × 3 = 21
-	// - Pozycja 8 (9. cyfra): 7 × 1 = 7
-	// - Pozycja 9 (10. cyfra): 2 × 3 = 6
-	// - Pozycja 10 (11. cyfra): 1 × 1 = 1
-	// - Pozycja 11 (12. cyfra): 2 × 3 = 6
-	// - Pozycja 12 (13. cyfra): 3 × 1 = 3
-	// - Pozycja 13 (14. cyfra): 4 × 3 = 12
-	// - Suma: 6 + 24 + 2 + 12 + 5 + 3 + 5 + 21 + 7 + 6 + 1 + 6 + 3 + 12 = 113
-	// - Cyfra kontrolna (15. cyfra): 113 % 10 = 3
+	//
+	//  - Wejście: "6824515772-1234" (bez cyfry kontrolnej)
+	//  - Pozycja 0 (1. cyfra): 6 × 1 = 6
+	//  - Pozycja 1 (2. cyfra): 8 × 3 = 24
+	//  - Pozycja 2 (3. cyfra): 2 × 1 = 2
+	//  - Pozycja 3 (4. cyfra): 4 × 3 = 12
+	//  - Pozycja 4 (5. cyfra): 5 × 1 = 5
+	//  - Pozycja 5 (6. cyfra): 1 × 3 = 3
+	//  - Pozycja 6 (7. cyfra): 5 × 1 = 5
+	//  - Pozycja 7 (8. cyfra): 7 × 3 = 21
+	//  - Pozycja 8 (9. cyfra): 7 × 1 = 7
+	//  - Pozycja 9 (10. cyfra): 2 × 3 = 6
+	//  - Pozycja 10 (11. cyfra): 1 × 1 = 1
+	//  - Pozycja 11 (12. cyfra): 2 × 3 = 6
+	//  - Pozycja 12 (13. cyfra): 3 × 1 = 3
+	//  - Pozycja 13 (14. cyfra): 4 × 3 = 12
+	//  - Suma: 6 + 24 + 2 + 12 + 5 + 3 + 5 + 21 + 7 + 6 + 1 + 6 + 3 + 12 = 113
+	//  - Cyfra kontrolna (15. cyfra): 113 % 10 = 3
+	//
 	// W żądaniu podaje się również nazwę tej jednostki.
+	//
 	// Uprawnienia administratora jednostki podrzędnej obejmują:
-	// - **CredentialsManage** – zarządzanie uprawnieniami
+	//
+	//  - CredentialsManage – zarządzanie uprawnieniami
+	//
 	// Metoda automatycznie nadaje powyższe uprawnienie, bez konieczności podawania go w żądaniu.
-	// > Więcej informacji:
-	// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-	// md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Nadawanie uprawnień]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `SubunitManage`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane uprawnienie: `SubunitManage`.
+	//
+	// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego
 	//
 	// POST /permissions/subunits/grants
-	PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (PermissionsSubunitsGrantsPostRes, error)
+	PermissionsSubunitsGrantsPost(ctx context.Context, request OptPermissionsSubunitsGrantsPostReq) (PermissionsSubunitsGrantsPostRes, error)
 	// RateLimitsGet invokes GET /rate-limits operation.
 	//
 	// Zwraca wartości aktualnie obowiązujących limitów ilości żądań przesyłanych do API.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /rate-limits
 	RateLimitsGet(ctx context.Context) (RateLimitsGetRes, error)
@@ -860,9 +1256,11 @@ type Invoker interface {
 	//
 	// Zwraca informacje o kluczach publicznych używanych do szyfrowania danych przesyłanych do systemu
 	// KSeF.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /security/public-key-certificates
 	SecurityPublicKeyCertificatesGet(ctx context.Context) (SecurityPublicKeyCertificatesGetRes, error)
@@ -870,41 +1268,60 @@ type Invoker interface {
 	//
 	// Otwiera sesję do wysyłki wsadowej faktur. Należy przekazać schemat wysyłanych faktur,
 	// informacje o paczce faktur oraz informacje o kluczu używanym do szyfrowania.
-	// > Więcej informacji:
-	// > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
-	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
-	// html#tag/Certyfikaty-klucza-publicznego)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Przygotowanie paczki faktur]
+	// 	 - [Klucz publiczny Ministerstwa Finansów]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// `X-KSeF-Feature: subject-identifier-validation` - Włącza walidację numerów NIP oraz
+	// identyfikatorów wewnętrznych podmiotów wskazanych na fakturze.
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `EnforcementOperations`.
+	//
+	// [Przygotowanie paczki faktur]: https://github.com/CIRFMF/ksef-api/blob/main/sesja-wsadowa.md
+	// [Klucz publiczny Ministerstwa Finansów]: /docs/v2/index.html#tag/Certyfikaty-klucza-publicznego
 	//
 	// POST /sessions/batch
-	SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (SessionsBatchPostRes, error)
+	SessionsBatchPost(ctx context.Context, request OptSessionsBatchPostReq) (SessionsBatchPostRes, error)
 	// SessionsBatchReferenceNumberClosePost invokes POST /sessions/batch/{referenceNumber}/close operation.
 	//
 	// Zamyka sesję wsadową, rozpoczyna procesowanie paczki faktur i generowanie UPO dla prawidłowych
 	// faktur oraz zbiorczego UPO dla sesji.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/batch/{referenceNumber}/close
 	SessionsBatchReferenceNumberClosePost(ctx context.Context, params SessionsBatchReferenceNumberClosePostParams) (SessionsBatchReferenceNumberClosePostRes, error)
 	// SessionsGet invokes GET /sessions operation.
 	//
 	// Zwraca listę sesji spełniających podane kryteria wyszukiwania.
-	// **Sortowanie:**
-	// - dateCreated (Desc)
-	// **Wymagane uprawnienia**:
-	// - `Introspection`/`EnforcementOperations` – pozwala pobrać wszystkie sesje w bieżącym
-	// kontekście uwierzytelnienia `(ContextIdentifier)`.
-	// - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
-	// czyli podmiot inicjujący uwierzytelnienie.
-	// **Headers:**
+	//
+	// Wymagane jedno z uprawnień:
+	//
+	//  - `Introspection`/`EnforcementOperations` – pozwala pobrać wszystkie sesje w bieżącym
+	//    kontekście uwierzytelnienia `(ContextIdentifier)`.
+	//  - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
+	//    czyli podmiot inicjujący uwierzytelnienie.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - dateCreated (Desc)
 	//
 	// GET /sessions
 	SessionsGet(ctx context.Context, params SessionsGetParams) (SessionsGetRes, error)
@@ -912,48 +1329,69 @@ type Invoker interface {
 	//
 	// Otwiera sesję do wysyłki pojedynczych faktur. Należy przekazać schemat wysyłanych faktur oraz
 	// informacje o kluczu używanym do szyfrowania.
-	// > Więcej informacji:
-	// > - [Otwarcie sesji interaktywnej](https://github.
-	// com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
-	// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
-	// html#tag/Certyfikaty-klucza-publicznego)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Otwarcie sesji interaktywnej]
+	// 	 - [Klucz publiczny Ministerstwa Finansów]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// `X-KSeF-Feature: subject-identifier-validation` - Włącza walidację numerów NIP oraz
+	// identyfikatorów wewnętrznych podmiotów wskazanych na fakturze.
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+	//
+	// [Otwarcie sesji interaktywnej]: https://github.com/CIRFMF/ksef-api/blob/main/sesja-interaktywna.md#1-otwarcie-sesji
+	// [Klucz publiczny Ministerstwa Finansów]: /docs/v2/index.html#tag/Certyfikaty-klucza-publicznego
 	//
 	// POST /sessions/online
-	SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (SessionsOnlinePostRes, error)
+	SessionsOnlinePost(ctx context.Context, request OptSessionsOnlinePostReq) (SessionsOnlinePostRes, error)
 	// SessionsOnlineReferenceNumberClosePost invokes POST /sessions/online/{referenceNumber}/close operation.
 	//
 	// Zamyka sesję interaktywną i rozpoczyna generowanie zbiorczego UPO dla sesji.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 	//
 	// POST /sessions/online/{referenceNumber}/close
 	SessionsOnlineReferenceNumberClosePost(ctx context.Context, params SessionsOnlineReferenceNumberClosePostParams) (SessionsOnlineReferenceNumberClosePostRes, error)
 	// SessionsOnlineReferenceNumberInvoicesPost invokes POST /sessions/online/{referenceNumber}/invoices operation.
 	//
 	// Przyjmuje zaszyfrowaną fakturę oraz jej metadane i rozpoczyna jej przetwarzanie.
-	// > Więcej informacji:
-	// > - [Wysłanie faktury](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.
-	// md#2-wys%C5%82anie-faktury)
-	// **Headers:**
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - [Wysłanie faktury]
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+	//
+	// [Wysłanie faktury]: https://github.com/CIRFMF/ksef-api/blob/main/sesja-interaktywna.md#2-wys%C5%82anie-faktury
 	//
 	// POST /sessions/online/{referenceNumber}/invoices
-	SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params SessionsOnlineReferenceNumberInvoicesPostParams) (SessionsOnlineReferenceNumberInvoicesPostRes, error)
+	SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSessionsOnlineReferenceNumberInvoicesPostReq, params SessionsOnlineReferenceNumberInvoicesPostParams) (SessionsOnlineReferenceNumberInvoicesPostRes, error)
 	// SessionsReferenceNumberGet invokes GET /sessions/{referenceNumber} operation.
 	//
 	// Sprawdza bieżący status sesji o podanym numerze referencyjnym.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}
@@ -961,10 +1399,13 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesFailedGet invokes GET /sessions/{referenceNumber}/invoices/failed operation.
 	//
 	// Zwraca listę niepoprawnie przetworzonych faktur przesłanych w sesji wraz z ich statusami.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}/invoices/failed
@@ -973,10 +1414,13 @@ type Invoker interface {
 	//
 	// Zwraca listę faktur przesłanych w sesji wraz z ich statusami, oraz informacje na temat ilości
 	// poprawnie i niepoprawnie przetworzonych faktur.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}/invoices
@@ -984,10 +1428,13 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
 	//
 	// Zwraca fakturę przesłaną w sesji wraz ze statusem.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}
@@ -995,10 +1442,13 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 	//
 	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
@@ -1006,10 +1456,13 @@ type Invoker interface {
 	// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 	//
 	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
@@ -1017,10 +1470,13 @@ type Invoker interface {
 	// SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
 	//
 	// Zwraca XML zawierający zbiorcze UPO dla sesji.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
 	//
 	// GET /sessions/{referenceNumber}/upo/{upoReferenceNumber}
@@ -1028,147 +1484,189 @@ type Invoker interface {
 	// TestdataAttachmentPost invokes POST /testdata/attachment operation.
 	//
 	// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/attachment
-	TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (TestdataAttachmentPostRes, error)
+	TestdataAttachmentPost(ctx context.Context, request OptTestdataAttachmentPostReq) (TestdataAttachmentPostRes, error)
 	// TestdataAttachmentRevokePost invokes POST /testdata/attachment/revoke operation.
 	//
 	// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/attachment/revoke
-	TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error)
+	TestdataAttachmentRevokePost(ctx context.Context, request OptTestdataAttachmentRevokePostReq) (TestdataAttachmentRevokePostRes, error)
+	// TestdataCertificatesSerialNumberPut invokes PUT /testdata/certificates/{serialNumber} operation.
+	//
+	// Aktualizuje dane wskazanego certyfikatu KSeF uwierzytelnionego podmiotu. Tylko na środowiskach
+	// testowych.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// PUT /testdata/certificates/{serialNumber}
+	TestdataCertificatesSerialNumberPut(ctx context.Context, request OptTestdataCertificatesSerialNumberPutReq, params TestdataCertificatesSerialNumberPutParams) (TestdataCertificatesSerialNumberPutRes, error)
 	// TestdataContextBlockPost invokes POST /testdata/context/block operation.
 	//
 	// Blokuje możliwość uwierzytelniania dla wskazanego kontekstu. Uwierzytelnianie zakończy się
 	// błędem 480.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/context/block
 	TestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (TestdataContextBlockPostRes, error)
 	// TestdataContextUnblockPost invokes POST /testdata/context/unblock operation.
 	//
 	// Odblokowuje możliwość uwierzytelniania dla wskazanego kontekstu.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/context/unblock
 	TestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (TestdataContextUnblockPostRes, error)
 	// TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 	//
-	// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
-	// wartości domyślnych. **Tylko na środowiskach testowych.**
-	// **Headers:**
+	// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do wartości
+	// domyślnych. Tylko na środowiskach testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// DELETE /testdata/limits/context/session
 	TestdataLimitsContextSessionDelete(ctx context.Context) (TestdataLimitsContextSessionDeleteRes, error)
 	// TestdataLimitsContextSessionPost invokes POST /testdata/limits/context/session operation.
 	//
-	// Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. **Tylko na
-	// środowiskach testowych.**
-	// **Headers:**
+	// Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. Tylko na
+	// środowiskach testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/limits/context/session
-	TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (TestdataLimitsContextSessionPostRes, error)
+	TestdataLimitsContextSessionPost(ctx context.Context, request OptTestdataLimitsContextSessionPostReq) (TestdataLimitsContextSessionPostRes, error)
 	// TestdataLimitsSubjectCertificateDelete invokes DELETE /testdata/limits/subject/certificate operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu do
-	// wartości domyślnych. **Tylko na środowiskach testowych.**
-	// **Headers:**
+	// wartości domyślnych. Tylko na środowiskach testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// DELETE /testdata/limits/subject/certificate
 	TestdataLimitsSubjectCertificateDelete(ctx context.Context) (TestdataLimitsSubjectCertificateDeleteRes, error)
 	// TestdataLimitsSubjectCertificatePost invokes POST /testdata/limits/subject/certificate operation.
 	//
-	// Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu.
-	// **Tylko na środowiskach testowych.**
-	// **Headers:**
+	// Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu. Tylko
+	// na środowiskach testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/limits/subject/certificate
 	TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (TestdataLimitsSubjectCertificatePostRes, error)
 	// TestdataPermissionsPost invokes POST /testdata/permissions operation.
 	//
 	// Nadawanie uprawnień testowemu podmiotowi lub osobie fizycznej, a także w ich kontekście.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/permissions
-	TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (TestdataPermissionsPostRes, error)
+	TestdataPermissionsPost(ctx context.Context, request OptTestdataPermissionsPostReq) (TestdataPermissionsPostRes, error)
 	// TestdataPermissionsRevokePost invokes POST /testdata/permissions/revoke operation.
 	//
 	// Odbieranie uprawnień nadanych testowemu podmiotowi lub osobie fizycznej, a także w ich
 	// kontekście.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/permissions/revoke
-	TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (TestdataPermissionsRevokePostRes, error)
+	TestdataPermissionsRevokePost(ctx context.Context, request OptTestdataPermissionsRevokePostReq) (TestdataPermissionsRevokePostRes, error)
 	// TestdataPersonPost invokes POST /testdata/person operation.
 	//
 	// Tworzenie nowej osoby fizycznej, której system nadaje uprawnienia właścicielskie. Można
 	// również określić, czy osoba ta jest komornikiem – wówczas otrzyma odpowiednie uprawnienie
 	// egzekucyjne.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/person
-	TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (TestdataPersonPostRes, error)
+	TestdataPersonPost(ctx context.Context, request OptTestdataPersonPostReq) (TestdataPersonPostRes, error)
 	// TestdataPersonRemovePost invokes POST /testdata/person/remove operation.
 	//
 	// Usuwanie testowej osoby fizycznej. System automatycznie odbierze jej wszystkie uprawnienia.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/person/remove
-	TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (TestdataPersonRemovePostRes, error)
+	TestdataPersonRemovePost(ctx context.Context, request OptTestdataPersonRemovePostReq) (TestdataPersonRemovePostRes, error)
 	// TestdataRateLimitsDelete invokes DELETE /testdata/rate-limits operation.
 	//
 	// Przywraca wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-	// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**
-	// **Headers:**
+	// bieżącego kontekstu do wartości domyślnych. Tylko na środowiskach testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// DELETE /testdata/rate-limits
 	TestdataRateLimitsDelete(ctx context.Context) (TestdataRateLimitsDeleteRes, error)
 	// TestdataRateLimitsPost invokes POST /testdata/rate-limits operation.
 	//
-	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-	// bieżącego kontekstu. **Tylko na środowiskach testowych.**
-	// **Headers:**
+	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla bieżącego
+	// kontekstu. Tylko na środowiskach testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/rate-limits
-	TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (TestdataRateLimitsPostRes, error)
+	TestdataRateLimitsPost(ctx context.Context, request OptTestdataRateLimitsPostReq) (TestdataRateLimitsPostRes, error)
 	// TestdataRateLimitsProductionPost invokes POST /testdata/rate-limits/production operation.
 	//
-	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-	// bieżącego kontekstu na wartości takie jakie będą na środowisku produkcyjnym. **Tylko na
-	// środowiskach testowych.**
-	// **Headers:**
+	// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla bieżącego
+	// kontekstu na wartości takie jakie będą na środowisku produkcyjnym. Tylko na środowiskach
+	// testowych.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/rate-limits/production
 	TestdataRateLimitsProductionPost(ctx context.Context) (TestdataRateLimitsProductionPostRes, error)
@@ -1177,76 +1675,94 @@ type Invoker interface {
 	// Tworzenie nowego podmiotu testowego. W przypadku grupy VAT i JST istnieje możliwość stworzenia
 	// jednostek podrzędnych. W wyniku takiego działania w systemie powstanie powiązanie między tymi
 	// podmiotami.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/subject
-	TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (TestdataSubjectPostRes, error)
+	TestdataSubjectPost(ctx context.Context, request OptTestdataSubjectPostReq) (TestdataSubjectPostRes, error)
 	// TestdataSubjectRemovePost invokes POST /testdata/subject/remove operation.
 	//
 	// Usuwanie podmiotu testowego. W przypadku grupy VAT i JST usunięte zostaną również jednostki
 	// podrzędne.
-	// **Headers:**
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /testdata/subject/remove
-	TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (TestdataSubjectRemovePostRes, error)
+	TestdataSubjectRemovePost(ctx context.Context, request OptTestdataSubjectRemovePostReq) (TestdataSubjectRemovePostRes, error)
 	// TokensGet invokes GET /tokens operation.
 	//
 	// Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
 	// uprawnień podmiotu wywołującego.
-	// Jeżeli podmiot posiada uprawnienie **CredentialsManage** lub **CredentialsRead**,
-	// usługa zwraca wszystkie tokeny wygenerowane w danym kontekście niezależnie od metody
-	// uwierzytelnienia.
+	//
+	// Jeżeli podmiot posiada uprawnienie CredentialsManage lub CredentialsRead, usługa zwraca wszystkie
+	// tokeny wygenerowane w danym kontekście niezależnie od metody uwierzytelnienia.
+	//
 	// Jeżeli podmiot nie posiada żadnego z powyższych uprawnień, zakres wyników jest ograniczony:
-	// - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
-	// uwierzytelnienia.
-	// - Dla pozostałych metod uwierzytelnienia zwracane są tokeny,
-	// których autorem jest wywołujący podmiot – z uwzględnieniem powiązania NIP–PESEL.
-	// **Headers:**
+	//
+	//  - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
+	//    uwierzytelnienia.
+	//  - Dla pozostałych metod uwierzytelnienia zwracane są tokeny, których autorem jest wywołujący
+	//    podmiot – z uwzględnieniem powiązania NIP–PESEL.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
-	// **Sortowanie:**
-	// - dateCreated (Desc).
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - dateCreated (Desc)
 	//
 	// GET /tokens
 	TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error)
 	// TokensPost invokes POST /tokens operation.
 	//
 	// Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
-	// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest
-	// zwracany tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
-	// **Headers:**
+	//
+	// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest zwracany
+	// tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// POST /tokens
-	TokensPost(ctx context.Context, request OptGenerateTokenRequest) (TokensPostRes, error)
+	TokensPost(ctx context.Context, request OptTokensPostReq) (TokensPostRes, error)
 	// TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
 	//
 	// Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
 	// zależy od sposobu uwierzytelnienia oraz uprawnień podmiotu wywołującego.
-	// Jeżeli podmiot posiada uprawnienie **CredentialsManage**,
-	// może unieważnić dowolny aktywny token w danym kontekście niezależnie od metody
-	// uwierzytelnienia.
+	//
+	// Jeżeli podmiot posiada uprawnienie CredentialsManage, może unieważnić dowolny aktywny token w
+	// danym kontekście niezależnie od metody uwierzytelnienia.
+	//
 	// Jeżeli podmiot nie posiada powyższego uprawnienia, zakres unieważnienia jest ograniczony:
-	// - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
-	// do uwierzytelnienia.
-	// - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny,
-	// których jest autorem – z uwzględnieniem powiązania NIP–PESEL.
-	// **Headers:**
+	//
+	//  - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
+	//    do uwierzytelnienia.
+	//  - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny, których jest autorem
+	//    – z uwzględnieniem powiązania NIP–PESEL.
+	//
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// DELETE /tokens/{referenceNumber}
 	TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error)
 	// TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 	//
-	// **Headers:**
+	// Headers:
+	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie **Problem Details** (`application/problem+json`).
+	// formacie Problem Details (`application/problem+json`).
 	//
 	// GET /tokens/{referenceNumber}
 	TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error)
@@ -1296,9 +1812,11 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // AuthChallengePost invokes POST /auth/challenge operation.
 //
 // Generuje unikalny challenge wymagany w kolejnym kroku operacji uwierzytelnienia.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /auth/challenge
 func (c *Client) AuthChallengePost(ctx context.Context) (AuthChallengePostRes, error) {
@@ -1323,7 +1841,13 @@ func (c *Client) sendAuthChallengePost(ctx context.Context) (res AuthChallengePo
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthChallengePostResponse(resp)
 	if err != nil {
@@ -1336,22 +1860,26 @@ func (c *Client) sendAuthChallengePost(ctx context.Context) (res AuthChallengePo
 // AuthKsefTokenPost invokes POST /auth/ksef-token operation.
 //
 // Rozpoczyna operację uwierzytelniania z wykorzystaniem wcześniej wygenerowanego tokena KSeF.
+//
 // Token KSeF wraz z timestampem ze wcześniej wygenerowanego challenge'a (w formacie
-// ```token|timestamp```) powinien zostać zaszyfrowany dedykowanym do tego celu kluczem publicznym.
-// - Timestamp powinien zostać przekazany jako **liczba milisekund od 1 stycznia 1970 roku (Unix
-// timestamp)**.
-// - Algorytm szyfrowania: **RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu)**.
-// **Headers:**
+// `token|timestamp`) powinien zostać zaszyfrowany dedykowanym do tego celu kluczem publicznym.
+//
+//   - Timestamp powinien zostać przekazany jako liczba milisekund od 1 stycznia 1970 roku (Unix
+//     timestamp).
+//   - Algorytm szyfrowania: RSA-OAEP (z użyciem SHA-256 jako funkcji skrótu).
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /auth/ksef-token
-func (c *Client) AuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (AuthKsefTokenPostRes, error) {
+func (c *Client) AuthKsefTokenPost(ctx context.Context, request OptAuthKsefTokenPostReq) (AuthKsefTokenPostRes, error) {
 	res, err := c.sendAuthKsefTokenPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptInitTokenAuthenticationRequest) (res AuthKsefTokenPostRes, err error) {
+func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptAuthKsefTokenPostReq) (res AuthKsefTokenPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -1387,7 +1915,13 @@ func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptInitToken
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthKsefTokenPostResponse(resp)
 	if err != nil {
@@ -1400,12 +1934,14 @@ func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptInitToken
 // AuthReferenceNumberGet invokes GET /auth/{referenceNumber} operation.
 //
 // Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
+//
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
-// uwierzytelniania.
-// Operacja jest dostępna przez 7 dni.
-// **Headers:**
+// uwierzytelniania. Operacja jest dostępna przez 7 dni.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /auth/{referenceNumber}
 func (c *Client) AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error) {
@@ -1484,7 +2020,13 @@ func (c *Client) sendAuthReferenceNumberGet(ctx context.Context, params AuthRefe
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -1497,13 +2039,17 @@ func (c *Client) sendAuthReferenceNumberGet(ctx context.Context, params AuthRefe
 // AuthSessionsCurrentDelete invokes DELETE /auth/sessions/current operation.
 //
 // Unieważnia sesję powiązaną z tokenem użytym do wywołania tej operacji.
+//
 // Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
-// już za jego pomocą uzyskać kolejnych access tokenów.
-// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
+// już za jego pomocą uzyskać kolejnych access tokenów. Aktywne access tokeny działają do czasu
+// minięcia ich termin ważności.
+//
 // Sposób uwierzytelnienia: `RefreshToken` lub `AccessToken`.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // DELETE /auth/sessions/current
 func (c *Client) AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error) {
@@ -1561,7 +2107,13 @@ func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSes
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthSessionsCurrentDeleteResponse(resp)
 	if err != nil {
@@ -1574,11 +2126,15 @@ func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSes
 // AuthSessionsGet invokes GET /auth/sessions operation.
 //
 // Zwraca listę aktywnych sesji uwierzytelnienia.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc).
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
 //
 // GET /auth/sessions
 func (c *Client) AuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (AuthSessionsGetRes, error) {
@@ -1672,7 +2228,13 @@ func (c *Client) sendAuthSessionsGet(ctx context.Context, params AuthSessionsGet
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthSessionsGetResponse(resp)
 	if err != nil {
@@ -1685,12 +2247,15 @@ func (c *Client) sendAuthSessionsGet(ctx context.Context, params AuthSessionsGet
 // AuthSessionsReferenceNumberDelete invokes DELETE /auth/sessions/{referenceNumber} operation.
 //
 // Unieważnia sesję o podanym numerze referencyjnym.
+//
 // Unieważnienie sesji sprawia, że powiązany z nią refresh token przestaje działać i nie można
-// już za jego pomocą uzyskać kolejnych access tokenów.
-// **Aktywne access tokeny działają do czasu minięcia ich termin ważności.**
-// **Headers:**
+// już za jego pomocą uzyskać kolejnych access tokenów. Aktywne access tokeny działają do czasu
+// minięcia ich termin ważności.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // DELETE /auth/sessions/{referenceNumber}
 func (c *Client) AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error) {
@@ -1769,7 +2334,13 @@ func (c *Client) sendAuthSessionsReferenceNumberDelete(ctx context.Context, para
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthSessionsReferenceNumberDeleteResponse(resp)
 	if err != nil {
@@ -1782,13 +2353,15 @@ func (c *Client) sendAuthSessionsReferenceNumberDelete(ctx context.Context, para
 // AuthTokenRedeemPost invokes POST /auth/token/redeem operation.
 //
 // Pobiera parę tokenów (access token i refresh token) wygenerowanych w ramach pozytywnie
-// zakończonego procesu uwierzytelniania.
-// **Tokeny można pobrać tylko raz.**
+// zakończonego procesu uwierzytelniania. Tokeny można pobrać tylko raz.
+//
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
 // uwierzytelniania.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /auth/token/redeem
 func (c *Client) AuthTokenRedeemPost(ctx context.Context) (AuthTokenRedeemPostRes, error) {
@@ -1846,7 +2419,13 @@ func (c *Client) sendAuthTokenRedeemPost(ctx context.Context) (res AuthTokenRede
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthTokenRedeemPostResponse(resp)
 	if err != nil {
@@ -1859,10 +2438,13 @@ func (c *Client) sendAuthTokenRedeemPost(ctx context.Context) (res AuthTokenRede
 // AuthTokenRefreshPost invokes POST /auth/token/refresh operation.
 //
 // Generuje nowy token dostępu na podstawie ważnego refresh tokena.
+//
 // Sposób uwierzytelnienia: `RefreshToken`.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /auth/token/refresh
 func (c *Client) AuthTokenRefreshPost(ctx context.Context) (AuthTokenRefreshPostRes, error) {
@@ -1920,7 +2502,13 @@ func (c *Client) sendAuthTokenRefreshPost(ctx context.Context) (res AuthTokenRef
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthTokenRefreshPostResponse(resp)
 	if err != nil {
@@ -1934,19 +2522,27 @@ func (c *Client) sendAuthTokenRefreshPost(ctx context.Context) (res AuthTokenRef
 //
 // Rozpoczyna operację uwierzytelniania za pomocą dokumentu XML podpisanego podpisem elektronicznym
 // XAdES.
-// > Więcej informacji:
-// > - [Przygotowanie dokumentu XML](https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.
-// md#1-przygotowanie-dokumentu-xml-authtokenrequest)
-// > - [Podpis dokumentu XML](https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.
-// md#2-podpisanie-dokumentu-xades)
-// > - Obsługiwane schematy:
-// >   - [auth v2.0](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-0.xsd)
-// >   - [auth v2.1](https://github.com/CIRFMF/ksef-docs/blob/main/auth/schemy/schemat_auth_v2-1.xsd)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Przygotowanie dokumentu XML]
+//	 - [Podpis dokumentu XML]
+//	 - Obsługiwane schematy:
+//
+//	    - [auth v2.0]
+//	    - [auth v2.1]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /auth/xades-signature
+//
+// [Przygotowanie dokumentu XML]: https://github.com/CIRFMF/ksef-api/blob/main/uwierzytelnianie.md#1-przygotowanie-dokumentu-xml-authtokenrequest
+// [Podpis dokumentu XML]: https://github.com/CIRFMF/ksef-api/blob/main/uwierzytelnianie.md#2-podpisanie-dokumentu-xades
+// [auth v2.0]: https://github.com/CIRFMF/ksef-api/blob/main/auth/schemy/schemat_auth_v2-0.xsd
+// [auth v2.1]: https://github.com/CIRFMF/ksef-api/blob/main/auth/schemy/schemat_auth_v2-1.xsd
 func (c *Client) AuthXadesSignaturePost(ctx context.Context, request AuthXadesSignaturePostReq, params AuthXadesSignaturePostParams) (AuthXadesSignaturePostRes, error) {
 	res, err := c.sendAuthXadesSignaturePost(ctx, request, params)
 	return res, err
@@ -1992,7 +2588,13 @@ func (c *Client) sendAuthXadesSignaturePost(ctx context.Context, request AuthXad
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeAuthXadesSignaturePostResponse(resp)
 	if err != nil {
@@ -2006,12 +2608,14 @@ func (c *Client) sendAuthXadesSignaturePost(ctx context.Context, request AuthXad
 //
 // Unieważnia certyfikat o podanym numerze seryjnym. Operacja nie jest dostępna dla podmiotu
 // uwierzytelnionego tokenem KSeF.
+//
 // Podmiot może unieważnić wyłącznie certyfikat wygenerowany na jego identyfikator
-// uwierzytelnienia
-// lub na identyfikator powiązany w ramach powiązania NIP–PESEL.
-// **Headers:**
+// uwierzytelnienia lub na identyfikator powiązany w ramach powiązania NIP–PESEL.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /certificates/{certificateSerialNumber}/revoke
 func (c *Client) CertificatesCertificateSerialNumberRevokePost(ctx context.Context, request OptRevokeCertificateRequest, params CertificatesCertificateSerialNumberRevokePostParams) (CertificatesCertificateSerialNumberRevokePostRes, error) {
@@ -2107,7 +2711,13 @@ func (c *Client) sendCertificatesCertificateSerialNumberRevokePost(ctx context.C
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesCertificateSerialNumberRevokePostResponse(resp)
 	if err != nil {
@@ -2120,18 +2730,24 @@ func (c *Client) sendCertificatesCertificateSerialNumberRevokePost(ctx context.C
 // CertificatesEnrollmentsDataGet invokes GET /certificates/enrollments/data operation.
 //
 // Zwraca dane wymagane do przygotowania wniosku certyfikacyjnego PKCS#10.
+//
 // Dane te są zwracane na podstawie certyfikatu użytego w procesie uwierzytelnienia i identyfikują
 // podmiot, który składa wniosek o certyfikat.
-// > Więcej informacji:
-// > - [Pobranie danych do wniosku certyfikacyjnego](https://github.
-// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#2-pobranie-danych-do-wniosku-certyfikacyjnego)
-// > - [Przygotowanie wniosku](https://github.com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.
-// md#3-przygotowanie-csr-certificate-signing-request)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Pobranie danych do wniosku certyfikacyjnego]
+//	 - [Przygotowanie wniosku]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /certificates/enrollments/data
+//
+// [Pobranie danych do wniosku certyfikacyjnego]: https://github.com/CIRFMF/ksef-api/blob/main/certyfikaty-KSeF.md#2-pobranie-danych-do-wniosku-certyfikacyjnego
+// [Przygotowanie wniosku]: https://github.com/CIRFMF/ksef-api/blob/main/certyfikaty-KSeF.md#3-przygotowanie-csr-certificate-signing-request
 func (c *Client) CertificatesEnrollmentsDataGet(ctx context.Context) (CertificatesEnrollmentsDataGetRes, error) {
 	res, err := c.sendCertificatesEnrollmentsDataGet(ctx)
 	return res, err
@@ -2187,7 +2803,13 @@ func (c *Client) sendCertificatesEnrollmentsDataGet(ctx context.Context) (res Ce
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesEnrollmentsDataGetResponse(resp)
 	if err != nil {
@@ -2200,34 +2822,49 @@ func (c *Client) sendCertificatesEnrollmentsDataGet(ctx context.Context) (res Ce
 // CertificatesEnrollmentsPost invokes POST /certificates/enrollments operation.
 //
 // Przyjmuje wniosek certyfikacyjny i rozpoczyna jego przetwarzanie.
+//
 // Dozwolone typy kluczy prywatnych:
-// - RSA (OID: 1.2.840.113549.1.1.1), długość klucza równa 2048 bitów,
-// - EC (klucze oparte na krzywych eliptycznych, OID: 1.2.840.10045.2.1), krzywa NIST P-256
-// (secp256r1)
+//
+//   - RSA (OID: 1.2.840.113549.1.1.1), długość klucza równa 2048 bitów,
+//   - EC (klucze oparte na krzywych eliptycznych, OID: 1.2.840.10045.2.1), krzywa NIST P-256
+//     (secp256r1)
+//
 // Zalecane jest stosowanie kluczy EC.
+//
 // Dozwolone algorytmy podpisu:
-// - RSA PKCS#1 v1.5,
-// - RSA PSS,
-// - ECDSA (format podpisu zgodny z RFC 3279)
+//
+//   - RSA PKCS#1 v1.5,
+//   - RSA PSS,
+//   - ECDSA (format podpisu zgodny z RFC 3279)
+//
 // Dozwolone funkcje skrótu użyte do podpisu CSR:
-// - SHA1,
-// - SHA256,
-// - SHA384,
-// - SHA512
-// > Więcej informacji:
-// > - [Wysłanie wniosku certyfikacyjnego](https://github.
-// com/CIRFMF/ksef-docs/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego)
-// **Headers:**
+//
+//   - SHA1,
+//
+//   - SHA256,
+//
+//   - SHA384,
+//
+//   - SHA512
+//
+//     Więcej informacji:
+//
+//   - [Wysłanie wniosku certyfikacyjnego]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /certificates/enrollments
-func (c *Client) CertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (CertificatesEnrollmentsPostRes, error) {
+//
+// [Wysłanie wniosku certyfikacyjnego]: https://github.com/CIRFMF/ksef-api/blob/main/certyfikaty-KSeF.md#4-wys%C5%82anie-wniosku-certyfikacyjnego
+func (c *Client) CertificatesEnrollmentsPost(ctx context.Context, request OptCertificatesEnrollmentsPostReq) (CertificatesEnrollmentsPostRes, error) {
 	res, err := c.sendCertificatesEnrollmentsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request OptEnrollCertificateRequest) (res CertificatesEnrollmentsPostRes, err error) {
+func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request OptCertificatesEnrollmentsPostReq) (res CertificatesEnrollmentsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2296,7 +2933,13 @@ func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request Op
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesEnrollmentsPostResponse(resp)
 	if err != nil {
@@ -2309,9 +2952,11 @@ func (c *Client) sendCertificatesEnrollmentsPost(ctx context.Context, request Op
 // CertificatesEnrollmentsReferenceNumberGet invokes GET /certificates/enrollments/{referenceNumber} operation.
 //
 // Zwraca informacje o statusie wniosku certyfikacyjnego.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /certificates/enrollments/{referenceNumber}
 func (c *Client) CertificatesEnrollmentsReferenceNumberGet(ctx context.Context, params CertificatesEnrollmentsReferenceNumberGetParams) (CertificatesEnrollmentsReferenceNumberGetRes, error) {
@@ -2390,7 +3035,13 @@ func (c *Client) sendCertificatesEnrollmentsReferenceNumberGet(ctx context.Conte
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesEnrollmentsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -2404,9 +3055,11 @@ func (c *Client) sendCertificatesEnrollmentsReferenceNumberGet(ctx context.Conte
 //
 // Zwraca informacje o limitach certyfikatów oraz informacje czy użytkownik może zawnioskować o
 // certyfikat KSeF.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /certificates/limits
 func (c *Client) CertificatesLimitsGet(ctx context.Context) (CertificatesLimitsGetRes, error) {
@@ -2464,7 +3117,13 @@ func (c *Client) sendCertificatesLimitsGet(ctx context.Context) (res Certificate
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesLimitsGetResponse(resp)
 	if err != nil {
@@ -2476,13 +3135,17 @@ func (c *Client) sendCertificatesLimitsGet(ctx context.Context) (res Certificate
 
 // CertificatesQueryPost invokes POST /certificates/query operation.
 //
-// Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania.
-// W przypadku braku podania kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
-// **Headers:**
+// Zwraca listę certyfikatów spełniających podane kryteria wyszukiwania. W przypadku braku podania
+// kryteriów wyszukiwania zwrócona zostanie nieprzefiltrowana lista.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - requestDate (Desc).
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - requestDate (Desc)
 //
 // POST /certificates/query
 func (c *Client) CertificatesQueryPost(ctx context.Context, request OptQueryCertificatesRequest, params CertificatesQueryPostParams) (CertificatesQueryPostRes, error) {
@@ -2596,7 +3259,13 @@ func (c *Client) sendCertificatesQueryPost(ctx context.Context, request OptQuery
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesQueryPostResponse(resp)
 	if err != nil {
@@ -2609,17 +3278,19 @@ func (c *Client) sendCertificatesQueryPost(ctx context.Context, request OptQuery
 // CertificatesRetrievePost invokes POST /certificates/retrieve operation.
 //
 // Zwraca certyfikaty o podanych numerach seryjnych w formacie DER zakodowanym w Base64.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /certificates/retrieve
-func (c *Client) CertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (CertificatesRetrievePostRes, error) {
+func (c *Client) CertificatesRetrievePost(ctx context.Context, request OptCertificatesRetrievePostReq) (CertificatesRetrievePostRes, error) {
 	res, err := c.sendCertificatesRetrievePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptRetrieveCertificatesRequest) (res CertificatesRetrievePostRes, err error) {
+func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptCertificatesRetrievePostReq) (res CertificatesRetrievePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2688,9 +3359,544 @@ func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptRe
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeCertificatesRetrievePostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// CollectiveIdentifiersInvoicesPost invokes POST /collective-identifiers/invoices operation.
+//
+// Zwraca listę numerów KSeF faktur wchodzących w skład identyfikatora zbiorczego.
+//
+// Informacje o opisie, kwocie i walucie płatności są zwracane wyłącznie podmiotowi, który
+// utworzył identyfikator zbiorczy, lub podmiotowi występującemu w roli na danej fakturze.
+//
+// Jeżeli opis, kwota i waluta płatności zostały określone podczas tworzenia identyfikatora
+// zbiorczego, a podmiot nie ma dostępu do tych informacji, pola dotyczące opisu, kwoty i waluty
+// płatności nie są zwracane, a pole detailsHidden przyjmuje wartość true.
+//
+// Jeżeli opis, kwota i waluta płatności nie zostały określone podczas tworzenia identyfikatora
+// zbiorczego, ich wartości pozostają puste, a pole detailsHidden przyjmuje wartość false.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - ksefNumber (Desc)
+//
+// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+//
+// POST /collective-identifiers/invoices
+func (c *Client) CollectiveIdentifiersInvoicesPost(ctx context.Context, request OptCollectiveIdentifiersInvoicesPostReq, params CollectiveIdentifiersInvoicesPostParams) (CollectiveIdentifiersInvoicesPostRes, error) {
+	res, err := c.sendCollectiveIdentifiersInvoicesPost(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendCollectiveIdentifiersInvoicesPost(ctx context.Context, request OptCollectiveIdentifiersInvoicesPostReq, params CollectiveIdentifiersInvoicesPostParams) (res CollectiveIdentifiersInvoicesPostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/collective-identifiers/invoices"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "pageSize" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageSize",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageSize.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCollectiveIdentifiersInvoicesPostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "x-continuation-token",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.XContinuationToken.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, CollectiveIdentifiersInvoicesPostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeCollectiveIdentifiersInvoicesPostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// CollectiveIdentifiersKsefKsefNumberGet invokes GET /collective-identifiers/ksef/{ksefNumber} operation.
+//
+// Zwraca listę identyfikatorów zbiorczych związanych z podanym numerem KSeF.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - dateCreated (Desc)
+//   - collectiveIdentifierNumber (Desc)
+//
+// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+//
+// GET /collective-identifiers/ksef/{ksefNumber}
+func (c *Client) CollectiveIdentifiersKsefKsefNumberGet(ctx context.Context, params CollectiveIdentifiersKsefKsefNumberGetParams) (CollectiveIdentifiersKsefKsefNumberGetRes, error) {
+	res, err := c.sendCollectiveIdentifiersKsefKsefNumberGet(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendCollectiveIdentifiersKsefKsefNumberGet(ctx context.Context, params CollectiveIdentifiersKsefKsefNumberGetParams) (res CollectiveIdentifiersKsefKsefNumberGetRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/collective-identifiers/ksef/"
+	{
+		// Encode "ksefNumber" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "ksefNumber",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			if unwrapped := string(params.KsefNumber); true {
+				return e.EncodeValue(conv.StringToString(unwrapped))
+			}
+			return nil
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "pageSize" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageSize",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageSize.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "x-continuation-token",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.XContinuationToken.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, CollectiveIdentifiersKsefKsefNumberGetOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeCollectiveIdentifiersKsefKsefNumberGetResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// CollectiveIdentifiersPost invokes POST /collective-identifiers operation.
+//
+// Generuje identyfikator zbiorczy dla przekazanej listy numerów KSeF faktur wystawionych przez tego
+// samego sprzedawcę.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+//
+// POST /collective-identifiers
+func (c *Client) CollectiveIdentifiersPost(ctx context.Context, request OptCollectiveIdentifiersPostReq) (CollectiveIdentifiersPostRes, error) {
+	res, err := c.sendCollectiveIdentifiersPost(ctx, request)
+	return res, err
+}
+
+func (c *Client) sendCollectiveIdentifiersPost(ctx context.Context, request OptCollectiveIdentifiersPostReq) (res CollectiveIdentifiersPostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/collective-identifiers"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCollectiveIdentifiersPostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, CollectiveIdentifiersPostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeCollectiveIdentifiersPostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// CollectiveIdentifiersQueryPost invokes POST /collective-identifiers/query operation.
+//
+// Zwraca listę identyfikatorów zbiorczych wygenerowanych w kontekście. Dla kontekstu typu NIP
+// zwracane są również identyfikatory zbiorcze, dla których podmiot występuje w roli Podmiotu 1 na
+// fakturze.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - dateCreated (Desc)
+//   - collectiveIdentifierNumber (Desc)
+//
+// Wymagane jedno z uprawnień: `InvoiceRead`, `InvoiceWrite`, `CollectiveIdentifierManage`.
+//
+// POST /collective-identifiers/query
+func (c *Client) CollectiveIdentifiersQueryPost(ctx context.Context, request OptCollectiveIdentifiersQueryPostReq, params CollectiveIdentifiersQueryPostParams) (CollectiveIdentifiersQueryPostRes, error) {
+	res, err := c.sendCollectiveIdentifiersQueryPost(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendCollectiveIdentifiersQueryPost(ctx context.Context, request OptCollectiveIdentifiersQueryPostReq, params CollectiveIdentifiersQueryPostParams) (res CollectiveIdentifiersQueryPostRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/collective-identifiers/query"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "pageSize" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageSize",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageSize.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCollectiveIdentifiersQueryPostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "x-continuation-token",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.XContinuationToken.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, CollectiveIdentifiersQueryPostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeCollectiveIdentifiersQueryPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2701,35 +3907,43 @@ func (c *Client) sendCertificatesRetrievePost(ctx context.Context, request OptRe
 // InvoicesExportsPost invokes POST /invoices/exports operation.
 //
 // Rozpoczyna asynchroniczny proces wyszukiwania faktur w systemie KSeF na podstawie przekazanych
-// filtrów oraz przygotowania ich w formie zaszyfrowanej paczki.
-// Wymagane jest przekazanie informacji o szyfrowaniu w polu <b>Encryption</b>, które służą do
-// zabezpieczenia przygotowanej paczki z fakturami.
+// filtrów oraz przygotowania ich w formie zaszyfrowanej paczki. Wymagane jest przekazanie informacji
+// o szyfrowaniu w polu Encryption, które służą do zabezpieczenia przygotowanej paczki z fakturami.
 // Maksymalnie można uruchomić 10 równoczesnych eksportów w zalogowanym kontekście.
+//
 // System pobiera faktury rosnąco według daty określonej w filtrze (Invoicing, Issue,
-// PermanentStorage) i dodaje faktury(nazwa pliku: <b>{ksefNumber}.xml</b>) do paczki aż do
-// osiągnięcia jednego z poniższych limitów:
-// * Limit liczby faktur: 10 000 sztuk
-// * Limit rozmiaru danych(skompresowanych): 1GB
+// PermanentStorage) i dodaje faktury(nazwa pliku: {ksefNumber}.xml) do paczki aż do osiągnięcia
+// jednego z poniższych limitów:
+//
+//   - Limit liczby faktur: 10 000 sztuk
+//   - Limit rozmiaru danych(skompresowanych): 1GB
+//
 // Paczka eksportu zawiera dodatkowy plik z metadanymi faktur w formacie JSON (`_metadata.json`).
-// Zawartość pliku to
-// obiekt z tablicą <b>invoices</b>, gdzie każdy element jest obiektem typu <b>InvoiceMetadata</b>
-// (taki jak zwracany przez endpoint `POST /invoices/query/metadata`).
-// <b>Plik z metadanymi(_metadata.json) nie jest wliczany do limitów algorytmu budowania paczki</b>.
+// Zawartość pliku to obiekt z tablicą invoices, gdzie każdy element jest obiektem typu
+// InvoiceMetadata (taki jak zwracany przez endpoint `POST /invoices/query/metadata`).
+//
+// Plik z metadanymi(_metadata.json) nie jest wliczany do limitów algorytmu budowania paczki.
+//
 // `Do realizacji pobierania przyrostowego należy stosować filtrowanie po dacie PermanentStorage`.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
-// **Wymagane uprawnienia**: `InvoiceRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
+//
+// Wymagane uprawnienie: `InvoiceRead`.
 //
 // POST /invoices/exports
-func (c *Client) InvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (InvoicesExportsPostRes, error) {
+func (c *Client) InvoicesExportsPost(ctx context.Context, request OptInvoicesExportsPostReq) (InvoicesExportsPostRes, error) {
 	res, err := c.sendInvoicesExportsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoiceExportRequest) (res InvoicesExportsPostRes, err error) {
+func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoicesExportsPostReq) (res InvoicesExportsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -2798,7 +4012,13 @@ func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoice
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeInvoicesExportsPostResponse(resp)
 	if err != nil {
@@ -2813,16 +4033,23 @@ func (c *Client) sendInvoicesExportsPost(ctx context.Context, request OptInvoice
 // Paczka faktur jest dzielona na części o maksymalnym rozmiarze 50 MB. Każda część jest
 // zaszyfrowana algorytmem AES-256-CBC z dopełnieniem PKCS#7, przy użyciu klucza symetrycznego
 // przekazanego podczas inicjowania eksportu.
+//
 // W przypadku ucięcia wyniku eksportu z powodu przekroczenia limitów, zwracana jest flaga
-// <b>IsTruncated = true</b> oraz odpowiednia data, którą należy wykorzystać do wykonania
-// kolejnego eksportu, aż do momentu, gdy flaga <b>IsTruncated = false</b>.
+// IsTruncated = true oraz odpowiednia data, którą należy wykorzystać do wykonania kolejnego
+// eksportu, aż do momentu, gdy flaga IsTruncated = false.
+//
 // Status eksportu paczki faktur jest dostępny przez 7 dni.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
-// **Wymagane uprawnienia**: `InvoiceRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - permanentStorageDate | invoicingDate | issueDate (Asc) - pole wybierane na podstawie filtrów
+//
+// Wymagane uprawnienie: `InvoiceRead`.
 //
 // GET /invoices/exports/{referenceNumber}
 func (c *Client) InvoicesExportsReferenceNumberGet(ctx context.Context, params InvoicesExportsReferenceNumberGetParams) (InvoicesExportsReferenceNumberGetRes, error) {
@@ -2901,7 +4128,13 @@ func (c *Client) sendInvoicesExportsReferenceNumberGet(ctx context.Context, para
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeInvoicesExportsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -2914,10 +4147,13 @@ func (c *Client) sendInvoicesExportsReferenceNumberGet(ctx context.Context, para
 // InvoicesKsefKsefNumberGet invokes GET /invoices/ksef/{ksefNumber} operation.
 //
 // Zwraca fakturę o podanym numerze KSeF.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `InvoiceRead`.
 //
 // GET /invoices/ksef/{ksefNumber}
 func (c *Client) InvoicesKsefKsefNumberGet(ctx context.Context, params InvoicesKsefKsefNumberGetParams) (InvoicesKsefKsefNumberGetRes, error) {
@@ -2996,7 +4232,13 @@ func (c *Client) sendInvoicesKsefKsefNumberGet(ctx context.Context, params Invoi
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeInvoicesKsefKsefNumberGetResponse(resp)
 	if err != nil {
@@ -3009,32 +4251,40 @@ func (c *Client) sendInvoicesKsefKsefNumberGet(ctx context.Context, params Invoi
 // InvoicesQueryMetadataPost invokes POST /invoices/query/metadata operation.
 //
 // Zwraca metadane faktur spełniających filtry.
-// Limit techniczny: ≤ 10 000 rekordów na zestaw filtrów, po jego osiągnięciu <b>isTruncated =
-// true</b> i należy ponownie ustawić <b>dateRange</b>, używając ostatniej daty z wyników (tj.
-// ustawić from/to - w zależności od kierunku sortowania, od daty ostatniego zwróconego rekordu)
-// oraz wyzerować <b>pageOffset</b>.
-// `Do scenariusza przyrostowego należy używać daty PermanentStorage oraz kolejność sortowania
-// Asc`.
-// <b>Scenariusz pobierania przyrostowego (skrót):</b>
-// * Gdy <b>hasMore = false</b>, należy zakończyć,
-// * Gdy <b>hasMore = true</b> i <b>isTruncated = false</b>, należy zwiększyć <b>pageOffset</b>,
-// * Gdy <b>hasMore = true</b> i <b>isTruncated = true</b>, należy zawęzić <b>dateRange</b>
-// (ustawić from od daty ostatniego rekordu), wyzerować <b>pageOffset</b> i kontynuować
-// **Headers:**
+//
+// Limit techniczny: ≤ 10 000 rekordów na zestaw filtrów, po jego osiągnięciu isTruncated = true
+// i należy ponownie ustawić dateRange, używając ostatniej daty z wyników (tj. ustawić from/to -
+// w zależności od kierunku sortowania, od daty ostatniego zwróconego rekordu) oraz wyzerować
+// pageOffset.
+//
+// `Do scenariusza przyrostowego należy używać daty PermanentStorage oraz kolejność sortowania Asc`.
+//
+// Scenariusz pobierania przyrostowego (skrót):
+//
+//   - Gdy hasMore = false, należy zakończyć,
+//   - Gdy hasMore = true i isTruncated = false, należy zwiększyć pageOffset,
+//   - Gdy hasMore = true i isTruncated = true, należy zawęzić dateRange (ustawić from od daty
+//     ostatniego rekordu), wyzerować pageOffset i kontynuować
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - permanentStorageDate | invoicingDate | issueDate (Asc | Desc) - pole wybierane na podstawie
-// filtrów
-// **Wymagane uprawnienia**: `InvoiceRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - permanentStorageDate | invoicingDate | issueDate (Asc | Desc) - pole wybierane na podstawie
+//     filtrów
+//
+// Wymagane uprawnienie: `InvoiceRead`.
 //
 // POST /invoices/query/metadata
-func (c *Client) InvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params InvoicesQueryMetadataPostParams) (InvoicesQueryMetadataPostRes, error) {
+func (c *Client) InvoicesQueryMetadataPost(ctx context.Context, request OptInvoicesQueryMetadataPostReq, params InvoicesQueryMetadataPostParams) (InvoicesQueryMetadataPostRes, error) {
 	res, err := c.sendInvoicesQueryMetadataPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptInvoiceQueryFilters, params InvoicesQueryMetadataPostParams) (res InvoicesQueryMetadataPostRes, err error) {
+func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptInvoicesQueryMetadataPostReq, params InvoicesQueryMetadataPostParams) (res InvoicesQueryMetadataPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3157,7 +4407,13 @@ func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptI
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeInvoicesQueryMetadataPostResponse(resp)
 	if err != nil {
@@ -3170,9 +4426,11 @@ func (c *Client) sendInvoicesQueryMetadataPost(ctx context.Context, request OptI
 // LimitsContextGet invokes GET /limits/context operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów dla bieżącego kontekstu.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /limits/context
 func (c *Client) LimitsContextGet(ctx context.Context) (LimitsContextGetRes, error) {
@@ -3230,7 +4488,13 @@ func (c *Client) sendLimitsContextGet(ctx context.Context) (res LimitsContextGet
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeLimitsContextGetResponse(resp)
 	if err != nil {
@@ -3243,9 +4507,11 @@ func (c *Client) sendLimitsContextGet(ctx context.Context) (res LimitsContextGet
 // LimitsSubjectGet invokes GET /limits/subject operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów dla bieżącego podmiotu.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /limits/subject
 func (c *Client) LimitsSubjectGet(ctx context.Context) (LimitsSubjectGetRes, error) {
@@ -3303,7 +4569,13 @@ func (c *Client) sendLimitsSubjectGet(ctx context.Context) (res LimitsSubjectGet
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeLimitsSubjectGetResponse(resp)
 	if err != nil {
@@ -3316,12 +4588,16 @@ func (c *Client) sendLimitsSubjectGet(ctx context.Context) (res LimitsSubjectGet
 // PeppolQueryGet invokes GET /peppol/query operation.
 //
 // Zwraca listę dostawców usług Peppol zarejestrowanych w systemie.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - dateCreated (Desc)
-// - id (Asc).
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - dateCreated (Desc)
+//   - id (Asc)
 //
 // GET /peppol/query
 func (c *Client) PeppolQueryGet(ctx context.Context, params PeppolQueryGetParams) (PeppolQueryGetRes, error) {
@@ -3383,7 +4659,13 @@ func (c *Client) sendPeppolQueryGet(ctx context.Context, params PeppolQueryGetPa
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePeppolQueryGetResponse(resp)
 	if err != nil {
@@ -3396,10 +4678,13 @@ func (c *Client) sendPeppolQueryGet(ctx context.Context, params PeppolQueryGetPa
 // PermissionsAttachmentsStatusGet invokes GET /permissions/attachments/status operation.
 //
 // Sprawdzenie czy obecny kontekst posiada zgodę na wystawianie faktur z załącznikiem.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`.
 //
 // GET /permissions/attachments/status
 func (c *Client) PermissionsAttachmentsStatusGet(ctx context.Context) (PermissionsAttachmentsStatusGetRes, error) {
@@ -3457,7 +4742,13 @@ func (c *Client) sendPermissionsAttachmentsStatusGet(ctx context.Context) (res P
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsAttachmentsStatusGetResponse(resp)
 	if err != nil {
@@ -3469,18 +4760,24 @@ func (c *Client) sendPermissionsAttachmentsStatusGet(ctx context.Context) (res P
 
 // PermissionsAuthorizationsGrantsPermissionIdDelete invokes DELETE /permissions/authorizations/grants/{permissionId} operation.
 //
-// Metoda pozwala na odebranie uprawnienia podmiotowego o wskazanym identyfikatorze.
-// Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
-// identyfikatora uprawnienia, które ma zostać odebrane.
-// > Więcej informacji:
-// > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#odebranie-uprawnie%C5%84-podmiotowych)
-// **Headers:**
+// Metoda pozwala na odebranie uprawnienia podmiotowego o wskazanym identyfikatorze. Wymagane jest
+// wcześniejsze odczytanie uprawnień w celu uzyskania identyfikatora uprawnienia, które ma zostać
+// odebrane.
+//
+//	Więcej informacji:
+//
+//	 - [Odbieranie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `CredentialsManage`.
 //
 // DELETE /permissions/authorizations/grants/{permissionId}
+//
+// [Odbieranie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#odebranie-uprawnie%C5%84-podmiotowych
 func (c *Client) PermissionsAuthorizationsGrantsPermissionIdDelete(ctx context.Context, params PermissionsAuthorizationsGrantsPermissionIdDeleteParams) (PermissionsAuthorizationsGrantsPermissionIdDeleteRes, error) {
 	res, err := c.sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx, params)
 	return res, err
@@ -3557,7 +4854,13 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx conte
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp)
 	if err != nil {
@@ -3571,21 +4874,27 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPermissionIdDelete(ctx conte
 //
 // Metoda pozwala na nadanie jednego z uprawnień podmiotowych do obsługi podmiotu kontekstu
 // podmiotowi wskazanemu w żądaniu.
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadanie-uprawnie%C5%84-podmiotowych)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `CredentialsManage`.
 //
 // POST /permissions/authorizations/grants
-func (c *Client) PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (PermissionsAuthorizationsGrantsPostRes, error) {
+//
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-podmiotowych
+func (c *Client) PermissionsAuthorizationsGrantsPost(ctx context.Context, request OptPermissionsAuthorizationsGrantsPostReq) (PermissionsAuthorizationsGrantsPostRes, error) {
 	res, err := c.sendPermissionsAuthorizationsGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsGrantRequest) (res PermissionsAuthorizationsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, request OptPermissionsAuthorizationsGrantsPostReq) (res PermissionsAuthorizationsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3654,7 +4963,13 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, re
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsAuthorizationsGrantsPostResponse(resp)
 	if err != nil {
@@ -3666,18 +4981,23 @@ func (c *Client) sendPermissionsAuthorizationsGrantsPost(ctx context.Context, re
 
 // PermissionsCommonGrantsPermissionIdDelete invokes DELETE /permissions/common/grants/{permissionId} operation.
 //
-// Metoda pozwala na odebranie uprawnienia o wskazanym identyfikatorze.
-// Wymagane jest wcześniejsze odczytanie uprawnień w celu uzyskania
-// identyfikatora uprawnienia, które ma zostać odebrane.
-// > Więcej informacji:
-// > - [Odbieranie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#odebranie-uprawnie%C5%84)
-// **Headers:**
+// Metoda pozwala na odebranie uprawnienia o wskazanym identyfikatorze. Wymagane jest wcześniejsze
+// odczytanie uprawnień w celu uzyskania identyfikatora uprawnienia, które ma zostać odebrane.
+//
+//	Więcej informacji:
+//
+//	 - [Odbieranie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `VatUeManage`, `SubunitManage`.
 //
 // DELETE /permissions/common/grants/{permissionId}
+//
+// [Odbieranie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#odebranie-uprawnie%C5%84
 func (c *Client) PermissionsCommonGrantsPermissionIdDelete(ctx context.Context, params PermissionsCommonGrantsPermissionIdDeleteParams) (PermissionsCommonGrantsPermissionIdDeleteRes, error) {
 	res, err := c.sendPermissionsCommonGrantsPermissionIdDelete(ctx, params)
 	return res, err
@@ -3754,7 +5074,13 @@ func (c *Client) sendPermissionsCommonGrantsPermissionIdDelete(ctx context.Conte
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsCommonGrantsPermissionIdDeleteResponse(resp)
 	if err != nil {
@@ -3767,28 +5093,36 @@ func (c *Client) sendPermissionsCommonGrantsPermissionIdDelete(ctx context.Conte
 // PermissionsEntitiesGrantsPost invokes POST /permissions/entities/grants operation.
 //
 // Metoda pozwala na nadanie podmiotowi wskazanemu w żądaniu uprawnień do obsługi faktur podmiotu
-// kontekstu.
-// W żądaniu określane są nadawane uprawnienia ze zbioru:
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
-// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-// Dla każdego uprawnienia może być ustawiona flaga **canDelegate**, mówiąca o możliwości jego
-// dalszego przekazywania poprzez nadawanie w sposób pośredni.
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur)
-// **Headers:**
+// kontekstu. W żądaniu określane są nadawane uprawnienia ze zbioru:
+//
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+//
+// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień. Dla każdego uprawnienia może
+// być ustawiona flaga canDelegate, mówiąca o możliwości jego dalszego przekazywania poprzez
+// nadawanie w sposób pośredni.
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `CredentialsManage`.
 //
 // POST /permissions/entities/grants
-func (c *Client) PermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (PermissionsEntitiesGrantsPostRes, error) {
+//
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-podmiotom-uprawnie%C5%84-do-obs%C5%82ugi-faktur
+func (c *Client) PermissionsEntitiesGrantsPost(ctx context.Context, request OptPermissionsEntitiesGrantsPostReq) (PermissionsEntitiesGrantsPostRes, error) {
 	res, err := c.sendPermissionsEntitiesGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsGrantRequest) (res PermissionsEntitiesGrantsPostRes, err error) {
+func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request OptPermissionsEntitiesGrantsPostReq) (res PermissionsEntitiesGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3857,7 +5191,13 @@ func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -3871,36 +5211,46 @@ func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request 
 //
 // Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 // administratora w kontekście złożonym z identyfikatora NIP podmiotu kontekstu bieżącego oraz
-// numeru VAT UE podmiotu unijnego wskazanego w żądaniu.
-// Wraz z utworzeniem administratora podmiotu unijnego tworzony jest kontekst złożony składający
-// się z numeru NIP podmiotu kontekstu logowania oraz wskazanego numeru identyfikacyjnego VAT UE
-// podmiotu unijnego.
-// W żądaniu podaje się również nazwę i adres podmiotu unijnego.
+// numeru VAT UE podmiotu unijnego wskazanego w żądaniu. Wraz z utworzeniem administratora podmiotu
+// unijnego tworzony jest kontekst złożony składający się z numeru NIP podmiotu kontekstu
+// logowania oraz wskazanego numeru identyfikacyjnego VAT UE podmiotu unijnego. W żądaniu podaje się
+// również nazwę i adres podmiotu unijnego.
+//
 // Jedynym sposobem identyfikacji uprawnianego jest odcisk palca certyfikatu kwalifikowanego:
-// - certyfikat podpisu elektronicznego dla osób fizycznych
-// - certyfikat pieczęci elektronicznej dla podmiotów
+//
+//   - certyfikat podpisu elektronicznego dla osób fizycznych
+//   - certyfikat pieczęci elektronicznej dla podmiotów
+//
 // Uprawnienia administratora podmiotu unijnego obejmują:
-// - **VatEuManage** – zarządzanie uprawnieniami w ramach podmiotu unijnego
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
-// - **Introspection** – przeglądanie historii sesji
+//
+//   - VatEuManage – zarządzanie uprawnieniami w ramach podmiotu unijnego
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - Introspection – przeglądanie historii sesji
+//
 // Metoda automatycznie nadaje wszystkie powyższe uprawnienia, bez konieczności ich wskazywania w
 // żądaniu.
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `CredentialsManage`.
 //
 // POST /permissions/eu-entities/administration/grants
-func (c *Client) PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (PermissionsEuEntitiesAdministrationGrantsPostRes, error) {
+//
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-administratora-podmiotu-unijnego
+func (c *Client) PermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptPermissionsEuEntitiesAdministrationGrantsPostReq) (PermissionsEuEntitiesAdministrationGrantsPostRes, error) {
 	res, err := c.sendPermissionsEuEntitiesAdministrationGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptEuEntityAdministrationPermissionsGrantRequest) (res PermissionsEuEntitiesAdministrationGrantsPostRes, err error) {
+func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.Context, request OptPermissionsEuEntitiesAdministrationGrantsPostReq) (res PermissionsEuEntitiesAdministrationGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -3969,7 +5319,13 @@ func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.C
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsEuEntitiesAdministrationGrantsPostResponse(resp)
 	if err != nil {
@@ -3983,28 +5339,39 @@ func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.C
 //
 // Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień do
 // wystawiania i/lub przeglądania faktur w kontekście złożonym kontekstu bieżącego.
+//
 // Jedynym sposobem identyfikacji uprawnianego jest odcisk palca certyfikatu kwalifikowanego:
-// - certyfikat podpisu elektronicznego dla osób fizycznych
-// - certyfikat pieczęci elektronicznej dla podmiotów
+//
+//   - certyfikat podpisu elektronicznego dla osób fizycznych
+//   - certyfikat pieczęci elektronicznej dla podmiotów
+//
 // W żądaniu określane są nadawane uprawnienia ze zbioru:
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
+//
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//
 // Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `VatUeManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `VatUeManage`.
 //
 // POST /permissions/eu-entities/grants
-func (c *Client) PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (PermissionsEuEntitiesGrantsPostRes, error) {
+//
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-reprezentanta-podmiotu-unijnego
+func (c *Client) PermissionsEuEntitiesGrantsPost(ctx context.Context, request OptPermissionsEuEntitiesGrantsPostReq) (PermissionsEuEntitiesGrantsPostRes, error) {
 	res, err := c.sendPermissionsEuEntitiesGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsGrantRequest) (res PermissionsEuEntitiesGrantsPostRes, err error) {
+func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, request OptPermissionsEuEntitiesGrantsPostReq) (res PermissionsEuEntitiesGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4073,7 +5440,13 @@ func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, reques
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsEuEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -4086,33 +5459,44 @@ func (c *Client) sendPermissionsEuEntitiesGrantsPost(ctx context.Context, reques
 // PermissionsIndirectGrantsPost invokes POST /permissions/indirect/grants operation.
 //
 // Metoda pozwala na nadanie w sposób pośredni osobie wskazanej w żądaniu uprawnień do obsługi
-// faktur innego podmiotu – klienta.
-// Może to być jedna z możliwości:
-// - nadanie uprawnień generalnych – do obsługi wszystkich klientów
-// - nadanie uprawnień selektywnych – do obsługi wskazanego klienta
-// Uprawnienie selektywne może być nadane wyłącznie wtedy, gdy klient nadał wcześniej
-// podmiotowi bieżącego kontekstu dowolne uprawnienie z prawem do jego dalszego przekazywania
-// (patrz [POST /v2/permissions/entities/grants](/docs/v2/index.
-// html#tag/Nadawanie-uprawnien/paths/~1permissions~1entities~1grants/post)).
+// faktur innego podmiotu – klienta. Może to być jedna z możliwości:
+//
+//   - nadanie uprawnień generalnych – do obsługi wszystkich klientów
+//   - nadanie uprawnień selektywnych – do obsługi wskazanego klienta
+//
+// Uprawnienie selektywne może być nadane wyłącznie wtedy, gdy klient nadał wcześniej podmiotowi
+// bieżącego kontekstu dowolne uprawnienie z prawem do jego dalszego przekazywania (patrz
+// [POST /v2/permissions/entities/grants]).
+//
 // W żądaniu określane są nadawane uprawnienia ze zbioru:
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
+//
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+//
 // Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `CredentialsManage`.
+//
+// [POST /v2/permissions/entities/grants]: /docs/v2/index.html#tag/Nadawanie-uprawnien/paths/~1permissions~1entities~1grants/post
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-w-spos%C3%B3b-po%C5%9Bredni
 //
 // POST /permissions/indirect/grants
-func (c *Client) PermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (PermissionsIndirectGrantsPostRes, error) {
+func (c *Client) PermissionsIndirectGrantsPost(ctx context.Context, request OptPermissionsIndirectGrantsPostReq) (PermissionsIndirectGrantsPostRes, error) {
 	res, err := c.sendPermissionsIndirectGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request OptIndirectPermissionsGrantRequest) (res PermissionsIndirectGrantsPostRes, err error) {
+func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request OptPermissionsIndirectGrantsPostReq) (res PermissionsIndirectGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4181,7 +5565,13 @@ func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsIndirectGrantsPostResponse(resp)
 	if err != nil {
@@ -4194,10 +5584,13 @@ func (c *Client) sendPermissionsIndirectGrantsPost(ctx context.Context, request 
 // PermissionsOperationsReferenceNumberGet invokes GET /permissions/operations/{referenceNumber} operation.
 //
 // Zwraca status operacji asynchronicznej związanej z nadaniem lub odebraniem uprawnień.
+//
 // Status operacji jest dostępny przez 30 dni.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /permissions/operations/{referenceNumber}
 func (c *Client) PermissionsOperationsReferenceNumberGet(ctx context.Context, params PermissionsOperationsReferenceNumberGetParams) (PermissionsOperationsReferenceNumberGetRes, error) {
@@ -4276,7 +5669,13 @@ func (c *Client) sendPermissionsOperationsReferenceNumberGet(ctx context.Context
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsOperationsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -4288,35 +5687,44 @@ func (c *Client) sendPermissionsOperationsReferenceNumberGet(ctx context.Context
 
 // PermissionsPersonsGrantsPost invokes POST /permissions/persons/grants operation.
 //
-// Metoda pozwala na nadanie osobie wskazanej w żądaniu uprawnień do pracy w KSeF
-// w kontekście bieżącym.
+// Metoda pozwala na nadanie osobie wskazanej w żądaniu uprawnień do pracy w KSeF w kontekście
+// bieżącym.
+//
 // W żądaniu określane są nadawane uprawnienia ze zbioru:
-// - **InvoiceWrite** – wystawianie faktur,
-// - **InvoiceRead** – przeglądanie faktur,
-// - **CredentialsManage** – zarządzanie uprawnieniami,
-// - **CredentialsRead** – przeglądanie uprawnień,
-// - **Introspection** – przeglądanie historii sesji i generowanie UPO,
-// - **SubunitManage** – zarządzanie jednostkami podrzędnymi,
-// - **EnforcementOperations** – wykonywanie operacji egzekucyjnych.
-// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
-// Uprawnienie **EnforcementOperations** może być nadane wyłącznie wtedy,
-// gdy podmiot kontekstu ma rolę **EnforcementAuthority** (organ egzekucyjny)
-// lub **CourtBailiff** (komornik sądowy).
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef)
-// **Headers:**
+//
+//   - InvoiceWrite – wystawianie faktur,
+//   - InvoiceRead – przeglądanie faktur,
+//   - CredentialsManage – zarządzanie uprawnieniami,
+//   - CredentialsRead – przeglądanie uprawnień,
+//   - Introspection – przeglądanie historii sesji i generowanie UPO,
+//   - SubunitManage – zarządzanie jednostkami podrzędnymi,
+//   - EnforcementOperations – wykonywanie operacji egzekucyjnych.
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+//
+// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień. Uprawnienie
+// EnforcementOperations może być nadane wyłącznie wtedy, gdy podmiot kontekstu ma rolę
+// EnforcementAuthority (organ egzekucyjny) lub CourtBailiff (komornik sądowy).
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `CredentialsManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `CredentialsManage`.
 //
 // POST /permissions/persons/grants
-func (c *Client) PermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (PermissionsPersonsGrantsPostRes, error) {
+//
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadawanie-uprawnie%C5%84-osobom-fizycznym-do-pracy-w-ksef
+func (c *Client) PermissionsPersonsGrantsPost(ctx context.Context, request OptPermissionsPersonsGrantsPostReq) (PermissionsPersonsGrantsPostRes, error) {
 	res, err := c.sendPermissionsPersonsGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsGrantRequest) (res PermissionsPersonsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request OptPermissionsPersonsGrantsPostReq) (res PermissionsPersonsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4385,7 +5793,13 @@ func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request O
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsPersonsGrantsPostResponse(resp)
 	if err != nil {
@@ -4398,43 +5812,61 @@ func (c *Client) sendPermissionsPersonsGrantsPost(ctx context.Context, request O
 // PermissionsQueryAuthorizationsGrantsPost invokes POST /permissions/query/authorizations/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień podmiotowych:
-// - otrzymanych przez podmiot bieżącego kontekstu
-// - nadanych przez podmiot bieżącego kontekstu
-// Wybór listy nadanych lub otrzymanych uprawnień odbywa się przy użyciu parametru **queryType**.
+//
+//   - otrzymanych przez podmiot bieżącego kontekstu
+//   - nadanych przez podmiot bieżącego kontekstu
+//
+// Wybór listy nadanych lub otrzymanych uprawnień odbywa się przy użyciu parametru queryType.
+//
 // Uprawnienia zwracane przez operację obejmują:
-// - **SelfInvoicing** – wystawianie faktur w trybie samofakturowania
-// - **TaxRepresentative** – wykonywanie operacji przedstawiciela podatkowego
-// - **RRInvoicing** – wystawianie faktur VAT RR
-// - **PefInvoicing** – wystawianie faktur PEF
+//
+//   - SelfInvoicing – wystawianie faktur w trybie samofakturowania
+//   - TaxRepresentative – wykonywanie operacji przedstawiciela podatkowego
+//   - RRInvoicing – wystawianie faktur VAT RR
+//   - PefInvoicing – wystawianie faktur PEF
+//
 // Odpowiedź może być filtrowana na podstawie następujących parametrów:
-// - **authorizingIdentifier** – identyfikator podmiotu uprawniającego (stosowane przy queryType =
-// Received)
-// - **authorizedIdentifier** – identyfikator podmiotu uprawnionego (stosowane przy queryType =
-// Granted)
-// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur)
-// **Headers:**
+//
+//   - authorizingIdentifier – identyfikator podmiotu uprawniającego (stosowane przy queryType =
+//     Received)
+//   - authorizedIdentifier – identyfikator podmiotu uprawnionego (stosowane przy queryType = Granted)
+//   - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `PefInvoiceWrite`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `PefInvoiceWrite`.
 //
 // POST /permissions/query/authorizations/grants
-func (c *Client) PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error) {
+//
+// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-podmiotowych-do-obs%C5%82ugi-faktur
+func (c *Client) PermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptPermissionsQueryAuthorizationsGrantsPostReq, params PermissionsQueryAuthorizationsGrantsPostParams) (PermissionsQueryAuthorizationsGrantsPostRes, error) {
 	res, err := c.sendPermissionsQueryAuthorizationsGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptEntityAuthorizationPermissionsQueryRequest, params PermissionsQueryAuthorizationsGrantsPostParams) (res PermissionsQueryAuthorizationsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Context, request OptPermissionsQueryAuthorizationsGrantsPostReq, params PermissionsQueryAuthorizationsGrantsPostParams) (res PermissionsQueryAuthorizationsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -4540,7 +5972,13 @@ func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Contex
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQueryAuthorizationsGrantsPostResponse(resp)
 	if err != nil {
@@ -4554,30 +5992,50 @@ func (c *Client) sendPermissionsQueryAuthorizationsGrantsPost(ctx context.Contex
 //
 // Metoda pozwala na odczytanie otrzymanych uprawnień do obsługi faktur w bieżącym kontekście
 // logowania.
+//
 // W odpowiedzi przekazywane są następujące uprawnienia:
-// - nadane podmiotowi do obsługi faktur przez inny podmiot
+//
+//   - nadane podmiotowi do obsługi faktur przez inny podmiot
+//
 // Uprawnienia zwracane przez operację obejmują:
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
+//
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+//
 // Odpowiedź może być filtrowana na podstawie następujących parametrów:
-// - **contextIdentifier** – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-uprawnie%C5%84-do-obs%C5%82ugi-faktur-w-bie%C5%BC%C4%85cym-kontek%C5%9Bcie)
-// **Headers:**
+//
+//   - contextIdentifier – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`.
 //
 // POST /permissions/query/entities/grants
+//
+// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-do-obs%C5%82ugi-faktur-w-bie%C5%BC%C4%85cym-kontek%C5%9Bcie
 func (c *Client) PermissionsQueryEntitiesGrantsPost(ctx context.Context, request OptEntityPermissionsQueryRequest, params PermissionsQueryEntitiesGrantsPostParams) (PermissionsQueryEntitiesGrantsPostRes, error) {
 	res, err := c.sendPermissionsQueryEntitiesGrantsPost(ctx, request, params)
 	return res, err
@@ -4689,7 +6147,13 @@ func (c *Client) sendPermissionsQueryEntitiesGrantsPost(ctx context.Context, req
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQueryEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -4701,31 +6165,46 @@ func (c *Client) sendPermissionsQueryEntitiesGrantsPost(ctx context.Context, req
 
 // PermissionsQueryEntitiesRolesGet invokes GET /permissions/query/entities/roles operation.
 //
-// Metoda pozwala na **odczytanie listy ról podmiotu bieżącego kontekstu logowania**.
-// #### Role podmiotów zwracane przez operację:
-// - **CourtBailiff** – komornik sądowy
-// - **EnforcementAuthority** – organ egzekucyjny
-// - **LocalGovernmentUnit** – nadrzędna JST
-// - **LocalGovernmentSubUnit** – podrzędne JST
-// - **VatGroupUnit** – grupa VAT
-// - **VatGroupSubUnit** – członek grupy VAT
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy ról](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-r%C3%B3l-podmiotu)
-// **Headers:**
+// Metoda pozwala na odczytanie listy ról podmiotu bieżącego kontekstu logowania.
+//
+// # Role podmiotów zwracane przez operację:
+//
+//   - CourtBailiff – komornik sądowy
+//   - EnforcementAuthority – organ egzekucyjny
+//   - LocalGovernmentUnit – nadrzędna JST
+//   - LocalGovernmentSubUnit – podrzędne JST
+//   - VatGroupUnit – grupa VAT
+//   - VatGroupSubUnit – członek grupy VAT
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy ról]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`.
 //
 // GET /permissions/query/entities/roles
+//
+// [Pobieranie listy ról]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-r%C3%B3l-podmiotu
 func (c *Client) PermissionsQueryEntitiesRolesGet(ctx context.Context, params PermissionsQueryEntitiesRolesGetParams) (PermissionsQueryEntitiesRolesGetRes, error) {
 	res, err := c.sendPermissionsQueryEntitiesRolesGet(ctx, params)
 	return res, err
@@ -4818,7 +6297,13 @@ func (c *Client) sendPermissionsQueryEntitiesRolesGet(ctx context.Context, param
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQueryEntitiesRolesGetResponse(resp)
 	if err != nil {
@@ -4831,37 +6316,55 @@ func (c *Client) sendPermissionsQueryEntitiesRolesGet(ctx context.Context, param
 // PermissionsQueryEuEntitiesGrantsPost invokes POST /permissions/query/eu-entities/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień administratorów lub reprezentantów podmiotów unijnych:
-// - Jeżeli kontekstem logowania jest NIP, możliwe jest odczytanie uprawnień administratorów
-// podmiotów unijnych powiązanych z podmiotem bieżącego kontekstu, czyli takich, dla których
-// pierwszy człon kontekstu złożonego jest równy NIP-owi kontekstu logowania.
-// - Jeżeli kontekst logowania jest złożony (NIP-VAT UE), możliwe jest pobranie wszystkich
-// uprawnień administratorów i reprezentantów podmiotu w bieżącym kontekście złożonym.
+//
+//   - Jeżeli kontekstem logowania jest NIP, możliwe jest odczytanie uprawnień administratorów
+//     podmiotów unijnych powiązanych z podmiotem bieżącego kontekstu, czyli takich, dla których
+//     pierwszy człon kontekstu złożonego jest równy NIP-owi kontekstu logowania.
+//   - Jeżeli kontekst logowania jest złożony (NIP-VAT UE), możliwe jest pobranie wszystkich
+//     uprawnień administratorów i reprezentantów podmiotu w bieżącym kontekście złożonym.
+//
 // Uprawnienia zwracane przez operację obejmują:
-// - **VatUeManage** – zarządzanie uprawnieniami w ramach podmiotu unijnego
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
-// - **Introspection** – przeglądanie historii sesji
+//
+//   - VatUeManage – zarządzanie uprawnieniami w ramach podmiotu unijnego
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - Introspection – przeglądanie historii sesji
+//
 // Odpowiedź może być filtrowana na podstawie następujących parametrów:
-// - **vatUeIdentifier** – identyfikator podmiotu unijnego
-// - **authorizedFingerprintIdentifier** – odcisk palca certyfikatu uprawnionej osoby lub podmiotu
-// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania)
-// **Headers:**
+//
+//   - vatUeIdentifier – identyfikator podmiotu unijnego
+//   - authorizedFingerprintIdentifier – odcisk palca certyfikatu uprawnionej osoby lub podmiotu
+//   - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `VatUeManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `VatUeManage`.
 //
 // POST /permissions/query/eu-entities/grants
+//
+// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-lub-reprezentant%C3%B3w-podmiot%C3%B3w-unijnych-uprawnionych-do-samofakturowania
 func (c *Client) PermissionsQueryEuEntitiesGrantsPost(ctx context.Context, request OptEuEntityPermissionsQueryRequest, params PermissionsQueryEuEntitiesGrantsPostParams) (PermissionsQueryEuEntitiesGrantsPostRes, error) {
 	res, err := c.sendPermissionsQueryEuEntitiesGrantsPost(ctx, request, params)
 	return res, err
@@ -4973,7 +6476,13 @@ func (c *Client) sendPermissionsQueryEuEntitiesGrantsPost(ctx context.Context, r
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQueryEuEntitiesGrantsPostResponse(resp)
 	if err != nil {
@@ -4987,43 +6496,62 @@ func (c *Client) sendPermissionsQueryEuEntitiesGrantsPost(ctx context.Context, r
 //
 // Metoda pozwala na odczytanie własnych uprawnień uwierzytelnionego klienta API w bieżącym
 // kontekście logowania.
+//
 // W odpowiedzi przekazywane są następujące uprawnienia:
-// - nadane w sposób bezpośredni w bieżącym kontekście
-// - nadane przez podmiot nadrzędny
-// - nadane w sposób pośredni, jeżeli podmiot kontekstu logowania jest w uprawnieniu pośrednikiem
-// lub podmiotem docelowym
-// - nadane podmiotowi do obsługi faktur przez inny podmiot, jeśli podmiot uwierzytelniony ma w
-// bieżącym kontekście uprawnienia właścicielskie
+//
+//   - nadane w sposób bezpośredni w bieżącym kontekście
+//   - nadane przez podmiot nadrzędny
+//   - nadane w sposób pośredni, jeżeli podmiot kontekstu logowania jest w uprawnieniu pośrednikiem
+//     lub podmiotem docelowym
+//   - nadane podmiotowi do obsługi faktur przez inny podmiot, jeśli podmiot uwierzytelniony ma w
+//     bieżącym kontekście uprawnienia właścicielskie
+//
 // Uprawnienia zwracane przez operację obejmują:
-// - **CredentialsManage** – zarządzanie uprawnieniami
-// - **CredentialsRead** – przeglądanie uprawnień
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
-// - **Introspection** – przeglądanie historii sesji
-// - **SubunitManage** – zarządzanie podmiotami podrzędnymi
-// - **EnforcementOperations** – wykonywanie operacji egzekucyjnych
-// - **VatEuManage** – zarządzanie uprawnieniami w ramach podmiotu unijnego
+//
+//   - CredentialsManage – zarządzanie uprawnieniami
+//   - CredentialsRead – przeglądanie uprawnień
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - Introspection – przeglądanie historii sesji
+//   - SubunitManage – zarządzanie podmiotami podrzędnymi
+//   - EnforcementOperations – wykonywanie operacji egzekucyjnych
+//   - VatEuManage – zarządzanie uprawnieniami w ramach podmiotu unijnego
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+//
 // Odpowiedź może być filtrowana na podstawie następujących parametrów:
-// - **contextIdentifier** – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
-// - **targetIdentifier** – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
-// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-// - **permissionState** – status uprawnienia
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84)
-// **Headers:**
+//
+//   - contextIdentifier – identyfikator podmiotu, który nadał uprawnienie do obsługi faktur
+//   - targetIdentifier – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
+//   - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+//   - permissionState – status uprawnienia
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc).
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
 //
 // POST /permissions/query/personal/grants
+//
+// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-w%C5%82asnych-uprawnie%C5%84
 func (c *Client) PermissionsQueryPersonalGrantsPost(ctx context.Context, request OptPersonalPermissionsQueryRequest, params PermissionsQueryPersonalGrantsPostParams) (PermissionsQueryPersonalGrantsPostRes, error) {
 	res, err := c.sendPermissionsQueryPersonalGrantsPost(ctx, request, params)
 	return res, err
@@ -5135,7 +6663,13 @@ func (c *Client) sendPermissionsQueryPersonalGrantsPost(ctx context.Context, req
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQueryPersonalGrantsPostResponse(resp)
 	if err != nil {
@@ -5147,59 +6681,82 @@ func (c *Client) sendPermissionsQueryPersonalGrantsPost(ctx context.Context, req
 
 // PermissionsQueryPersonsGrantsPost invokes POST /permissions/query/persons/grants operation.
 //
-// Metoda pozwala na odczytanie uprawnień nadanych osobie fizycznej lub podmiotowi.
-// Lista pobranych uprawnień może być dwóch rodzajów:
-// - Lista wszystkich uprawnień obowiązujących w bieżącym kontekście logowania (używana, gdy
-// administrator chce przejrzeć uprawnienia wszystkich użytkowników w bieżącym kontekście)
-// - Lista wszystkich uprawnień nadanych w bieżącym kontekście przez uwierzytelnionego klienta
-// API (używana, gdy administrator chce przejrzeć listę nadanych przez siebie uprawnień w
-// bieżącym kontekście)
+// Metoda pozwala na odczytanie uprawnień nadanych osobie fizycznej lub podmiotowi. Lista pobranych
+// uprawnień może być dwóch rodzajów:
+//
+//   - Lista wszystkich uprawnień obowiązujących w bieżącym kontekście logowania (używana, gdy
+//     administrator chce przejrzeć uprawnienia wszystkich użytkowników w bieżącym kontekście)
+//   - Lista wszystkich uprawnień nadanych w bieżącym kontekście przez uwierzytelnionego klienta API
+//     (używana, gdy administrator chce przejrzeć listę nadanych przez siebie uprawnień w bieżącym
+//     kontekście)
+//
 // Dla pierwszej listy (obowiązujących uprawnień) w odpowiedzi przekazywane są:
-// - osoby i podmioty mogące pracować w bieżącym kontekście z wyjątkiem osób uprawnionych w
-// sposób pośredni
-// - osoby uprawnione w sposób pośredni przez podmiot bieżącego kontekstu
+//
+//   - osoby i podmioty mogące pracować w bieżącym kontekście z wyjątkiem osób uprawnionych w
+//     sposób pośredni
+//   - osoby uprawnione w sposób pośredni przez podmiot bieżącego kontekstu
+//
 // Dla drugiej listy (nadanych uprawnień) w odpowiedzi przekazywane są:
-// - uprawnienia nadane w sposób bezpośredni do pracy w bieżącym kontekście lub w kontekście
-// jednostek podrzędnych
-// - uprawnienia nadane w sposób pośredni do obsługi klientów podmiotu bieżącego kontekstu
+//
+//   - uprawnienia nadane w sposób bezpośredni do pracy w bieżącym kontekście lub w kontekście
+//     jednostek podrzędnych
+//   - uprawnienia nadane w sposób pośredni do obsługi klientów podmiotu bieżącego kontekstu
+//
 // Uprawnienia zwracane przez operację obejmują:
-// - **CredentialsManage** – zarządzanie uprawnieniami
-// - **CredentialsRead** – przeglądanie uprawnień
-// - **InvoiceWrite** – wystawianie faktur
-// - **InvoiceRead** – przeglądanie faktur
-// - **Introspection** – przeglądanie historii sesji
-// - **SubunitManage** – zarządzanie podmiotami podrzędnymi
-// - **EnforcementOperations** – wykonywanie operacji egzekucyjnych
+//
+//   - CredentialsManage – zarządzanie uprawnieniami
+//   - CredentialsRead – przeglądanie uprawnień
+//   - InvoiceWrite – wystawianie faktur
+//   - InvoiceRead – przeglądanie faktur
+//   - Introspection – przeglądanie historii sesji
+//   - SubunitManage – zarządzanie podmiotami podrzędnymi
+//   - EnforcementOperations – wykonywanie operacji egzekucyjnych
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
+//
 // Odpowiedź może być filtrowana na podstawie parametrów:
-// - **authorIdentifier** – identyfikator osoby, która nadała uprawnienie
-// - **authorizedIdentifier** – identyfikator osoby lub podmiotu uprawnionego
-// - **targetIdentifier** – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
-// - **permissionTypes** – lista rodzajów wyszukiwanych uprawnień
-// - **permissionState** – status uprawnienia
-// - **queryType** – typ zapytania określający, która z dwóch list ma zostać zwrócona
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom)
-// **Headers:**
+//
+//   - authorIdentifier – identyfikator osoby, która nadała uprawnienie
+//   - authorizedIdentifier – identyfikator osoby lub podmiotu uprawnionego
+//   - targetIdentifier – identyfikator podmiotu docelowego dla uprawnień nadanych pośrednio
+//   - permissionTypes – lista rodzajów wyszukiwanych uprawnień
+//   - permissionState – status uprawnienia
+//   - queryType – typ zapytania określający, która z dwóch list ma zostać zwrócona
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 //
 // POST /permissions/query/persons/grants
-func (c *Client) PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params PermissionsQueryPersonsGrantsPostParams) (PermissionsQueryPersonsGrantsPostRes, error) {
+//
+// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-do-pracy-w-ksef-nadanych-osobom-fizycznym-lub-podmiotom
+func (c *Client) PermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPermissionsQueryPersonsGrantsPostReq, params PermissionsQueryPersonsGrantsPostParams) (PermissionsQueryPersonsGrantsPostRes, error) {
 	res, err := c.sendPermissionsQueryPersonsGrantsPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPersonPermissionsQueryRequest, params PermissionsQueryPersonsGrantsPostParams) (res PermissionsQueryPersonsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, request OptPermissionsQueryPersonsGrantsPostReq, params PermissionsQueryPersonsGrantsPostParams) (res PermissionsQueryPersonsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -5305,7 +6862,13 @@ func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, requ
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQueryPersonsGrantsPostResponse(resp)
 	if err != nil {
@@ -5317,32 +6880,50 @@ func (c *Client) sendPermissionsQueryPersonsGrantsPost(ctx context.Context, requ
 
 // PermissionsQuerySubordinateEntitiesRolesPost invokes POST /permissions/query/subordinate-entities/roles operation.
 //
-// Metoda pozwala na odczytanie listy podmiotów podrzędnych,
-// jeżeli podmiot bieżącego kontekstu ma rolę podmiotu nadrzędnego:
-// - **nadrzędna JST** – odczytywane są podrzędne JST,
-// - **grupa VAT** – odczytywane są podmioty będące członkami grupy VAT.
+// Metoda pozwala na odczytanie listy podmiotów podrzędnych, jeżeli podmiot bieżącego kontekstu ma
+// rolę podmiotu nadrzędnego:
+//
+//   - nadrzędna JST – odczytywane są podrzędne JST,
+//   - grupa VAT – odczytywane są podmioty będące członkami grupy VAT.
+//
 // Role podmiotów zwracane przez operację obejmują:
-// - **LocalGovernmentSubUnit** – podrzędne JST,
-// - **VatGroupSubUnit** – członek grupy VAT.
+//
+//   - LocalGovernmentSubUnit – podrzędne JST,
+//   - VatGroupSubUnit – członek grupy VAT.
+//
 // Odpowiedź może być filtrowana według parametru:
-// - **subordinateEntityIdentifier** – identyfikator podmiotu podrzędnego.
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy podmiotów podrzędnych](https://github.
-// com/CIRFMF/ksef-docs/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych)
-// **Headers:**
+//
+//   - subordinateEntityIdentifier – identyfikator podmiotu podrzędnego.
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy podmiotów podrzędnych]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 //
 // POST /permissions/query/subordinate-entities/roles
+//
+// [Pobieranie listy podmiotów podrzędnych]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-podmiot%C3%B3w-podrz%C4%99dnych
 func (c *Client) PermissionsQuerySubordinateEntitiesRolesPost(ctx context.Context, request OptSubordinateEntityRolesQueryRequest, params PermissionsQuerySubordinateEntitiesRolesPostParams) (PermissionsQuerySubordinateEntitiesRolesPostRes, error) {
 	res, err := c.sendPermissionsQuerySubordinateEntitiesRolesPost(ctx, request, params)
 	return res, err
@@ -5454,7 +7035,13 @@ func (c *Client) sendPermissionsQuerySubordinateEntitiesRolesPost(ctx context.Co
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQuerySubordinateEntitiesRolesPostResponse(resp)
 	if err != nil {
@@ -5467,31 +7054,47 @@ func (c *Client) sendPermissionsQuerySubordinateEntitiesRolesPost(ctx context.Co
 // PermissionsQuerySubunitsGrantsPost invokes POST /permissions/query/subunits/grants operation.
 //
 // Metoda pozwala na odczytanie uprawnień do zarządzania uprawnieniami nadanych administratorom:
-// - jednostek podrzędnych identyfikowanych identyfikatorem wewnętrznym
-// - podmiotów podrzędnych (podrzędnych JST lub członków grupy VAT) identyfikowanych przez NIP
-// Lista zwraca wyłącznie uprawnienia do zarządzania uprawnieniami nadane z kontekstu bieżącego
-// (z podmiotu nadrzędnego).
-// Nie są odczytywane uprawnienia nadane przez administratorów jednostek podrzędnych wewnątrz
-// tych jednostek.
+//
+//   - jednostek podrzędnych identyfikowanych identyfikatorem wewnętrznym
+//   - podmiotów podrzędnych (podrzędnych JST lub członków grupy VAT) identyfikowanych przez NIP
+//
+// Lista zwraca wyłącznie uprawnienia do zarządzania uprawnieniami nadane z kontekstu bieżącego (z
+// podmiotu nadrzędnego). Nie są odczytywane uprawnienia nadane przez administratorów jednostek
+// podrzędnych wewnątrz tych jednostek.
+//
 // Odpowiedź może być filtrowana na podstawie parametru:
-// - **subunitIdentifier** – identyfikator jednostki lub podmiotu podrzędnego
-// #### Stronicowanie wyników
-// Zapytanie zwraca **jedną stronę wyników** o numerze i rozmiarze podanym w ścieżce.
-// - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
-// - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga **`hasMore`**.
-// - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
-// > Więcej informacji:
-// > - [Pobieranie listy uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych)
-// **Headers:**
+//
+//   - subunitIdentifier – identyfikator jednostki lub podmiotu podrzędnego
+//
+// # Stronicowanie wyników
+//
+// Zapytanie zwraca jedną stronę wyników o numerze i rozmiarze podanym w ścieżce.
+//
+//   - Przy pierwszym wywołaniu należy ustawić parametr `pageOffset = 0`.
+//
+//   - Jeżeli dostępna jest kolejna strona wyników, w odpowiedzi pojawi się flaga `hasMore`.
+//
+//   - W takim przypadku można wywołać zapytanie ponownie z kolejnym numerem strony.
+//
+//     Więcej informacji:
+//
+//   - [Pobieranie listy uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - startDate (Desc)
-// - id (Asc)
-// **Wymagane uprawnienia**: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//   - id (Asc)
+//
+// Wymagane jedno z uprawnień: `CredentialsManage`, `CredentialsRead`, `SubunitManage`.
 //
 // POST /permissions/query/subunits/grants
+//
+// [Pobieranie listy uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#pobranie-listy-uprawnie%C5%84-administrator%C3%B3w-jednostek-i-podmiot%C3%B3w-podrz%C4%99dnych
 func (c *Client) PermissionsQuerySubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsQueryRequest, params PermissionsQuerySubunitsGrantsPostParams) (PermissionsQuerySubunitsGrantsPostRes, error) {
 	res, err := c.sendPermissionsQuerySubunitsGrantsPost(ctx, request, params)
 	return res, err
@@ -5603,7 +7206,13 @@ func (c *Client) sendPermissionsQuerySubunitsGrantsPost(ctx context.Context, req
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsQuerySubunitsGrantsPostResponse(resp)
 	if err != nil {
@@ -5617,55 +7226,72 @@ func (c *Client) sendPermissionsQuerySubunitsGrantsPost(ctx context.Context, req
 //
 // Metoda pozwala na nadanie wskazanemu w żądaniu podmiotowi lub osobie fizycznej uprawnień
 // administratora w kontekście:
-// - wskazanego NIP podmiotu podrzędnego – wyłącznie jeżeli podmiot bieżącego kontekstu
-// logowania ma rolę podmiotu nadrzędnego:
-// - **LocalGovernmentUnit**
-// - **VatGroupUnit**
-// - wskazanego lub utworzonego identyfikatora wewnętrznego
+//
+//   - wskazanego NIP podmiotu podrzędnego – wyłącznie jeżeli podmiot bieżącego kontekstu
+//     logowania ma rolę podmiotu nadrzędnego:
+//
+//   - LocalGovernmentUnit
+//
+//   - VatGroupUnit
+//
+//   - wskazanego lub utworzonego identyfikatora wewnętrznego
+//
 // Wraz z utworzeniem administratora jednostki podrzędnej tworzony jest identyfikator wewnętrzny
-// składający się z numeru NIP podmiotu kontekstu logowania oraz 5 cyfr unikalnie
-// identyfikujących jednostkę wewnętrzną.
-// Ostatnia cyfra musi być poprawną sumą kontrolną, która jest obliczana według poniższego
-// algorytmu.
+// składający się z numeru NIP podmiotu kontekstu logowania oraz 5 cyfr unikalnie identyfikujących
+// jednostkę wewnętrzną. Ostatnia cyfra musi być poprawną sumą kontrolną, która jest obliczana
+// według poniższego algorytmu.
+//
 // Algorytm używa naprzemiennych wag (1×, 3×, 1×, 3×, ...), sumuje wyniki i zwraca resztę z
 // dzielenia przez 10.
+//
 // Przykład:
-// - Wejście: "6824515772-1234" (bez cyfry kontrolnej)
-// - Pozycja 0 (1. cyfra): 6 × 1 = 6
-// - Pozycja 1 (2. cyfra): 8 × 3 = 24
-// - Pozycja 2 (3. cyfra): 2 × 1 = 2
-// - Pozycja 3 (4. cyfra): 4 × 3 = 12
-// - Pozycja 4 (5. cyfra): 5 × 1 = 5
-// - Pozycja 5 (6. cyfra): 1 × 3 = 3
-// - Pozycja 6 (7. cyfra): 5 × 1 = 5
-// - Pozycja 7 (8. cyfra): 7 × 3 = 21
-// - Pozycja 8 (9. cyfra): 7 × 1 = 7
-// - Pozycja 9 (10. cyfra): 2 × 3 = 6
-// - Pozycja 10 (11. cyfra): 1 × 1 = 1
-// - Pozycja 11 (12. cyfra): 2 × 3 = 6
-// - Pozycja 12 (13. cyfra): 3 × 1 = 3
-// - Pozycja 13 (14. cyfra): 4 × 3 = 12
-// - Suma: 6 + 24 + 2 + 12 + 5 + 3 + 5 + 21 + 7 + 6 + 1 + 6 + 3 + 12 = 113
-// - Cyfra kontrolna (15. cyfra): 113 % 10 = 3
+//
+//   - Wejście: "6824515772-1234" (bez cyfry kontrolnej)
+//   - Pozycja 0 (1. cyfra): 6 × 1 = 6
+//   - Pozycja 1 (2. cyfra): 8 × 3 = 24
+//   - Pozycja 2 (3. cyfra): 2 × 1 = 2
+//   - Pozycja 3 (4. cyfra): 4 × 3 = 12
+//   - Pozycja 4 (5. cyfra): 5 × 1 = 5
+//   - Pozycja 5 (6. cyfra): 1 × 3 = 3
+//   - Pozycja 6 (7. cyfra): 5 × 1 = 5
+//   - Pozycja 7 (8. cyfra): 7 × 3 = 21
+//   - Pozycja 8 (9. cyfra): 7 × 1 = 7
+//   - Pozycja 9 (10. cyfra): 2 × 3 = 6
+//   - Pozycja 10 (11. cyfra): 1 × 1 = 1
+//   - Pozycja 11 (12. cyfra): 2 × 3 = 6
+//   - Pozycja 12 (13. cyfra): 3 × 1 = 3
+//   - Pozycja 13 (14. cyfra): 4 × 3 = 12
+//   - Suma: 6 + 24 + 2 + 12 + 5 + 3 + 5 + 21 + 7 + 6 + 1 + 6 + 3 + 12 = 113
+//   - Cyfra kontrolna (15. cyfra): 113 % 10 = 3
+//
 // W żądaniu podaje się również nazwę tej jednostki.
+//
 // Uprawnienia administratora jednostki podrzędnej obejmują:
-// - **CredentialsManage** – zarządzanie uprawnieniami
+//
+//   - CredentialsManage – zarządzanie uprawnieniami
+//
 // Metoda automatycznie nadaje powyższe uprawnienie, bez konieczności podawania go w żądaniu.
-// > Więcej informacji:
-// > - [Nadawanie uprawnień](https://github.com/CIRFMF/ksef-docs/blob/main/uprawnienia.
-// md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Nadawanie uprawnień]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `SubunitManage`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane uprawnienie: `SubunitManage`.
 //
 // POST /permissions/subunits/grants
-func (c *Client) PermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (PermissionsSubunitsGrantsPostRes, error) {
+//
+// [Nadawanie uprawnień]: https://github.com/CIRFMF/ksef-api/blob/main/uprawnienia.md#nadanie-uprawnie%C5%84-administratora-podmiotu-podrz%C4%99dnego
+func (c *Client) PermissionsSubunitsGrantsPost(ctx context.Context, request OptPermissionsSubunitsGrantsPostReq) (PermissionsSubunitsGrantsPostRes, error) {
 	res, err := c.sendPermissionsSubunitsGrantsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request OptSubunitPermissionsGrantRequest) (res PermissionsSubunitsGrantsPostRes, err error) {
+func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request OptPermissionsSubunitsGrantsPostReq) (res PermissionsSubunitsGrantsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -5734,7 +7360,13 @@ func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodePermissionsSubunitsGrantsPostResponse(resp)
 	if err != nil {
@@ -5747,9 +7379,11 @@ func (c *Client) sendPermissionsSubunitsGrantsPost(ctx context.Context, request 
 // RateLimitsGet invokes GET /rate-limits operation.
 //
 // Zwraca wartości aktualnie obowiązujących limitów ilości żądań przesyłanych do API.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /rate-limits
 func (c *Client) RateLimitsGet(ctx context.Context) (RateLimitsGetRes, error) {
@@ -5807,7 +7441,13 @@ func (c *Client) sendRateLimitsGet(ctx context.Context) (res RateLimitsGetRes, e
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeRateLimitsGetResponse(resp)
 	if err != nil {
@@ -5821,9 +7461,11 @@ func (c *Client) sendRateLimitsGet(ctx context.Context) (res RateLimitsGetRes, e
 //
 // Zwraca informacje o kluczach publicznych używanych do szyfrowania danych przesyłanych do systemu
 // KSeF.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /security/public-key-certificates
 func (c *Client) SecurityPublicKeyCertificatesGet(ctx context.Context) (SecurityPublicKeyCertificatesGetRes, error) {
@@ -5848,7 +7490,13 @@ func (c *Client) sendSecurityPublicKeyCertificatesGet(ctx context.Context) (res 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSecurityPublicKeyCertificatesGetResponse(resp)
 	if err != nil {
@@ -5862,22 +7510,32 @@ func (c *Client) sendSecurityPublicKeyCertificatesGet(ctx context.Context) (res 
 //
 // Otwiera sesję do wysyłki wsadowej faktur. Należy przekazać schemat wysyłanych faktur,
 // informacje o paczce faktur oraz informacje o kluczu używanym do szyfrowania.
-// > Więcej informacji:
-// > - [Przygotowanie paczki faktur](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-wsadowa.md)
-// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
-// html#tag/Certyfikaty-klucza-publicznego)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Przygotowanie paczki faktur]
+//	 - [Klucz publiczny Ministerstwa Finansów]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
+// formacie Problem Details (`application/problem+json`).
+//
+// `X-KSeF-Feature: subject-identifier-validation` - Włącza walidację numerów NIP oraz
+// identyfikatorów wewnętrznych podmiotów wskazanych na fakturze.
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `EnforcementOperations`.
+//
+// [Przygotowanie paczki faktur]: https://github.com/CIRFMF/ksef-api/blob/main/sesja-wsadowa.md
+// [Klucz publiczny Ministerstwa Finansów]: /docs/v2/index.html#tag/Certyfikaty-klucza-publicznego
 //
 // POST /sessions/batch
-func (c *Client) SessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (SessionsBatchPostRes, error) {
+func (c *Client) SessionsBatchPost(ctx context.Context, request OptSessionsBatchPostReq) (SessionsBatchPostRes, error) {
 	res, err := c.sendSessionsBatchPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptOpenBatchSessionRequest) (res SessionsBatchPostRes, err error) {
+func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptSessionsBatchPostReq) (res SessionsBatchPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -5946,7 +7604,13 @@ func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptOpenBatch
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsBatchPostResponse(resp)
 	if err != nil {
@@ -5960,10 +7624,13 @@ func (c *Client) sendSessionsBatchPost(ctx context.Context, request OptOpenBatch
 //
 // Zamyka sesję wsadową, rozpoczyna procesowanie paczki faktur i generowanie UPO dla prawidłowych
 // faktur oraz zbiorczego UPO dla sesji.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `EnforcementOperations`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/batch/{referenceNumber}/close
 func (c *Client) SessionsBatchReferenceNumberClosePost(ctx context.Context, params SessionsBatchReferenceNumberClosePostParams) (SessionsBatchReferenceNumberClosePostRes, error) {
@@ -6043,7 +7710,13 @@ func (c *Client) sendSessionsBatchReferenceNumberClosePost(ctx context.Context, 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsBatchReferenceNumberClosePostResponse(resp)
 	if err != nil {
@@ -6056,16 +7729,22 @@ func (c *Client) sendSessionsBatchReferenceNumberClosePost(ctx context.Context, 
 // SessionsGet invokes GET /sessions operation.
 //
 // Zwraca listę sesji spełniających podane kryteria wyszukiwania.
-// **Sortowanie:**
-// - dateCreated (Desc)
-// **Wymagane uprawnienia**:
-// - `Introspection`/`EnforcementOperations` – pozwala pobrać wszystkie sesje w bieżącym
-// kontekście uwierzytelnienia `(ContextIdentifier)`.
-// - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
-// czyli podmiot inicjujący uwierzytelnienie.
-// **Headers:**
+//
+// Wymagane jedno z uprawnień:
+//
+//   - `Introspection`/`EnforcementOperations` – pozwala pobrać wszystkie sesje w bieżącym
+//     kontekście uwierzytelnienia `(ContextIdentifier)`.
+//   - `InvoiceWrite` – pozwala pobrać wyłącznie sesje utworzone przez podmiot uwierzytelniający,
+//     czyli podmiot inicjujący uwierzytelnienie.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - dateCreated (Desc)
 //
 // GET /sessions
 func (c *Client) SessionsGet(ctx context.Context, params SessionsGetParams) (SessionsGetRes, error) {
@@ -6321,7 +8000,13 @@ func (c *Client) sendSessionsGet(ctx context.Context, params SessionsGetParams) 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsGetResponse(resp)
 	if err != nil {
@@ -6335,23 +8020,48 @@ func (c *Client) sendSessionsGet(ctx context.Context, params SessionsGetParams) 
 //
 // Otwiera sesję do wysyłki pojedynczych faktur. Należy przekazać schemat wysyłanych faktur oraz
 // informacje o kluczu używanym do szyfrowania.
-// > Więcej informacji:
-// > - [Otwarcie sesji interaktywnej](https://github.
-// com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.md#1-otwarcie-sesji)
-// > - [Klucz publiczny Ministerstwa Finansów](/docs/v2/index.
-// html#tag/Certyfikaty-klucza-publicznego)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Otwarcie sesji interaktywnej]
+//	 - [Klucz publiczny Ministerstwa Finansów]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+// formacie Problem Details (`application/problem+json`).
+//
+// `X-KSeF-Feature: subject-identifier-validation` - Włącza walidację numerów NIP oraz
+// identyfikatorów wewnętrznych podmiotów wskazanych na fakturze.
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+//
+// [Otwarcie sesji interaktywnej]: https://github.com/CIRFMF/ksef-api/blob/main/sesja-interaktywna.md#1-otwarcie-sesji
+// [Klucz publiczny Ministerstwa Finansów]: /docs/v2/index.html#tag/Certyfikaty-klucza-publicznego
 //
 // POST /sessions/online
-func (c *Client) SessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (SessionsOnlinePostRes, error) {
+func (c *Client) SessionsOnlinePost(ctx context.Context, request OptSessionsOnlinePostReq) (SessionsOnlinePostRes, error) {
 	res, err := c.sendSessionsOnlinePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnlineSessionRequest) (res SessionsOnlinePostRes, err error) {
+func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptSessionsOnlinePostReq) (res SessionsOnlinePostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
@@ -6404,7 +8114,13 @@ func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnli
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsOnlinePostResponse(resp)
 	if err != nil {
@@ -6417,10 +8133,13 @@ func (c *Client) sendSessionsOnlinePost(ctx context.Context, request OptOpenOnli
 // SessionsOnlineReferenceNumberClosePost invokes POST /sessions/online/{referenceNumber}/close operation.
 //
 // Zamyka sesję interaktywną i rozpoczyna generowanie zbiorczego UPO dla sesji.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/online/{referenceNumber}/close
 func (c *Client) SessionsOnlineReferenceNumberClosePost(ctx context.Context, params SessionsOnlineReferenceNumberClosePostParams) (SessionsOnlineReferenceNumberClosePostRes, error) {
@@ -6500,7 +8219,13 @@ func (c *Client) sendSessionsOnlineReferenceNumberClosePost(ctx context.Context,
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsOnlineReferenceNumberClosePostResponse(resp)
 	if err != nil {
@@ -6513,21 +8238,27 @@ func (c *Client) sendSessionsOnlineReferenceNumberClosePost(ctx context.Context,
 // SessionsOnlineReferenceNumberInvoicesPost invokes POST /sessions/online/{referenceNumber}/invoices operation.
 //
 // Przyjmuje zaszyfrowaną fakturę oraz jej metadane i rozpoczyna jej przetwarzanie.
-// > Więcej informacji:
-// > - [Wysłanie faktury](https://github.com/CIRFMF/ksef-docs/blob/main/sesja-interaktywna.
-// md#2-wys%C5%82anie-faktury)
-// **Headers:**
+//
+//	Więcej informacji:
+//
+//	 - [Wysłanie faktury]
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `PefInvoiceWrite`, `EnforcementOperations`.
 //
 // POST /sessions/online/{referenceNumber}/invoices
-func (c *Client) SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params SessionsOnlineReferenceNumberInvoicesPostParams) (SessionsOnlineReferenceNumberInvoicesPostRes, error) {
+//
+// [Wysłanie faktury]: https://github.com/CIRFMF/ksef-api/blob/main/sesja-interaktywna.md#2-wys%C5%82anie-faktury
+func (c *Client) SessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSessionsOnlineReferenceNumberInvoicesPostReq, params SessionsOnlineReferenceNumberInvoicesPostParams) (SessionsOnlineReferenceNumberInvoicesPostRes, error) {
 	res, err := c.sendSessionsOnlineReferenceNumberInvoicesPost(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSendInvoiceRequest, params SessionsOnlineReferenceNumberInvoicesPostParams) (res SessionsOnlineReferenceNumberInvoicesPostRes, err error) {
+func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Context, request OptSessionsOnlineReferenceNumberInvoicesPostReq, params SessionsOnlineReferenceNumberInvoicesPostParams) (res SessionsOnlineReferenceNumberInvoicesPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -6618,7 +8349,13 @@ func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Conte
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsOnlineReferenceNumberInvoicesPostResponse(resp)
 	if err != nil {
@@ -6631,10 +8368,13 @@ func (c *Client) sendSessionsOnlineReferenceNumberInvoicesPost(ctx context.Conte
 // SessionsReferenceNumberGet invokes GET /sessions/{referenceNumber} operation.
 //
 // Sprawdza bieżący status sesji o podanym numerze referencyjnym.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}
@@ -6714,7 +8454,13 @@ func (c *Client) sendSessionsReferenceNumberGet(ctx context.Context, params Sess
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -6727,10 +8473,13 @@ func (c *Client) sendSessionsReferenceNumberGet(ctx context.Context, params Sess
 // SessionsReferenceNumberInvoicesFailedGet invokes GET /sessions/{referenceNumber}/invoices/failed operation.
 //
 // Zwraca listę niepoprawnie przetworzonych faktur przesłanych w sesji wraz z ich statusami.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices/failed
@@ -6847,7 +8596,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesFailedGet(ctx context.Contex
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberInvoicesFailedGetResponse(resp)
 	if err != nil {
@@ -6861,10 +8616,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesFailedGet(ctx context.Contex
 //
 // Zwraca listę faktur przesłanych w sesji wraz z ich statusami, oraz informacje na temat ilości
 // poprawnie i niepoprawnie przetworzonych faktur.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices
@@ -6981,7 +8739,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesGet(ctx context.Context, par
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberInvoicesGetResponse(resp)
 	if err != nil {
@@ -6994,10 +8758,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesGet(ctx context.Context, par
 // SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber} operation.
 //
 // Zwraca fakturę przesłaną w sesji wraz ze statusem.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}
@@ -7099,7 +8866,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ct
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -7112,10 +8885,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ct
 // SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 //
 // Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
@@ -7218,7 +8994,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(resp)
 	if err != nil {
@@ -7231,10 +9013,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet
 // SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 //
 // Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
@@ -7337,7 +9122,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx con
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp)
 	if err != nil {
@@ -7350,10 +9141,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx con
 // SessionsReferenceNumberUpoUpoReferenceNumberGet invokes GET /sessions/{referenceNumber}/upo/{upoReferenceNumber} operation.
 //
 // Zwraca XML zawierający zbiorcze UPO dla sesji.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Wymagane uprawnienia**: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
+// formacie Problem Details (`application/problem+json`).
+//
+// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/upo/{upoReferenceNumber}
@@ -7455,7 +9249,13 @@ func (c *Client) sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp)
 	if err != nil {
@@ -7467,18 +9267,20 @@ func (c *Client) sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context
 
 // TestdataAttachmentPost invokes POST /testdata/attachment operation.
 //
-// Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
-// **Headers:**
+// # Dodaje możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/attachment
-func (c *Client) TestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (TestdataAttachmentPostRes, error) {
+func (c *Client) TestdataAttachmentPost(ctx context.Context, request OptTestdataAttachmentPostReq) (TestdataAttachmentPostRes, error) {
 	res, err := c.sendTestdataAttachmentPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptAttachmentPermissionGrantRequest) (res TestdataAttachmentPostRes, err error) {
+func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptTestdataAttachmentPostReq) (res TestdataAttachmentPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7514,7 +9316,13 @@ func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptAtta
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataAttachmentPostResponse(resp)
 	if err != nil {
@@ -7526,18 +9334,20 @@ func (c *Client) sendTestdataAttachmentPost(ctx context.Context, request OptAtta
 
 // TestdataAttachmentRevokePost invokes POST /testdata/attachment/revoke operation.
 //
-// Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
-// **Headers:**
+// # Odbiera możliwość wysyłania faktur z załącznikiem przez wskazany podmiot
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/attachment/revoke
-func (c *Client) TestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (TestdataAttachmentRevokePostRes, error) {
+func (c *Client) TestdataAttachmentRevokePost(ctx context.Context, request OptTestdataAttachmentRevokePostReq) (TestdataAttachmentRevokePostRes, error) {
 	res, err := c.sendTestdataAttachmentRevokePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request OptAttachmentPermissionRevokeRequest) (res TestdataAttachmentRevokePostRes, err error) {
+func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request OptTestdataAttachmentRevokePostReq) (res TestdataAttachmentRevokePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7573,9 +9383,118 @@ func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request O
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataAttachmentRevokePostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TestdataCertificatesSerialNumberPut invokes PUT /testdata/certificates/{serialNumber} operation.
+//
+// Aktualizuje dane wskazanego certyfikatu KSeF uwierzytelnionego podmiotu. Tylko na środowiskach
+// testowych.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// PUT /testdata/certificates/{serialNumber}
+func (c *Client) TestdataCertificatesSerialNumberPut(ctx context.Context, request OptTestdataCertificatesSerialNumberPutReq, params TestdataCertificatesSerialNumberPutParams) (TestdataCertificatesSerialNumberPutRes, error) {
+	res, err := c.sendTestdataCertificatesSerialNumberPut(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendTestdataCertificatesSerialNumberPut(ctx context.Context, request OptTestdataCertificatesSerialNumberPutReq, params TestdataCertificatesSerialNumberPutParams) (res TestdataCertificatesSerialNumberPutRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/testdata/certificates/"
+	{
+		// Encode "serialNumber" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "serialNumber",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.SerialNumber))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "PUT", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeTestdataCertificatesSerialNumberPutRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TestdataCertificatesSerialNumberPutOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeTestdataCertificatesSerialNumberPutResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -7587,9 +9506,11 @@ func (c *Client) sendTestdataAttachmentRevokePost(ctx context.Context, request O
 //
 // Blokuje możliwość uwierzytelniania dla wskazanego kontekstu. Uwierzytelnianie zakończy się
 // błędem 480.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/context/block
 func (c *Client) TestdataContextBlockPost(ctx context.Context, request OptBlockContextAuthenticationRequest) (TestdataContextBlockPostRes, error) {
@@ -7633,7 +9554,13 @@ func (c *Client) sendTestdataContextBlockPost(ctx context.Context, request OptBl
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataContextBlockPostResponse(resp)
 	if err != nil {
@@ -7646,9 +9573,11 @@ func (c *Client) sendTestdataContextBlockPost(ctx context.Context, request OptBl
 // TestdataContextUnblockPost invokes POST /testdata/context/unblock operation.
 //
 // Odblokowuje możliwość uwierzytelniania dla wskazanego kontekstu.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/context/unblock
 func (c *Client) TestdataContextUnblockPost(ctx context.Context, request OptUnblockContextAuthenticationRequest) (TestdataContextUnblockPostRes, error) {
@@ -7692,7 +9621,13 @@ func (c *Client) sendTestdataContextUnblockPost(ctx context.Context, request Opt
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataContextUnblockPostResponse(resp)
 	if err != nil {
@@ -7704,11 +9639,13 @@ func (c *Client) sendTestdataContextUnblockPost(ctx context.Context, request Opt
 
 // TestdataLimitsContextSessionDelete invokes DELETE /testdata/limits/context/session operation.
 //
-// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do
-// wartości domyślnych. **Tylko na środowiskach testowych.**
-// **Headers:**
+// Przywraca wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu do wartości
+// domyślnych. Tylko na środowiskach testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // DELETE /testdata/limits/context/session
 func (c *Client) TestdataLimitsContextSessionDelete(ctx context.Context) (TestdataLimitsContextSessionDeleteRes, error) {
@@ -7766,7 +9703,13 @@ func (c *Client) sendTestdataLimitsContextSessionDelete(ctx context.Context) (re
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataLimitsContextSessionDeleteResponse(resp)
 	if err != nil {
@@ -7778,19 +9721,21 @@ func (c *Client) sendTestdataLimitsContextSessionDelete(ctx context.Context) (re
 
 // TestdataLimitsContextSessionPost invokes POST /testdata/limits/context/session operation.
 //
-// Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. **Tylko na
-// środowiskach testowych.**
-// **Headers:**
+// Zmienia wartości aktualnie obowiązujących limitów sesji dla bieżącego kontekstu. Tylko na
+// środowiskach testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/limits/context/session
-func (c *Client) TestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (TestdataLimitsContextSessionPostRes, error) {
+func (c *Client) TestdataLimitsContextSessionPost(ctx context.Context, request OptTestdataLimitsContextSessionPostReq) (TestdataLimitsContextSessionPostRes, error) {
 	res, err := c.sendTestdataLimitsContextSessionPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, request OptSetSessionLimitsRequest) (res TestdataLimitsContextSessionPostRes, err error) {
+func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, request OptTestdataLimitsContextSessionPostReq) (res TestdataLimitsContextSessionPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -7859,7 +9804,13 @@ func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, reque
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataLimitsContextSessionPostResponse(resp)
 	if err != nil {
@@ -7872,10 +9823,12 @@ func (c *Client) sendTestdataLimitsContextSessionPost(ctx context.Context, reque
 // TestdataLimitsSubjectCertificateDelete invokes DELETE /testdata/limits/subject/certificate operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu do
-// wartości domyślnych. **Tylko na środowiskach testowych.**
-// **Headers:**
+// wartości domyślnych. Tylko na środowiskach testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // DELETE /testdata/limits/subject/certificate
 func (c *Client) TestdataLimitsSubjectCertificateDelete(ctx context.Context) (TestdataLimitsSubjectCertificateDeleteRes, error) {
@@ -7933,7 +9886,13 @@ func (c *Client) sendTestdataLimitsSubjectCertificateDelete(ctx context.Context)
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataLimitsSubjectCertificateDeleteResponse(resp)
 	if err != nil {
@@ -7945,11 +9904,13 @@ func (c *Client) sendTestdataLimitsSubjectCertificateDelete(ctx context.Context)
 
 // TestdataLimitsSubjectCertificatePost invokes POST /testdata/limits/subject/certificate operation.
 //
-// Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu.
-// **Tylko na środowiskach testowych.**
-// **Headers:**
+// Zmienia wartości aktualnie obowiązujących limitów certyfikatów dla bieżącego podmiotu. Tylko
+// na środowiskach testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/limits/subject/certificate
 func (c *Client) TestdataLimitsSubjectCertificatePost(ctx context.Context, request OptSetSubjectLimitsRequest) (TestdataLimitsSubjectCertificatePostRes, error) {
@@ -8026,7 +9987,13 @@ func (c *Client) sendTestdataLimitsSubjectCertificatePost(ctx context.Context, r
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataLimitsSubjectCertificatePostResponse(resp)
 	if err != nil {
@@ -8039,17 +10006,19 @@ func (c *Client) sendTestdataLimitsSubjectCertificatePost(ctx context.Context, r
 // TestdataPermissionsPost invokes POST /testdata/permissions operation.
 //
 // Nadawanie uprawnień testowemu podmiotowi lub osobie fizycznej, a także w ich kontekście.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/permissions
-func (c *Client) TestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (TestdataPermissionsPostRes, error) {
+func (c *Client) TestdataPermissionsPost(ctx context.Context, request OptTestdataPermissionsPostReq) (TestdataPermissionsPostRes, error) {
 	res, err := c.sendTestdataPermissionsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTestDataPermissionsGrantRequest) (res TestdataPermissionsPostRes, err error) {
+func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTestdataPermissionsPostReq) (res TestdataPermissionsPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8085,7 +10054,13 @@ func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTes
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataPermissionsPostResponse(resp)
 	if err != nil {
@@ -8099,17 +10074,19 @@ func (c *Client) sendTestdataPermissionsPost(ctx context.Context, request OptTes
 //
 // Odbieranie uprawnień nadanych testowemu podmiotowi lub osobie fizycznej, a także w ich
 // kontekście.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/permissions/revoke
-func (c *Client) TestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (TestdataPermissionsRevokePostRes, error) {
+func (c *Client) TestdataPermissionsRevokePost(ctx context.Context, request OptTestdataPermissionsRevokePostReq) (TestdataPermissionsRevokePostRes, error) {
 	res, err := c.sendTestdataPermissionsRevokePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request OptTestDataPermissionsRevokeRequest) (res TestdataPermissionsRevokePostRes, err error) {
+func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request OptTestdataPermissionsRevokePostReq) (res TestdataPermissionsRevokePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8145,7 +10122,13 @@ func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataPermissionsRevokePostResponse(resp)
 	if err != nil {
@@ -8160,17 +10143,19 @@ func (c *Client) sendTestdataPermissionsRevokePost(ctx context.Context, request 
 // Tworzenie nowej osoby fizycznej, której system nadaje uprawnienia właścicielskie. Można
 // również określić, czy osoba ta jest komornikiem – wówczas otrzyma odpowiednie uprawnienie
 // egzekucyjne.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/person
-func (c *Client) TestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (TestdataPersonPostRes, error) {
+func (c *Client) TestdataPersonPost(ctx context.Context, request OptTestdataPersonPostReq) (TestdataPersonPostRes, error) {
 	res, err := c.sendTestdataPersonPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptPersonCreateRequest) (res TestdataPersonPostRes, err error) {
+func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptTestdataPersonPostReq) (res TestdataPersonPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8206,7 +10191,13 @@ func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptPersonCr
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataPersonPostResponse(resp)
 	if err != nil {
@@ -8219,17 +10210,19 @@ func (c *Client) sendTestdataPersonPost(ctx context.Context, request OptPersonCr
 // TestdataPersonRemovePost invokes POST /testdata/person/remove operation.
 //
 // Usuwanie testowej osoby fizycznej. System automatycznie odbierze jej wszystkie uprawnienia.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/person/remove
-func (c *Client) TestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (TestdataPersonRemovePostRes, error) {
+func (c *Client) TestdataPersonRemovePost(ctx context.Context, request OptTestdataPersonRemovePostReq) (TestdataPersonRemovePostRes, error) {
 	res, err := c.sendTestdataPersonRemovePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptPersonRemoveRequest) (res TestdataPersonRemovePostRes, err error) {
+func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptTestdataPersonRemovePostReq) (res TestdataPersonRemovePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8265,7 +10258,13 @@ func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptPe
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataPersonRemovePostResponse(resp)
 	if err != nil {
@@ -8278,10 +10277,12 @@ func (c *Client) sendTestdataPersonRemovePost(ctx context.Context, request OptPe
 // TestdataRateLimitsDelete invokes DELETE /testdata/rate-limits operation.
 //
 // Przywraca wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-// bieżącego kontekstu do wartości domyślnych. **Tylko na środowiskach testowych.**
-// **Headers:**
+// bieżącego kontekstu do wartości domyślnych. Tylko na środowiskach testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // DELETE /testdata/rate-limits
 func (c *Client) TestdataRateLimitsDelete(ctx context.Context) (TestdataRateLimitsDeleteRes, error) {
@@ -8339,7 +10340,13 @@ func (c *Client) sendTestdataRateLimitsDelete(ctx context.Context) (res Testdata
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataRateLimitsDeleteResponse(resp)
 	if err != nil {
@@ -8351,19 +10358,21 @@ func (c *Client) sendTestdataRateLimitsDelete(ctx context.Context) (res Testdata
 
 // TestdataRateLimitsPost invokes POST /testdata/rate-limits operation.
 //
-// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-// bieżącego kontekstu. **Tylko na środowiskach testowych.**
-// **Headers:**
+// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla bieżącego
+// kontekstu. Tylko na środowiskach testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/rate-limits
-func (c *Client) TestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (TestdataRateLimitsPostRes, error) {
+func (c *Client) TestdataRateLimitsPost(ctx context.Context, request OptTestdataRateLimitsPostReq) (TestdataRateLimitsPostRes, error) {
 	res, err := c.sendTestdataRateLimitsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptSetRateLimitsRequest) (res TestdataRateLimitsPostRes, err error) {
+func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptTestdataRateLimitsPostReq) (res TestdataRateLimitsPostRes, err error) {
 
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
@@ -8416,7 +10425,13 @@ func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptSetR
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataRateLimitsPostResponse(resp)
 	if err != nil {
@@ -8428,12 +10443,14 @@ func (c *Client) sendTestdataRateLimitsPost(ctx context.Context, request OptSetR
 
 // TestdataRateLimitsProductionPost invokes POST /testdata/rate-limits/production operation.
 //
-// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla
-// bieżącego kontekstu na wartości takie jakie będą na środowisku produkcyjnym. **Tylko na
-// środowiskach testowych.**
-// **Headers:**
+// Zmienia wartości aktualnie obowiązujących limitów żądań przesyłanych do API dla bieżącego
+// kontekstu na wartości takie jakie będą na środowisku produkcyjnym. Tylko na środowiskach
+// testowych.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/rate-limits/production
 func (c *Client) TestdataRateLimitsProductionPost(ctx context.Context) (TestdataRateLimitsProductionPostRes, error) {
@@ -8491,7 +10508,13 @@ func (c *Client) sendTestdataRateLimitsProductionPost(ctx context.Context) (res 
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataRateLimitsProductionPostResponse(resp)
 	if err != nil {
@@ -8506,17 +10529,19 @@ func (c *Client) sendTestdataRateLimitsProductionPost(ctx context.Context) (res 
 // Tworzenie nowego podmiotu testowego. W przypadku grupy VAT i JST istnieje możliwość stworzenia
 // jednostek podrzędnych. W wyniku takiego działania w systemie powstanie powiązanie między tymi
 // podmiotami.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/subject
-func (c *Client) TestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (TestdataSubjectPostRes, error) {
+func (c *Client) TestdataSubjectPost(ctx context.Context, request OptTestdataSubjectPostReq) (TestdataSubjectPostRes, error) {
 	res, err := c.sendTestdataSubjectPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptSubjectCreateRequest) (res TestdataSubjectPostRes, err error) {
+func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptTestdataSubjectPostReq) (res TestdataSubjectPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8552,7 +10577,13 @@ func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptSubject
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataSubjectPostResponse(resp)
 	if err != nil {
@@ -8566,17 +10597,19 @@ func (c *Client) sendTestdataSubjectPost(ctx context.Context, request OptSubject
 //
 // Usuwanie podmiotu testowego. W przypadku grupy VAT i JST usunięte zostaną również jednostki
 // podrzędne.
-// **Headers:**
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /testdata/subject/remove
-func (c *Client) TestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (TestdataSubjectRemovePostRes, error) {
+func (c *Client) TestdataSubjectRemovePost(ctx context.Context, request OptTestdataSubjectRemovePostReq) (TestdataSubjectRemovePostRes, error) {
 	res, err := c.sendTestdataSubjectRemovePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptSubjectRemoveRequest) (res TestdataSubjectRemovePostRes, err error) {
+func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptTestdataSubjectRemovePostReq) (res TestdataSubjectRemovePostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8612,7 +10645,13 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptS
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTestdataSubjectRemovePostResponse(resp)
 	if err != nil {
@@ -8626,19 +10665,25 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptS
 //
 // Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
 // uprawnień podmiotu wywołującego.
-// Jeżeli podmiot posiada uprawnienie **CredentialsManage** lub **CredentialsRead**,
-// usługa zwraca wszystkie tokeny wygenerowane w danym kontekście niezależnie od metody
-// uwierzytelnienia.
+//
+// Jeżeli podmiot posiada uprawnienie CredentialsManage lub CredentialsRead, usługa zwraca wszystkie
+// tokeny wygenerowane w danym kontekście niezależnie od metody uwierzytelnienia.
+//
 // Jeżeli podmiot nie posiada żadnego z powyższych uprawnień, zakres wyników jest ograniczony:
-// - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
-// uwierzytelnienia.
-// - Dla pozostałych metod uwierzytelnienia zwracane są tokeny,
-// których autorem jest wywołujący podmiot – z uwzględnieniem powiązania NIP–PESEL.
-// **Headers:**
+//
+//   - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
+//     uwierzytelnienia.
+//   - Dla pozostałych metod uwierzytelnienia zwracane są tokeny, których autorem jest wywołujący
+//     podmiot – z uwzględnieniem powiązania NIP–PESEL.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
-// **Sortowanie:**
-// - dateCreated (Desc).
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - dateCreated (Desc)
 //
 // GET /tokens
 func (c *Client) TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error) {
@@ -8809,7 +10854,13 @@ func (c *Client) sendTokensGet(ctx context.Context, params TokensGetParams) (res
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTokensGetResponse(resp)
 	if err != nil {
@@ -8822,19 +10873,22 @@ func (c *Client) sendTokensGet(ctx context.Context, params TokensGetParams) (res
 // TokensPost invokes POST /tokens operation.
 //
 // Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
-// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest
-// zwracany tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
-// **Headers:**
+//
+// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest zwracany
+// tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // POST /tokens
-func (c *Client) TokensPost(ctx context.Context, request OptGenerateTokenRequest) (TokensPostRes, error) {
+func (c *Client) TokensPost(ctx context.Context, request OptTokensPostReq) (TokensPostRes, error) {
 	res, err := c.sendTokensPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTokensPost(ctx context.Context, request OptGenerateTokenRequest) (res TokensPostRes, err error) {
+func (c *Client) sendTokensPost(ctx context.Context, request OptTokensPostReq) (res TokensPostRes, err error) {
 	// Validate request before sending.
 	if err := func() error {
 		if value, ok := request.Get(); ok {
@@ -8903,7 +10957,13 @@ func (c *Client) sendTokensPost(ctx context.Context, request OptGenerateTokenReq
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTokensPostResponse(resp)
 	if err != nil {
@@ -8917,17 +10977,21 @@ func (c *Client) sendTokensPost(ctx context.Context, request OptGenerateTokenReq
 //
 // Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
 // zależy od sposobu uwierzytelnienia oraz uprawnień podmiotu wywołującego.
-// Jeżeli podmiot posiada uprawnienie **CredentialsManage**,
-// może unieważnić dowolny aktywny token w danym kontekście niezależnie od metody
-// uwierzytelnienia.
+//
+// Jeżeli podmiot posiada uprawnienie CredentialsManage, może unieważnić dowolny aktywny token w
+// danym kontekście niezależnie od metody uwierzytelnienia.
+//
 // Jeżeli podmiot nie posiada powyższego uprawnienia, zakres unieważnienia jest ograniczony:
-// - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
-// do uwierzytelnienia.
-// - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny,
-// których jest autorem – z uwzględnieniem powiązania NIP–PESEL.
-// **Headers:**
+//
+//   - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
+//     do uwierzytelnienia.
+//   - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny, których jest autorem
+//     – z uwzględnieniem powiązania NIP–PESEL.
+//
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // DELETE /tokens/{referenceNumber}
 func (c *Client) TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error) {
@@ -9006,7 +11070,13 @@ func (c *Client) sendTokensReferenceNumberDelete(ctx context.Context, params Tok
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTokensReferenceNumberDeleteResponse(resp)
 	if err != nil {
@@ -9018,9 +11088,10 @@ func (c *Client) sendTokensReferenceNumberDelete(ctx context.Context, params Tok
 
 // TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 //
-// **Headers:**
+// Headers:
+//
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-// formacie **Problem Details** (`application/problem+json`).
+// formacie Problem Details (`application/problem+json`).
 //
 // GET /tokens/{referenceNumber}
 func (c *Client) TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error) {
@@ -9099,7 +11170,13 @@ func (c *Client) sendTokensReferenceNumberGet(ctx context.Context, params Tokens
 		return res, errors.Wrap(err, "do request")
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
 
 	result, err := decodeTokensReferenceNumberGetResponse(resp)
 	if err != nil {

@@ -43,8 +43,8 @@ func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChall
 	}
 
 	switch v := res.(type) {
-	case *api.AuthenticationChallengeResponse:
-		return v, nil
+	case *api.AuthenticationChallengeResponseHeaders:
+		return &v.Response, nil
 
 		// generyczna obsługa błędów (4xx/5xx):
 	case *api.ExceptionResponse:
@@ -87,8 +87,8 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 	}
 
 	switch v := res.(type) {
-	case *api.AuthenticationInitResponse:
-		return v, nil
+	case *api.AuthenticationInitResponseHeaders:
+		return &v.Response, nil
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
 	default:
@@ -113,8 +113,8 @@ func (c *AuthFacade) AuthWithXades(ctx context.Context, signedXml []byte) (*api.
 	}
 
 	switch v := res.(type) {
-	case *api.AuthenticationInitResponse:
-		return v, nil
+	case *api.AuthenticationInitResponseHeaders:
+		return &v.Response, nil
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
 	default:
@@ -154,16 +154,16 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 			}
 
 			switch v := res.(type) {
-			case *api.AuthenticationOperationStatusResponse:
-				code := v.GetStatus().Code
+			case *api.AuthenticationOperationStatusResponseHeaders:
+				code := v.Response.GetStatus().Code
 				switch code {
 				case 100: // w toku – kolejna pętla
 					continue
 				case 200: // gotowe
-					logger.Infof("%+v", v.GetStatus())
+					logger.Infof("%+v", v.Response.GetStatus())
 					return redeemTokens(ctx, cli)
 				default:
-					desc := v.GetStatus().Description
+					desc := v.Response.GetStatus().Description
 					return nil, fmt.Errorf("uwierzytelnianie zakończone kodem %d (%s)", code, desc)
 				}
 
@@ -194,8 +194,8 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 	}
 
 	switch v := res.(type) {
-	case *api.AuthenticationTokenRefreshResponse:
-		return v.GetAccessToken(), nil
+	case *api.AuthenticationTokenRefreshResponseHeaders:
+		return api.TokenInfo(v.Response.GetAccessToken()), nil
 
 	// specyficzny wariant błędu bez treści (401)
 	case *api.UnauthorizedProblemDetails:
@@ -246,8 +246,8 @@ func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationToke
 	}
 
 	switch v := res.(type) {
-	case *api.AuthenticationTokensResponse:
-		return v, nil
+	case *api.AuthenticationTokensResponseHeaders:
+		return &v.Response, nil
 
 	// specyficzny wariant błędu bez treści (401)
 	case *api.UnauthorizedProblemDetails:

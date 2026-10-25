@@ -81,9 +81,9 @@ func (c *Client) StartInvoiceExportWithGeneratedKey(ctx context.Context, filters
 func (c *Client) startInvoiceExport(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool, enc api.EncryptionInfo, key, iv []byte) (*InvoiceExport, error) {
 	req := api.OptInvoiceExportRequest{}
 	req.SetTo(api.InvoiceExportRequest{
-		Encryption:   enc,
+		Encryption:   api.InvoicesExportsPostReqEncryption(enc),
 		OnlyMetadata: onlyMetadata,
-		Filters:      filters,
+		Filters:      exportQueryFilters(filters),
 	})
 
 	res, err := c.raw.InvoicesExportsPost(ctx, req)
@@ -92,12 +92,12 @@ func (c *Client) startInvoiceExport(ctx context.Context, filters api.InvoiceQuer
 	}
 
 	switch v := res.(type) {
-	case *api.ExportInvoicesResponse:
+	case *api.ExportInvoicesResponseHeaders:
 		return &InvoiceExport{
-			ReferenceNumber: string(v.GetReferenceNumber()),
+			ReferenceNumber: string(v.Response.GetReferenceNumber()),
 			Key:             bytes.Clone(key),
 			IV:              bytes.Clone(iv),
-			Response:        v,
+			Response:        &v.Response,
 		}, nil
 	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
@@ -107,6 +107,34 @@ func (c *Client) startInvoiceExport(ctx context.Context, filters api.InvoiceQuer
 		return nil, HandleAPIError(v)
 	default:
 		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+	}
+}
+
+// exportQueryFilters adapts the shared facade filters to ogen's export-specific
+// model, preserving the unset/null/value states of optional fields.
+func exportQueryFilters(filters api.InvoiceQueryFilters) api.InvoicesExportsPostReqFilters {
+	return api.InvoicesExportsPostReqFilters{
+		SubjectType:   filters.SubjectType,
+		DateRange:     api.InvoicesExportsPostReqFiltersDateRange(filters.DateRange),
+		KsefNumber:    filters.KsefNumber,
+		InvoiceNumber: filters.InvoiceNumber,
+		Amount: api.OptNilInvoicesExportsPostReqFiltersAmount{
+			Value: api.InvoicesExportsPostReqFiltersAmount(filters.Amount.Value),
+			Set:   filters.Amount.Set,
+			Null:  filters.Amount.Null,
+		},
+		SellerNip: filters.SellerNip,
+		BuyerIdentifier: api.OptNilInvoicesExportsPostReqFiltersBuyerIdentifier{
+			Value: api.InvoicesExportsPostReqFiltersBuyerIdentifier(filters.BuyerIdentifier.Value),
+			Set:   filters.BuyerIdentifier.Set,
+			Null:  filters.BuyerIdentifier.Null,
+		},
+		CurrencyCodes:   filters.CurrencyCodes,
+		InvoicingMode:   filters.InvoicingMode,
+		IsSelfInvoicing: filters.IsSelfInvoicing,
+		FormType:        filters.FormType,
+		InvoiceTypes:    filters.InvoiceTypes,
+		HasAttachment:   filters.HasAttachment,
 	}
 }
 
@@ -121,8 +149,8 @@ func (c *Client) InvoiceExportStatus(ctx context.Context, reference string) (*ap
 	}
 
 	switch v := res.(type) {
-	case *api.InvoiceExportStatusResponse:
-		return v, nil
+	case *api.InvoiceExportStatusResponseHeaders:
+		return &v.Response, nil
 	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
 	case *api.ForbiddenProblemDetails:

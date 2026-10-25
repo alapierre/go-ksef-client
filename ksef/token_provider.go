@@ -306,7 +306,7 @@ func (p *TokenProvider) fullAuthLocked(ctx context.Context) (api.Bearer, pending
 		update: TokenUpdate{
 			NIP:                 nip,
 			AccessToken:         at,
-			RefreshToken:        rt,
+			RefreshToken:        api.TokenInfo(rt),
 			AccessTokenChanged:  true,
 			RefreshTokenChanged: true,
 		},

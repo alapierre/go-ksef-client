@@ -32,6 +32,11 @@ func TestSerialFromCert(t *testing.T) {
 }
 
 func TestQr2(t *testing.T) {
+	for _, name := range []string{"KSEF_CERT_PASS", "KSEF_CERT_NIP", "KSEF_CERT_SERIAL"} {
+		if os.Getenv(name) == "" {
+			t.Skipf("%s not set – skipping certificate test", name)
+		}
+	}
 
 	pass := util.GetEnvOrFailed("KSEF_CERT_PASS")
 	nip := util.GetEnvOrFailed("KSEF_CERT_NIP")

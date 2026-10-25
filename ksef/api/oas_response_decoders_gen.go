@@ -4,6 +4,7 @@ package api
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -58,7 +59,54 @@ func decodeAuthChallengePostResponse(resp *http.Response) (res AuthChallengePost
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper AuthenticationChallengeResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -349,7 +397,54 @@ func decodeAuthKsefTokenPostResponse(resp *http.Response) (res AuthKsefTokenPost
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper AuthenticationInitResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -640,7 +735,54 @@ func decodeAuthReferenceNumberGetResponse(resp *http.Response) (res AuthReferenc
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper AuthenticationOperationStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -998,7 +1140,53 @@ func decodeAuthSessionsCurrentDeleteResponse(resp *http.Response) (res AuthSessi
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &AuthSessionsCurrentDeleteNoContent{}, nil
+		var wrapper AuthSessionsCurrentDeleteNoContent
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -1356,7 +1544,54 @@ func decodeAuthSessionsGetResponse(resp *http.Response) (res AuthSessionsGetRes,
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper AuthenticationListResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -1679,7 +1914,53 @@ func decodeAuthSessionsReferenceNumberDeleteResponse(resp *http.Response) (res A
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &AuthSessionsReferenceNumberDeleteNoContent{}, nil
+		var wrapper AuthSessionsReferenceNumberDeleteNoContent
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -2028,7 +2309,54 @@ func decodeAuthTokenRedeemPostResponse(resp *http.Response) (res AuthTokenRedeem
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper AuthenticationTokensResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -2380,7 +2708,54 @@ func decodeAuthTokenRefreshPostResponse(resp *http.Response) (res AuthTokenRefre
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper AuthenticationTokenRefreshResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -2741,7 +3116,54 @@ func decodeAuthXadesSignaturePostResponse(resp *http.Response) (res AuthXadesSig
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper AuthenticationInitResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -2994,7 +3416,53 @@ func decodeCertificatesCertificateSerialNumberRevokePostResponse(resp *http.Resp
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &CertificatesCertificateSerialNumberRevokePostNoContent{}, nil
+		var wrapper CertificatesCertificateSerialNumberRevokePostNoContent
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -3343,7 +3811,54 @@ func decodeCertificatesEnrollmentsDataGetResponse(resp *http.Response) (res Cert
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper CertificateEnrollmentDataResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -3704,7 +4219,54 @@ func decodeCertificatesEnrollmentsPostResponse(resp *http.Response) (res Certifi
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper EnrollCertificateResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -4065,7 +4627,54 @@ func decodeCertificatesEnrollmentsReferenceNumberGetResponse(resp *http.Response
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper CertificateEnrollmentStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -4452,7 +5061,54 @@ func decodeCertificatesLimitsGetResponse(resp *http.Response) (res CertificatesL
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper CertificateLimitsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -4813,7 +5469,54 @@ func decodeCertificatesQueryPostResponse(resp *http.Response) (res CertificatesQ
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryCertificatesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5174,7 +5877,1686 @@ func decodeCertificatesRetrievePostResponse(resp *http.Response) (res Certificat
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
+			var wrapper RetrieveCertificatesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BadRequestProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response UnauthorizedProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 403:
+		// Code 403.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ForbiddenProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			var wrapper TooManyRequestsProblemDetailsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeCollectiveIdentifiersInvoicesPostResponse(resp *http.Response) (res CollectiveIdentifiersInvoicesPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response CollectiveIdentifierInvoicesQueryResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper CollectiveIdentifierInvoicesQueryResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BadRequestProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response UnauthorizedProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 403:
+		// Code 403.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ForbiddenProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			var wrapper TooManyRequestsProblemDetailsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeCollectiveIdentifiersKsefKsefNumberGetResponse(resp *http.Response) (res CollectiveIdentifiersKsefKsefNumberGetRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response CollectiveIdentifiersByKsefNumberQueryResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper CollectiveIdentifiersByKsefNumberQueryResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BadRequestProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response UnauthorizedProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 403:
+		// Code 403.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ForbiddenProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			var wrapper TooManyRequestsProblemDetailsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeCollectiveIdentifiersPostResponse(resp *http.Response) (res CollectiveIdentifiersPostRes, _ error) {
+	switch resp.StatusCode {
+	case 201:
+		// Code 201.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response GenerateCollectiveIdentifierResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper GenerateCollectiveIdentifierResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BadRequestProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response UnauthorizedProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 403:
+		// Code 403.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ForbiddenProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			var wrapper TooManyRequestsProblemDetailsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeCollectiveIdentifiersQueryPostResponse(resp *http.Response) (res CollectiveIdentifiersQueryPostRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response CollectiveIdentifiersQueryResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper CollectiveIdentifiersQueryResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5535,7 +7917,54 @@ func decodeInvoicesExportsPostResponse(resp *http.Response) (res InvoicesExports
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper ExportInvoicesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -5896,7 +8325,54 @@ func decodeInvoicesExportsReferenceNumberGetResponse(resp *http.Response) (res I
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper InvoiceExportStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -6270,6 +8746,50 @@ func decodeInvoicesKsefKsefNumberGetResponse(resp *http.Response) (res InvoicesK
 			var wrapper InvoicesKsefKsefNumberGetOKHeaders
 			wrapper.Response = response
 			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
 			// Parse "x-ms-meta-hash" header.
 			{
 				cfg := uri.HeaderParameterDecodingConfig{
@@ -6299,6 +8819,14 @@ func decodeInvoicesKsefKsefNumberGetResponse(resp *http.Response) (res InvoicesK
 							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
 							return nil
 						}); err != nil {
+							return err
+						}
+						if err := func() error {
+							if err := wrapper.XMsMetaHash.Validate(); err != nil {
+								return err
+							}
+							return nil
+						}(); err != nil {
 							return err
 						}
 					}
@@ -6668,7 +9196,54 @@ func decodeInvoicesQueryMetadataPostResponse(resp *http.Response) (res InvoicesQ
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryInvoicesMetadataResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -7029,7 +9604,54 @@ func decodeLimitsContextGetResponse(resp *http.Response) (res LimitsContextGetRe
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper EffectiveContextLimitsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -7381,7 +10003,54 @@ func decodeLimitsSubjectGetResponse(resp *http.Response) (res LimitsSubjectGetRe
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper EffectiveSubjectLimitsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -7742,7 +10411,54 @@ func decodePeppolQueryGetResponse(resp *http.Response) (res PeppolQueryGetRes, _
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryPeppolProvidersResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -8024,7 +10740,54 @@ func decodePermissionsAttachmentsStatusGetResponse(resp *http.Response) (res Per
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper CheckAttachmentPermissionStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -8385,7 +11148,54 @@ func decodePermissionsAuthorizationsGrantsPermissionIdDeleteResponse(resp *http.
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -8746,7 +11556,54 @@ func decodePermissionsAuthorizationsGrantsPostResponse(resp *http.Response) (res
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -9107,7 +11964,54 @@ func decodePermissionsCommonGrantsPermissionIdDeleteResponse(resp *http.Response
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -9468,7 +12372,54 @@ func decodePermissionsEntitiesGrantsPostResponse(resp *http.Response) (res Permi
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -9829,7 +12780,54 @@ func decodePermissionsEuEntitiesAdministrationGrantsPostResponse(resp *http.Resp
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -10190,7 +13188,54 @@ func decodePermissionsEuEntitiesGrantsPostResponse(resp *http.Response) (res Per
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -10551,7 +13596,54 @@ func decodePermissionsIndirectGrantsPostResponse(resp *http.Response) (res Permi
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -10912,7 +14004,54 @@ func decodePermissionsOperationsReferenceNumberGetResponse(resp *http.Response) 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -11308,7 +14447,54 @@ func decodePermissionsPersonsGrantsPostResponse(resp *http.Response) (res Permis
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -11669,7 +14855,54 @@ func decodePermissionsQueryAuthorizationsGrantsPostResponse(resp *http.Response)
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryEntityAuthorizationPermissionsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -12030,7 +15263,54 @@ func decodePermissionsQueryEntitiesGrantsPostResponse(resp *http.Response) (res 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryEntityPermissionsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -12391,7 +15671,54 @@ func decodePermissionsQueryEntitiesRolesGetResponse(resp *http.Response) (res Pe
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryEntityRolesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -12752,7 +16079,54 @@ func decodePermissionsQueryEuEntitiesGrantsPostResponse(resp *http.Response) (re
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryEuEntityPermissionsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -13113,7 +16487,54 @@ func decodePermissionsQueryPersonalGrantsPostResponse(resp *http.Response) (res 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryPersonalPermissionsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -13474,7 +16895,54 @@ func decodePermissionsQueryPersonsGrantsPostResponse(resp *http.Response) (res P
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryPersonPermissionsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -13835,7 +17303,54 @@ func decodePermissionsQuerySubordinateEntitiesRolesPostResponse(resp *http.Respo
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QuerySubordinateEntityRolesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -14196,7 +17711,54 @@ func decodePermissionsQuerySubunitsGrantsPostResponse(resp *http.Response) (res 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QuerySubunitPermissionsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -14557,7 +18119,54 @@ func decodePermissionsSubunitsGrantsPostResponse(resp *http.Response) (res Permi
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper PermissionsOperationResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -14909,7 +18518,54 @@ func decodeRateLimitsGetResponse(resp *http.Response) (res RateLimitsGetRes, _ e
 				}
 				return res, err
 			}
-			return &response, nil
+			var wrapper EffectiveApiRateLimitsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -15244,9 +18900,17 @@ func decodeSecurityPublicKeyCertificatesGetResponse(resp *http.Response) (res Se
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response SecurityPublicKeyCertificatesGetOKApplicationJSON
+			var response []PublicKeyCertificate
 			if err := func() error {
-				if err := response.Decode(d); err != nil {
+				response = make([]PublicKeyCertificate, 0)
+				if err := d.Arr(func(d *jx.Decoder) error {
+					var elem PublicKeyCertificate
+					if err := elem.Decode(d); err != nil {
+						return err
+					}
+					response = append(response, elem)
+					return nil
+				}); err != nil {
 					return err
 				}
 				if err := d.Skip(); err != io.EOF {
@@ -15263,14 +18927,78 @@ func decodeSecurityPublicKeyCertificatesGetResponse(resp *http.Response) (res Se
 			}
 			// Validate response.
 			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
+				if response == nil {
+					return errors.New("nil is invalid value")
+				}
+				var failures []validate.FieldError
+				for i, elem := range response {
+					if err := func() error {
+						if err := elem.Validate(); err != nil {
+							return err
+						}
+						return nil
+					}(); err != nil {
+						failures = append(failures, validate.FieldError{
+							Name:  fmt.Sprintf("[%d]", i),
+							Error: err,
+						})
+					}
+				}
+				if len(failures) > 0 {
+					return &validate.Error{Fields: failures}
 				}
 				return nil
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SecurityPublicKeyCertificatesGetOKHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -15561,7 +19289,54 @@ func decodeSessionsBatchPostResponse(resp *http.Response) (res SessionsBatchPost
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper OpenBatchSessionResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -15884,7 +19659,53 @@ func decodeSessionsBatchReferenceNumberClosePostResponse(resp *http.Response) (r
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &SessionsBatchReferenceNumberClosePostNoContent{}, nil
+		var wrapper SessionsBatchReferenceNumberClosePostNoContent
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -16242,7 +20063,54 @@ func decodeSessionsGetResponse(resp *http.Response) (res SessionsGetRes, _ error
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SessionsQueryResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -16603,7 +20471,54 @@ func decodeSessionsOnlinePostResponse(resp *http.Response) (res SessionsOnlinePo
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper OpenOnlineSessionResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -16926,7 +20841,53 @@ func decodeSessionsOnlineReferenceNumberClosePostResponse(resp *http.Response) (
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &SessionsOnlineReferenceNumberClosePostNoContent{}, nil
+		var wrapper SessionsOnlineReferenceNumberClosePostNoContent
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -17284,7 +21245,54 @@ func decodeSessionsOnlineReferenceNumberInvoicesPostResponse(resp *http.Response
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SendInvoiceResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -17645,7 +21653,54 @@ func decodeSessionsReferenceNumberGetResponse(resp *http.Response) (res Sessions
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SessionStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -18006,7 +22061,54 @@ func decodeSessionsReferenceNumberInvoicesFailedGetResponse(resp *http.Response)
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SessionInvoicesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -18367,7 +22469,54 @@ func decodeSessionsReferenceNumberInvoicesGetResponse(resp *http.Response) (res 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SessionInvoicesResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -18728,7 +22877,54 @@ func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberGetResponse(resp
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper SessionInvoiceStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -19067,6 +23263,50 @@ func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(r
 			var wrapper SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetOKHeaders
 			wrapper.Response = response
 			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
 			// Parse "x-ms-meta-hash" header.
 			{
 				cfg := uri.HeaderParameterDecodingConfig{
@@ -19096,6 +23336,14 @@ func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(r
 							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
 							return nil
 						}); err != nil {
+							return err
+						}
+						if err := func() error {
+							if err := wrapper.XMsMetaHash.Validate(); err != nil {
+								return err
+							}
+							return nil
+						}(); err != nil {
 							return err
 						}
 					}
@@ -19443,6 +23691,50 @@ func decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp *htt
 			var wrapper SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetOKHeaders
 			wrapper.Response = response
 			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
 			// Parse "x-ms-meta-hash" header.
 			{
 				cfg := uri.HeaderParameterDecodingConfig{
@@ -19472,6 +23764,14 @@ func decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp *htt
 							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
 							return nil
 						}); err != nil {
+							return err
+						}
+						if err := func() error {
+							if err := wrapper.XMsMetaHash.Validate(); err != nil {
+								return err
+							}
+							return nil
+						}(); err != nil {
 							return err
 						}
 					}
@@ -19819,6 +24119,50 @@ func decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *http.Re
 			var wrapper SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders
 			wrapper.Response = response
 			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
 			// Parse "x-ms-meta-hash" header.
 			{
 				cfg := uri.HeaderParameterDecodingConfig{
@@ -19848,6 +24192,14 @@ func decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *http.Re
 							wrapper.XMsMetaHash = Sha256HashBase64(wrapperDotXMsMetaHashVal)
 							return nil
 						}); err != nil {
+							return err
+						}
+						if err := func() error {
+							if err := wrapper.XMsMetaHash.Validate(); err != nil {
+								return err
+							}
+							return nil
+						}(); err != nil {
 							return err
 						}
 					}
@@ -20179,7 +24531,53 @@ func decodeTestdataAttachmentPostResponse(resp *http.Response) (res TestdataAtta
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataAttachmentPostOK{}, nil
+		var wrapper TestdataAttachmentPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -20429,7 +24827,53 @@ func decodeTestdataAttachmentRevokePostResponse(resp *http.Response) (res Testda
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataAttachmentRevokePostOK{}, nil
+		var wrapper TestdataAttachmentRevokePostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -20675,11 +25119,423 @@ func decodeTestdataAttachmentRevokePostResponse(resp *http.Response) (res Testda
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
+func decodeTestdataCertificatesSerialNumberPutResponse(resp *http.Response) (res TestdataCertificatesSerialNumberPutRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		var wrapper TestdataCertificatesSerialNumberPutOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ExceptionResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BadRequestProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 401:
+		// Code 401.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response UnauthorizedProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 403:
+		// Code 403.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response ForbiddenProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 429:
+		// Code 429.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsResponse
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			var wrapper TooManyRequestsResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		case ct == "application/problem+json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response TooManyRequestsProblemDetails
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			var wrapper TooManyRequestsProblemDetailsHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "Retry-After" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "Retry-After",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotRetryAfterVal RetryAfter
+							if err := func() error {
+								var wrapperDotRetryAfterValVal int32
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToInt32(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotRetryAfterValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotRetryAfterVal = RetryAfter(wrapperDotRetryAfterValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.RetryAfter.SetTo(wrapperDotRetryAfterVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse Retry-After header")
+				}
+			}
+			return &wrapper, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
 func decodeTestdataContextBlockPostResponse(resp *http.Response) (res TestdataContextBlockPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataContextBlockPostOK{}, nil
+		var wrapper TestdataContextBlockPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -20929,7 +25785,53 @@ func decodeTestdataContextUnblockPostResponse(resp *http.Response) (res Testdata
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataContextUnblockPostOK{}, nil
+		var wrapper TestdataContextUnblockPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -21179,7 +26081,53 @@ func decodeTestdataLimitsContextSessionDeleteResponse(resp *http.Response) (res 
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataLimitsContextSessionDeleteOK{}, nil
+		var wrapper TestdataLimitsContextSessionDeleteOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -21499,7 +26447,53 @@ func decodeTestdataLimitsContextSessionPostResponse(resp *http.Response) (res Te
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataLimitsContextSessionPostOK{}, nil
+		var wrapper TestdataLimitsContextSessionPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -21819,7 +26813,53 @@ func decodeTestdataLimitsSubjectCertificateDeleteResponse(resp *http.Response) (
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataLimitsSubjectCertificateDeleteOK{}, nil
+		var wrapper TestdataLimitsSubjectCertificateDeleteOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -22139,7 +27179,53 @@ func decodeTestdataLimitsSubjectCertificatePostResponse(resp *http.Response) (re
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataLimitsSubjectCertificatePostOK{}, nil
+		var wrapper TestdataLimitsSubjectCertificatePostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -22459,7 +27545,53 @@ func decodeTestdataPermissionsPostResponse(resp *http.Response) (res TestdataPer
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataPermissionsPostOK{}, nil
+		var wrapper TestdataPermissionsPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -22709,7 +27841,53 @@ func decodeTestdataPermissionsRevokePostResponse(resp *http.Response) (res Testd
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataPermissionsRevokePostOK{}, nil
+		var wrapper TestdataPermissionsRevokePostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -22959,7 +28137,53 @@ func decodeTestdataPersonPostResponse(resp *http.Response) (res TestdataPersonPo
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataPersonPostOK{}, nil
+		var wrapper TestdataPersonPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -23209,7 +28433,53 @@ func decodeTestdataPersonRemovePostResponse(resp *http.Response) (res TestdataPe
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataPersonRemovePostOK{}, nil
+		var wrapper TestdataPersonRemovePostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -23459,7 +28729,53 @@ func decodeTestdataRateLimitsDeleteResponse(resp *http.Response) (res TestdataRa
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataRateLimitsDeleteOK{}, nil
+		var wrapper TestdataRateLimitsDeleteOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -23779,7 +29095,53 @@ func decodeTestdataRateLimitsPostResponse(resp *http.Response) (res TestdataRate
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataRateLimitsPostOK{}, nil
+		var wrapper TestdataRateLimitsPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -24099,7 +29461,53 @@ func decodeTestdataRateLimitsProductionPostResponse(resp *http.Response) (res Te
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataRateLimitsProductionPostOK{}, nil
+		var wrapper TestdataRateLimitsProductionPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -24419,7 +29827,53 @@ func decodeTestdataSubjectPostResponse(resp *http.Response) (res TestdataSubject
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataSubjectPostOK{}, nil
+		var wrapper TestdataSubjectPostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -24669,7 +30123,53 @@ func decodeTestdataSubjectRemovePostResponse(resp *http.Response) (res TestdataS
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &TestdataSubjectRemovePostOK{}, nil
+		var wrapper TestdataSubjectRemovePostOK
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -24957,7 +30457,54 @@ func decodeTokensGetResponse(resp *http.Response) (res TokensGetRes, _ error) {
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper QueryTokensResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -25318,7 +30865,54 @@ func decodeTokensPostResponse(resp *http.Response) (res TokensPostRes, _ error) 
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper GenerateTokenResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
@@ -25641,7 +31235,53 @@ func decodeTokensReferenceNumberDeleteResponse(resp *http.Response) (res TokensR
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &TokensReferenceNumberDeleteNoContent{}, nil
+		var wrapper TokensReferenceNumberDeleteNoContent
+		h := uri.NewHeaderDecoder(resp.Header)
+		// Parse "X-System-Warning" header.
+		{
+			cfg := uri.HeaderParameterDecodingConfig{
+				Name:    "X-System-Warning",
+				Explode: false,
+			}
+			if err := func() error {
+				if err := h.HasParam(cfg); err == nil {
+					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+						var wrapperDotXSystemWarningVal SystemWarning
+						if err := func() error {
+							var wrapperDotXSystemWarningValVal string
+							if err := func() error {
+								val, err := d.DecodeValue()
+								if err != nil {
+									return err
+								}
+
+								c, err := conv.ToString(val)
+								if err != nil {
+									return err
+								}
+
+								wrapperDotXSystemWarningValVal = c
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+							return nil
+						}(); err != nil {
+							return err
+						}
+						wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+						return nil
+					}); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "parse X-System-Warning header")
+			}
+		}
+		return &wrapper, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -25999,7 +31639,54 @@ func decodeTokensReferenceNumberGetResponse(resp *http.Response) (res TokensRefe
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return &response, nil
+			var wrapper TokenStatusResponseHeaders
+			wrapper.Response = response
+			h := uri.NewHeaderDecoder(resp.Header)
+			// Parse "X-System-Warning" header.
+			{
+				cfg := uri.HeaderParameterDecodingConfig{
+					Name:    "X-System-Warning",
+					Explode: false,
+				}
+				if err := func() error {
+					if err := h.HasParam(cfg); err == nil {
+						if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+							var wrapperDotXSystemWarningVal SystemWarning
+							if err := func() error {
+								var wrapperDotXSystemWarningValVal string
+								if err := func() error {
+									val, err := d.DecodeValue()
+									if err != nil {
+										return err
+									}
+
+									c, err := conv.ToString(val)
+									if err != nil {
+										return err
+									}
+
+									wrapperDotXSystemWarningValVal = c
+									return nil
+								}(); err != nil {
+									return err
+								}
+								wrapperDotXSystemWarningVal = SystemWarning(wrapperDotXSystemWarningValVal)
+								return nil
+							}(); err != nil {
+								return err
+							}
+							wrapper.XSystemWarning.SetTo(wrapperDotXSystemWarningVal)
+							return nil
+						}); err != nil {
+							return err
+						}
+					}
+					return nil
+				}(); err != nil {
+					return res, errors.Wrap(err, "parse X-System-Warning header")
+				}
+			}
+			return &wrapper, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}

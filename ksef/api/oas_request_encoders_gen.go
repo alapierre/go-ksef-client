@@ -11,7 +11,7 @@ import (
 )
 
 func encodeAuthKsefTokenPostRequest(
-	req OptInitTokenAuthenticationRequest,
+	req OptAuthKsefTokenPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -61,7 +61,7 @@ func encodeCertificatesCertificateSerialNumberRevokePostRequest(
 }
 
 func encodeCertificatesEnrollmentsPostRequest(
-	req OptEnrollCertificateRequest,
+	req OptCertificatesEnrollmentsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -101,7 +101,67 @@ func encodeCertificatesQueryPostRequest(
 }
 
 func encodeCertificatesRetrievePostRequest(
-	req OptRetrieveCertificatesRequest,
+	req OptCertificatesRetrievePostReq,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	if !req.Set {
+		// Keep request with empty body if value is not set.
+		return nil
+	}
+	e := new(jx.Encoder)
+	{
+		if req.Set {
+			req.Encode(e)
+		}
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeCollectiveIdentifiersInvoicesPostRequest(
+	req OptCollectiveIdentifiersInvoicesPostReq,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	if !req.Set {
+		// Keep request with empty body if value is not set.
+		return nil
+	}
+	e := new(jx.Encoder)
+	{
+		if req.Set {
+			req.Encode(e)
+		}
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeCollectiveIdentifiersPostRequest(
+	req OptCollectiveIdentifiersPostReq,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	if !req.Set {
+		// Keep request with empty body if value is not set.
+		return nil
+	}
+	e := new(jx.Encoder)
+	{
+		if req.Set {
+			req.Encode(e)
+		}
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeCollectiveIdentifiersQueryPostRequest(
+	req OptCollectiveIdentifiersQueryPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -121,7 +181,7 @@ func encodeCertificatesRetrievePostRequest(
 }
 
 func encodeInvoicesExportsPostRequest(
-	req OptInvoiceExportRequest,
+	req OptInvoicesExportsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -141,7 +201,7 @@ func encodeInvoicesExportsPostRequest(
 }
 
 func encodeInvoicesQueryMetadataPostRequest(
-	req OptInvoiceQueryFilters,
+	req OptInvoicesQueryMetadataPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -161,7 +221,7 @@ func encodeInvoicesQueryMetadataPostRequest(
 }
 
 func encodePermissionsAuthorizationsGrantsPostRequest(
-	req OptEntityAuthorizationPermissionsGrantRequest,
+	req OptPermissionsAuthorizationsGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -181,7 +241,7 @@ func encodePermissionsAuthorizationsGrantsPostRequest(
 }
 
 func encodePermissionsEntitiesGrantsPostRequest(
-	req OptEntityPermissionsGrantRequest,
+	req OptPermissionsEntitiesGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -201,7 +261,7 @@ func encodePermissionsEntitiesGrantsPostRequest(
 }
 
 func encodePermissionsEuEntitiesAdministrationGrantsPostRequest(
-	req OptEuEntityAdministrationPermissionsGrantRequest,
+	req OptPermissionsEuEntitiesAdministrationGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -221,7 +281,7 @@ func encodePermissionsEuEntitiesAdministrationGrantsPostRequest(
 }
 
 func encodePermissionsEuEntitiesGrantsPostRequest(
-	req OptEuEntityPermissionsGrantRequest,
+	req OptPermissionsEuEntitiesGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -241,7 +301,7 @@ func encodePermissionsEuEntitiesGrantsPostRequest(
 }
 
 func encodePermissionsIndirectGrantsPostRequest(
-	req OptIndirectPermissionsGrantRequest,
+	req OptPermissionsIndirectGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -261,7 +321,7 @@ func encodePermissionsIndirectGrantsPostRequest(
 }
 
 func encodePermissionsPersonsGrantsPostRequest(
-	req OptPersonPermissionsGrantRequest,
+	req OptPermissionsPersonsGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -281,7 +341,7 @@ func encodePermissionsPersonsGrantsPostRequest(
 }
 
 func encodePermissionsQueryAuthorizationsGrantsPostRequest(
-	req OptEntityAuthorizationPermissionsQueryRequest,
+	req OptPermissionsQueryAuthorizationsGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -361,7 +421,7 @@ func encodePermissionsQueryPersonalGrantsPostRequest(
 }
 
 func encodePermissionsQueryPersonsGrantsPostRequest(
-	req OptPersonPermissionsQueryRequest,
+	req OptPermissionsQueryPersonsGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -421,7 +481,7 @@ func encodePermissionsQuerySubunitsGrantsPostRequest(
 }
 
 func encodePermissionsSubunitsGrantsPostRequest(
-	req OptSubunitPermissionsGrantRequest,
+	req OptPermissionsSubunitsGrantsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -441,7 +501,7 @@ func encodePermissionsSubunitsGrantsPostRequest(
 }
 
 func encodeSessionsBatchPostRequest(
-	req OptOpenBatchSessionRequest,
+	req OptSessionsBatchPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -461,7 +521,7 @@ func encodeSessionsBatchPostRequest(
 }
 
 func encodeSessionsOnlinePostRequest(
-	req OptOpenOnlineSessionRequest,
+	req OptSessionsOnlinePostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -481,7 +541,7 @@ func encodeSessionsOnlinePostRequest(
 }
 
 func encodeSessionsOnlineReferenceNumberInvoicesPostRequest(
-	req OptSendInvoiceRequest,
+	req OptSessionsOnlineReferenceNumberInvoicesPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -501,7 +561,7 @@ func encodeSessionsOnlineReferenceNumberInvoicesPostRequest(
 }
 
 func encodeTestdataAttachmentPostRequest(
-	req OptAttachmentPermissionGrantRequest,
+	req OptTestdataAttachmentPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -521,7 +581,27 @@ func encodeTestdataAttachmentPostRequest(
 }
 
 func encodeTestdataAttachmentRevokePostRequest(
-	req OptAttachmentPermissionRevokeRequest,
+	req OptTestdataAttachmentRevokePostReq,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	if !req.Set {
+		// Keep request with empty body if value is not set.
+		return nil
+	}
+	e := new(jx.Encoder)
+	{
+		if req.Set {
+			req.Encode(e)
+		}
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeTestdataCertificatesSerialNumberPutRequest(
+	req OptTestdataCertificatesSerialNumberPutReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -581,7 +661,7 @@ func encodeTestdataContextUnblockPostRequest(
 }
 
 func encodeTestdataLimitsContextSessionPostRequest(
-	req OptSetSessionLimitsRequest,
+	req OptTestdataLimitsContextSessionPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -621,7 +701,7 @@ func encodeTestdataLimitsSubjectCertificatePostRequest(
 }
 
 func encodeTestdataPermissionsPostRequest(
-	req OptTestDataPermissionsGrantRequest,
+	req OptTestdataPermissionsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -641,7 +721,7 @@ func encodeTestdataPermissionsPostRequest(
 }
 
 func encodeTestdataPermissionsRevokePostRequest(
-	req OptTestDataPermissionsRevokeRequest,
+	req OptTestdataPermissionsRevokePostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -661,7 +741,7 @@ func encodeTestdataPermissionsRevokePostRequest(
 }
 
 func encodeTestdataPersonPostRequest(
-	req OptPersonCreateRequest,
+	req OptTestdataPersonPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -681,7 +761,7 @@ func encodeTestdataPersonPostRequest(
 }
 
 func encodeTestdataPersonRemovePostRequest(
-	req OptPersonRemoveRequest,
+	req OptTestdataPersonRemovePostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -701,7 +781,7 @@ func encodeTestdataPersonRemovePostRequest(
 }
 
 func encodeTestdataRateLimitsPostRequest(
-	req OptSetRateLimitsRequest,
+	req OptTestdataRateLimitsPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -721,7 +801,7 @@ func encodeTestdataRateLimitsPostRequest(
 }
 
 func encodeTestdataSubjectPostRequest(
-	req OptSubjectCreateRequest,
+	req OptTestdataSubjectPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -741,7 +821,7 @@ func encodeTestdataSubjectPostRequest(
 }
 
 func encodeTestdataSubjectRemovePostRequest(
-	req OptSubjectRemoveRequest,
+	req OptTestdataSubjectRemovePostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -761,7 +841,7 @@ func encodeTestdataSubjectRemovePostRequest(
 }
 
 func encodeTokensPostRequest(
-	req OptGenerateTokenRequest,
+	req OptTokensPostReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"

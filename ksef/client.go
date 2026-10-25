@@ -86,8 +86,8 @@ func (c *Client) openInteractiveSession(ctx context.Context, form api.FormCode, 
 	}
 
 	switch v := res.(type) {
-	case *api.OpenOnlineSessionResponse:
-		return v, nil
+	case *api.OpenOnlineSessionResponseHeaders:
+		return &v.Response, nil
 	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
 	case *api.ForbiddenProblemDetails:
@@ -129,8 +129,8 @@ func (c *Client) SendInvoice(ctx context.Context, reference string, offline api.
 	}
 
 	switch v := res.(type) {
-	case *api.SendInvoiceResponse:
-		return string(v.GetReferenceNumber()), nil
+	case *api.SendInvoiceResponseHeaders:
+		return string(v.Response.GetReferenceNumber()), nil
 	case *api.UnauthorizedProblemDetails:
 		return "", ErrUnauthorized
 	case *api.ForbiddenProblemDetails:
@@ -179,8 +179,8 @@ func (c *Client) SessionInvoices(ctx context.Context, reference string, continua
 	}
 
 	switch v := res.(type) {
-	case *api.SessionInvoicesResponse:
-		return v, nil
+	case *api.SessionInvoicesResponseHeaders:
+		return &v.Response, nil
 	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
 	case *api.ForbiddenProblemDetails:
@@ -202,8 +202,8 @@ func (c *Client) QueryInvoicesMetadata(ctx context.Context, filters api.InvoiceQ
 	}
 
 	switch v := res.(type) {
-	case *api.QueryInvoicesMetadataResponse:
-		return v, nil
+	case *api.QueryInvoicesMetadataResponseHeaders:
+		return &v.Response, nil
 	case *api.UnauthorizedProblemDetails:
 		return nil, ErrUnauthorized
 	case *api.ForbiddenProblemDetails:
@@ -292,9 +292,9 @@ func (c *Client) openBatchSession(ctx context.Context, form api.FormCode, enc ap
 	req := api.OptOpenBatchSessionRequest{}
 
 	req.SetTo(api.OpenBatchSessionRequest{
-		FormCode:    form,
+		FormCode:    api.SessionsBatchPostReqFormCode(form),
 		BatchFile:   info,
-		Encryption:  enc,
+		Encryption:  api.SessionsBatchPostReqEncryption(enc),
 		OfflineMode: offline,
 	})
 
@@ -304,8 +304,8 @@ func (c *Client) openBatchSession(ctx context.Context, form api.FormCode, enc ap
 	}
 
 	switch v := res.(type) {
-	case *api.OpenBatchSessionResponse:
-		return v, nil
+	case *api.OpenBatchSessionResponseHeaders:
+		return &v.Response, nil
 	case *api.ExceptionResponse:
 		return nil, HandleAPIError(v)
 	case *api.UnauthorizedProblemDetails:
