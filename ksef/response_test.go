@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -313,7 +314,7 @@ func TestFacadeSuccessfulMetadataAndLegacyAPI(t *testing.T) {
 						return response, nil
 					}
 					response := testJSONResponse(op.status, op.contentType, op.body)
-					response.Header.Set("x-ms-meta-hash", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+					response.Header.Set("x-ms-meta-hash", base64.StdEncoding.EncodeToString(bytes.Repeat([]byte{0xab}, 32)))
 					if warning.present {
 						response.Header.Set("X-System-Warning", warning.value)
 					}
@@ -358,13 +359,13 @@ func facadeResult(t *testing.T, result any) any {
 		return v.Response
 	case *api.InvoicesKsefKsefNumberGetOKHeaders:
 		body, err := io.ReadAll(v.Response.Data)
-		if err != nil || string(body) != "<invoice/>" || len(v.XMsMetaHash) != 32 {
+		if err != nil || string(body) != "<invoice/>" || !bytes.Equal(v.XMsMetaHash, bytes.Repeat([]byte{0xab}, 32)) {
 			t.Fatalf("invoice body/hash: %q, %v", body, err)
 		}
 		return string(body)
 	case *api.SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders:
 		body, err := io.ReadAll(v.Response.Data)
-		if err != nil || string(body) != "<upo/>" || len(v.XMsMetaHash) != 32 {
+		if err != nil || string(body) != "<upo/>" || !bytes.Equal(v.XMsMetaHash, bytes.Repeat([]byte{0xab}, 32)) {
 			t.Fatalf("UPO body/hash: %q, %v", body, err)
 		}
 		return string(body)
@@ -410,3 +411,50 @@ func TestAuthRedemptionRateLimit(t *testing.T) {
 }
 
 var _ TokenRefresher = (*AuthFacade)(nil)
+
+func TestDownloadHashHeader(t *testing.T) {
+	for _, op := range facadeOperations(context.Background()) {
+		if op.name != "GetInvoiceByKsefNumber" && op.name != "GetUPO" {
+			continue
+		}
+		for _, tc := range []struct {
+			name, hash         string
+			present, wantError bool
+		}{
+			{name: "absent"},
+			{name: "valid", hash: base64.StdEncoding.EncodeToString(bytes.Repeat([]byte{0xab}, 32)), present: true},
+			{name: "empty", present: true, wantError: true},
+			{name: "invalid base64", hash: "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", present: true, wantError: true},
+			{name: "short", hash: base64.StdEncoding.EncodeToString(make([]byte, 24)), present: true, wantError: true},
+			{name: "long", hash: base64.StdEncoding.EncodeToString(make([]byte, 34)), present: true, wantError: true},
+		} {
+			t.Run(op.name+"/"+tc.name, func(t *testing.T) {
+				c := newTestClient(t, func(*http.Request) (*http.Response, error) {
+					res := testJSONResponse(op.status, op.contentType, op.body)
+					if tc.present {
+						res.Header.Set("x-ms-meta-hash", tc.hash)
+					}
+					return res, nil
+				})
+				res, _, err := op.metadata(c, nil)
+				if tc.wantError {
+					if err == nil {
+						t.Fatal("invalid hash accepted")
+					}
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				hash := res.(interface{ GetXMsMetaHash() api.Sha256HashBase64 }).GetXMsMetaHash()
+				var want []byte
+				if tc.present {
+					want = bytes.Repeat([]byte{0xab}, 32)
+				}
+				if !bytes.Equal(hash, want) {
+					t.Fatalf("hash = %x, want %x", hash, want)
+				}
+			})
+		}
+	}
+}

@@ -640,7 +640,7 @@ if err != nil {
 }
 
 xmlReader := downloaded.GetResponse()
-hash := downloaded.GetXMsMetaHash()
+hash := downloaded.GetXMsMetaHash() // Decoded SHA-256 bytes; nil when the header is absent.
 
 fmt.Println(hash)
 _ = xmlReader
@@ -771,7 +771,7 @@ If you need to control the AES key and IV yourself, use `StartInvoiceExport(ctx,
 
 Ogen currently validates `format: byte` string lengths against decoded bytes ([ogen-go/ogen#1570](https://github.com/ogen-go/ogen/issues/1570)). OpenAPI defines these limits for the Base64 text instead.
 
-`go generate ./...` runs `tools/fix-byte-validation.go` after ogen to correct validation of SHA-256 hashes and `publicKeyId` fields. The fix validates the Base64 representation while keeping raw `[]byte` values in Go. Do not Base64-encode these fields yourself or change the limits in OpenAPI. The post-processing step fails if a targeted validator changes, so the workaround can be reviewed on generator upgrades.
+`go generate ./...` runs `tools/fix-byte-validation.go` after ogen to correct validation of SHA-256 hashes and `publicKeyId` fields. The fix validates the Base64 representation while keeping raw `[]byte` values in Go. Do not Base64-encode these fields yourself or change the limits in OpenAPI. The same script also decodes the Base64 `x-ms-meta-hash` response header for invoice and UPO downloads before validation. The returned `Sha256HashBase64` remains raw `[]byte`, consistent with JSON hash fields; use `base64.StdEncoding.EncodeToString` when forwarding it as an HTTP header. Previously a valid 44-character header failed with `len 60 greater than maximum 44`. The post-processing step fails if a targeted validator or header decoder changes, so the workaround can be reviewed on generator upgrades.
 
 For changes to generated model names, constructors and response types, see [Backward compatibility after the OpenAPI update](#backward-compatibility-after-the-openapi-update).
 
@@ -863,7 +863,7 @@ go generate ./...
 `make gen` runs the same command. The directives in [generate.go](generate.go) execute two steps in order:
 
 1. Generate the client in `ksef/api` using the ogen version declared in `go.mod` and the configuration in `ogen.yml`.
-2. Run [tools/fix-byte-validation.go](tools/fix-byte-validation.go) to correct Base64 length validation in the generated validators, as described in [Client validation](#client-validation).
+2. Run [tools/fix-byte-validation.go](tools/fix-byte-validation.go) to correct Base64 length validation and decode invoice/UPO hash headers, as described in [Client validation](#client-validation).
 
 Running ogen directly skips the second step. If you do so, run `go run tools/fix-byte-validation.go` afterwards. Keep the Base64 length constraints in OpenAPI; do not remove them or replace them with decoded-byte lengths. The correction is safe to run repeatedly and stops with an error if it cannot recognize a targeted validator after a generator update.
 

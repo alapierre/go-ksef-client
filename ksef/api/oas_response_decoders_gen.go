@@ -4,6 +4,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"mime"
@@ -8806,7 +8807,7 @@ func decodeInvoicesKsefKsefNumberGetResponse(resp *http.Response) (res InvoicesK
 									return err
 								}
 
-								c, err := conv.ToBytes(val)
+								c, err := base64.StdEncoding.DecodeString(val)
 								if err != nil {
 									return err
 								}
@@ -23323,7 +23324,7 @@ func decodeSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetResponse(r
 									return err
 								}
 
-								c, err := conv.ToBytes(val)
+								c, err := base64.StdEncoding.DecodeString(val)
 								if err != nil {
 									return err
 								}
@@ -23751,7 +23752,7 @@ func decodeSessionsReferenceNumberInvoicesKsefKsefNumberUpoGetResponse(resp *htt
 									return err
 								}
 
-								c, err := conv.ToBytes(val)
+								c, err := base64.StdEncoding.DecodeString(val)
 								if err != nil {
 									return err
 								}
@@ -24179,7 +24180,7 @@ func decodeSessionsReferenceNumberUpoUpoReferenceNumberGetResponse(resp *http.Re
 									return err
 								}
 
-								c, err := conv.ToBytes(val)
+								c, err := base64.StdEncoding.DecodeString(val)
 								if err != nil {
 									return err
 								}
