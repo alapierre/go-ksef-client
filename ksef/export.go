@@ -44,41 +44,59 @@ type InvoiceExportPartResult struct {
 }
 
 func (c *Client) StartInvoiceExport(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool, key, iv []byte) (*InvoiceExport, error) {
+	result, _, err := c.StartInvoiceExportWithMetadata(ctx, filters, onlyMetadata, key, iv)
+	return result, err
+}
+
+// StartInvoiceExportWithMetadata is StartInvoiceExport with successful response headers.
+func (c *Client) StartInvoiceExportWithMetadata(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool, key, iv []byte) (*InvoiceExport, ResponseMetadata, error) {
 	enc, err := c.encryptor.BuildEncryptionInfo(ctx, key, iv)
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
 
-	res, err := c.startInvoiceExport(ctx, filters, onlyMetadata, enc, key, iv)
+	res, metadata, err := c.startInvoiceExportWithMetadata(ctx, filters, onlyMetadata, enc, key, iv)
 	if !IsPublicKeyRejectedError(err) {
-		return res, err
+		return res, metadata, err
 	}
 
 	logger.Info("Public key rejected, refreshing encryption key")
 
 	if refreshErr := c.encryptor.ForceRefresh(ctx); refreshErr != nil {
-		return nil, refreshErr
+		return nil, ResponseMetadata{}, refreshErr
 	}
 	enc, err = c.encryptor.BuildEncryptionInfo(ctx, key, iv)
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
-	return c.startInvoiceExport(ctx, filters, onlyMetadata, enc, key, iv)
+	return c.startInvoiceExportWithMetadata(ctx, filters, onlyMetadata, enc, key, iv)
 }
 
 func (c *Client) StartInvoiceExportWithGeneratedKey(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool) (*InvoiceExport, error) {
+	result, _, err := c.StartInvoiceExportWithGeneratedKeyWithMetadata(ctx, filters, onlyMetadata)
+	return result, err
+}
+
+// StartInvoiceExportWithGeneratedKeyWithMetadata is StartInvoiceExportWithGeneratedKey with successful response headers.
+func (c *Client) StartInvoiceExportWithGeneratedKeyWithMetadata(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool) (*InvoiceExport, ResponseMetadata, error) {
 	key, err := aes.GenerateRandom256BitsKey()
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
 	iv, err := aes.GenerateRandom16BytesIv()
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
-	return c.StartInvoiceExport(ctx, filters, onlyMetadata, key, iv)
+	return c.StartInvoiceExportWithMetadata(ctx, filters, onlyMetadata, key, iv)
 }
 
 func (c *Client) startInvoiceExport(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool, enc api.EncryptionInfo, key, iv []byte) (*InvoiceExport, error) {
+	result, _, err := c.startInvoiceExportWithMetadata(ctx, filters, onlyMetadata, enc, key, iv)
+	return result, err
+}
+
+// startInvoiceExportWithMetadata is startInvoiceExport with successful response headers.
+func (c *Client) startInvoiceExportWithMetadata(ctx context.Context, filters api.InvoiceQueryFilters, onlyMetadata api.OptBool, enc api.EncryptionInfo, key, iv []byte) (*InvoiceExport, ResponseMetadata, error) {
 	req := api.OptInvoiceExportRequest{}
 	req.SetTo(api.InvoiceExportRequest{
 		Encryption:   api.InvoicesExportsPostReqEncryption(enc),
@@ -88,7 +106,7 @@ func (c *Client) startInvoiceExport(ctx context.Context, filters api.InvoiceQuer
 
 	res, err := c.raw.InvoicesExportsPost(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
 
 	switch v := res.(type) {
@@ -98,15 +116,9 @@ func (c *Client) startInvoiceExport(ctx context.Context, filters api.InvoiceQuer
 			Key:             bytes.Clone(key),
 			IV:              bytes.Clone(iv),
 			Response:        &v.Response,
-		}, nil
-	case *api.UnauthorizedProblemDetails:
-		return nil, ErrUnauthorized
-	case *api.ForbiddenProblemDetails:
-		return nil, ErrForbidden
-	case *api.ExceptionResponse:
-		return nil, HandleAPIError(v)
+		}, responseMetadata(v), nil
 	default:
-		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }
 
@@ -139,28 +151,30 @@ func exportQueryFilters(filters api.InvoiceQueryFilters) api.InvoicesExportsPost
 }
 
 func (c *Client) InvoiceExportStatus(ctx context.Context, reference string) (*api.InvoiceExportStatusResponse, error) {
+	result, _, err := c.InvoiceExportStatusWithMetadata(ctx, reference)
+	return result, err
+}
+
+// InvoiceExportStatusWithMetadata is InvoiceExportStatus with successful response headers.
+func (c *Client) InvoiceExportStatusWithMetadata(ctx context.Context, reference string) (*api.InvoiceExportStatusResponse, ResponseMetadata, error) {
 	params := api.InvoicesExportsReferenceNumberGetParams{
 		ReferenceNumber: api.ReferenceNumber(reference),
 	}
 
 	res, err := c.raw.InvoicesExportsReferenceNumberGet(ctx, params)
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
 
 	switch v := res.(type) {
 	case *api.InvoiceExportStatusResponseHeaders:
-		return &v.Response, nil
-	case *api.UnauthorizedProblemDetails:
-		return nil, ErrUnauthorized
-	case *api.ForbiddenProblemDetails:
-		return nil, ErrForbidden
+		return &v.Response, responseMetadata(v), nil
 	case *api.GoneProblemDetails:
-		return nil, ErrInvoiceExportExpired
-	case *api.ExceptionResponse:
-		return nil, HandleAPIError(v)
+		err := responseAPIError(v, http.StatusBadRequest).(*ApiError)
+		err.cause = ErrInvoiceExportExpired
+		return nil, ResponseMetadata{}, err
 	default:
-		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }
 

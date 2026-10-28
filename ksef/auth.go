@@ -37,35 +37,42 @@ func NewAuthFacade(env Environment, httpClient *http.Client) (*AuthFacade, error
 }
 
 func (c *AuthFacade) GetChallenge(ctx context.Context) (*api.AuthenticationChallengeResponse, error) {
+	result, _, err := c.GetChallengeWithMetadata(ctx)
+	return result, err
+}
+
+// GetChallengeWithMetadata is GetChallenge with successful response headers.
+func (c *AuthFacade) GetChallengeWithMetadata(ctx context.Context) (*api.AuthenticationChallengeResponse, ResponseMetadata, error) {
 	res, err := c.raw.AuthChallengePost(ctx)
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
 
 	switch v := res.(type) {
 	case *api.AuthenticationChallengeResponseHeaders:
-		return &v.Response, nil
-
-		// generyczna obsługa błędów (4xx/5xx):
-	case *api.ExceptionResponse:
-		return nil, HandleAPIError(v)
-
+		return &v.Response, responseMetadata(v), nil
 	default:
-		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }
 
 // AuthWithToken starts token-based authentication with an already encrypted token.
 // Pass publicKeyID when the encrypted token was created with EncryptKsefTokenWithKeyID.
 func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte, publicKeyID ...[]byte) (*api.AuthenticationInitResponse, error) {
+	result, _, err := c.AuthWithTokenWithMetadata(ctx, challenge, encryptedTokenBytes, publicKeyID...)
+	return result, err
+}
+
+// AuthWithTokenWithMetadata is AuthWithToken with successful response headers.
+func (c *AuthFacade) AuthWithTokenWithMetadata(ctx context.Context, challenge api.Challenge, encryptedTokenBytes []byte, publicKeyID ...[]byte) (*api.AuthenticationInitResponse, ResponseMetadata, error) {
 
 	nip, ok := NipFromContext(ctx)
 	if !ok || nip == "" {
-		return nil, ErrNoNip
+		return nil, ResponseMetadata{}, ErrNoNip
 	}
 
 	if len(publicKeyID) > 1 {
-		return nil, fmt.Errorf("only one publicKeyID is supported")
+		return nil, ResponseMetadata{}, fmt.Errorf("only one publicKeyID is supported")
 	}
 
 	req := api.InitTokenAuthenticationRequest{
@@ -83,20 +90,24 @@ func (c *AuthFacade) AuthWithToken(ctx context.Context, challenge api.Challenge,
 
 	res, err := c.raw.AuthKsefTokenPost(ctx, optReq)
 	if err != nil {
-		return nil, fmt.Errorf("APIV2AuthKsefTokenPost: %w", err)
+		return nil, ResponseMetadata{}, fmt.Errorf("APIV2AuthKsefTokenPost: %w", err)
 	}
 
 	switch v := res.(type) {
 	case *api.AuthenticationInitResponseHeaders:
-		return &v.Response, nil
-	case *api.ExceptionResponse:
-		return nil, HandleAPIError(v)
+		return &v.Response, responseMetadata(v), nil
 	default:
-		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }
 
 func (c *AuthFacade) AuthWithXades(ctx context.Context, signedXml []byte) (*api.AuthenticationInitResponse, error) {
+	result, _, err := c.AuthWithXadesWithMetadata(ctx, signedXml)
+	return result, err
+}
+
+// AuthWithXadesWithMetadata is AuthWithXades with successful response headers.
+func (c *AuthFacade) AuthWithXadesWithMetadata(ctx context.Context, signedXml []byte) (*api.AuthenticationInitResponse, ResponseMetadata, error) {
 
 	req := api.AuthXadesSignaturePostReq{
 		Data: bytes.NewReader(signedXml),
@@ -109,24 +120,29 @@ func (c *AuthFacade) AuthWithXades(ctx context.Context, signedXml []byte) (*api.
 	res, err := c.raw.AuthXadesSignaturePost(ctx, req, params)
 
 	if err != nil {
-		return nil, fmt.Errorf("APIV2AuthKsefTokenPost: %w", err)
+		return nil, ResponseMetadata{}, fmt.Errorf("APIV2AuthKsefTokenPost: %w", err)
 	}
 
 	switch v := res.(type) {
 	case *api.AuthenticationInitResponseHeaders:
-		return &v.Response, nil
-	case *api.ExceptionResponse:
-		return nil, HandleAPIError(v)
+		return &v.Response, responseMetadata(v), nil
 	default:
-		return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 
 }
 
 // AuthWaitAndRedeem Polluje status aż do 200 lub do ctx.Done(). Interwał czekania kontrolowany parametrem pollEvery.
 func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
+	result, _, err := c.AuthWaitAndRedeemWithMetadata(ctx, authResp, pollEvery)
+	return result, err
+}
+
+// AuthWaitAndRedeemWithMetadata is AuthWaitAndRedeem with successful response headers.
+// Metadata describes the final token redemption response.
+func (c *AuthFacade) AuthWaitAndRedeemWithMetadata(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, ResponseMetadata, error) {
 	if authResp == nil {
-		return nil, fmt.Errorf("authResponse is nil")
+		return nil, ResponseMetadata{}, fmt.Errorf("authResponse is nil")
 	}
 
 	cli, err := api.NewClient(
@@ -135,7 +151,7 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 		api.WithClient(c.httpClient),
 	)
 	if err != nil {
-		return nil, err
+		return nil, ResponseMetadata{}, err
 	}
 
 	params := api.AuthReferenceNumberGetParams{
@@ -145,12 +161,12 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, ResponseMetadata{}, ctx.Err()
 
 		case <-time.After(pollEvery):
 			res, err := cli.AuthReferenceNumberGet(ctx, params)
 			if err != nil {
-				return nil, fmt.Errorf("APIV2AuthReferenceNumberGet: %w", err)
+				return nil, ResponseMetadata{}, fmt.Errorf("APIV2AuthReferenceNumberGet: %w", err)
 			}
 
 			switch v := res.(type) {
@@ -161,23 +177,26 @@ func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.Authen
 					continue
 				case 200: // gotowe
 					logger.Infof("%+v", v.Response.GetStatus())
-					return redeemTokens(ctx, cli)
+					return redeemTokensWithMetadata(ctx, cli)
 				default:
 					desc := v.Response.GetStatus().Description
-					return nil, fmt.Errorf("uwierzytelnianie zakończone kodem %d (%s)", code, desc)
+					return nil, ResponseMetadata{}, fmt.Errorf("uwierzytelnianie zakończone kodem %d (%s)", code, desc)
 				}
 
-			case *api.ExceptionResponse:
-				return nil, HandleAPIError(v)
-
 			default:
-				return nil, fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+				return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 			}
 		}
 	}
 }
 
 func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api.TokenInfo, error) {
+	result, _, err := c.RefreshTokenWithMetadata(ctx, refreshToken)
+	return result, err
+}
+
+// RefreshTokenWithMetadata is RefreshToken with successful response headers.
+func (c *AuthFacade) RefreshTokenWithMetadata(ctx context.Context, refreshToken string) (api.TokenInfo, ResponseMetadata, error) {
 
 	cli, err := api.NewClient(
 		c.env.BaseURL(),
@@ -185,78 +204,67 @@ func (c *AuthFacade) RefreshToken(ctx context.Context, refreshToken string) (api
 		api.WithClient(c.httpClient),
 	)
 	if err != nil {
-		return api.TokenInfo{}, err
+		return api.TokenInfo{}, ResponseMetadata{}, err
 	}
 
 	res, err := cli.AuthTokenRefreshPost(ctx)
 	if err != nil {
-		return api.TokenInfo{}, fmt.Errorf("APIV2AuthTokenRefreshPost: %w", err)
+		return api.TokenInfo{}, ResponseMetadata{}, fmt.Errorf("APIV2AuthTokenRefreshPost: %w", err)
 	}
 
 	switch v := res.(type) {
 	case *api.AuthenticationTokenRefreshResponseHeaders:
-		return api.TokenInfo(v.Response.GetAccessToken()), nil
-
-	// specyficzny wariant błędu bez treści (401)
-	case *api.UnauthorizedProblemDetails:
-		return api.TokenInfo{}, ErrUnauthorized
-
-	// generyczne błędy 4xx/5xx z ciałem ExceptionResponse
-	case *api.ExceptionResponse:
-		return api.TokenInfo{}, HandleAPIError(v)
-
+		return api.TokenInfo(v.Response.GetAccessToken()), responseMetadata(v), nil
 	default:
-		return api.TokenInfo{}, fmt.Errorf("nieoczekiwany wariant odpowiedzi (refresh): %T", v)
+		return api.TokenInfo{}, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }
 
 func (c *AuthFacade) CloseAuthSession(ctx context.Context, token string) error {
+	_, err := c.CloseAuthSessionWithMetadata(ctx, token)
+	return err
+}
+
+// CloseAuthSessionWithMetadata is CloseAuthSession with successful response headers.
+func (c *AuthFacade) CloseAuthSessionWithMetadata(ctx context.Context, token string) (ResponseMetadata, error) {
 	cli, err := api.NewClient(
 		c.env.BaseURL(),
 		localStaticBearer{Token: token},
 		api.WithClient(c.httpClient),
 	)
 	if err != nil {
-		return err
+		return ResponseMetadata{}, err
 	}
 
 	res, err := cli.AuthSessionsCurrentDelete(ctx)
 	if err != nil {
-		return fmt.Errorf("APIV2AuthSessionsCurrentDelete: %w", err)
+		return ResponseMetadata{}, fmt.Errorf("APIV2AuthSessionsCurrentDelete: %w", err)
 	}
 
 	switch v := res.(type) {
 	case *api.AuthSessionsCurrentDeleteNoContent:
-		return nil
-	case *api.UnauthorizedProblemDetails:
-		return ErrUnauthorized
-	case *api.ForbiddenProblemDetails:
-		return ErrForbidden
-	case *api.ExceptionResponse:
-		return HandleAPIError(v)
+		return responseMetadata(v), nil
 	default:
-		return fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }
 
 func redeemTokens(ctx context.Context, cli *api.Client) (*api.AuthenticationTokensResponse, error) {
+	result, _, err := redeemTokensWithMetadata(ctx, cli)
+	return result, err
+}
+
+// redeemTokensWithMetadata is redeemTokens with successful response headers.
+func redeemTokensWithMetadata(ctx context.Context, cli *api.Client) (*api.AuthenticationTokensResponse, ResponseMetadata, error) {
 	res, err := cli.AuthTokenRedeemPost(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("APIV2AuthTokenRedeemPost: %w", err)
+		return nil, ResponseMetadata{}, fmt.Errorf("APIV2AuthTokenRedeemPost: %w", err)
 	}
 
 	switch v := res.(type) {
 	case *api.AuthenticationTokensResponseHeaders:
-		return &v.Response, nil
-
-	// specyficzny wariant błędu bez treści (401)
-	case *api.UnauthorizedProblemDetails:
-		return nil, ErrUnauthorized
-
-	case *api.ExceptionResponse:
-		return nil, HandleAPIError(v)
-
+		return &v.Response, responseMetadata(v), nil
 	default:
-		return nil, HandelOtherApiError(v)
+		return nil, ResponseMetadata{}, responseAPIError(v, http.StatusBadRequest)
 	}
 }

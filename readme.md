@@ -30,6 +30,53 @@ The client provides high-level operations for authentication, invoice submission
 
 Other areas of the KSeF API may be added gradually based on demand and real-world usage.
 
+## Response metadata and API errors
+
+Facade methods backed by KSeF operations have `WithMetadata` variants returning
+`(result, ksef.ResponseMetadata, error)` (`CloseAuthSessionWithMetadata` returns
+only metadata and an error). Existing methods keep their signatures and delegate
+to these variants. `metadata.XSystemWarning.Get()` returns the `X-System-Warning`
+value and a presence flag, including when the header is present but empty.
+`AuthWaitAndRedeemWithMetadata` returns metadata from the final token redemption
+response. Metadata is empty on failure.
+
+Both JSON and `application/problem+json` errors for HTTP 400 and 429 are exposed
+as `*ksef.ApiError`. `Status` is the HTTP status of the operation's response;
+`Details` preserves error codes, descriptions and detail lists. `Body` contains
+re-encoded JSON of the decoded error, including diagnostic fields such as
+`traceId`, rather than the original wire bytes. `RetryAfter.Get()` returns seconds
+and a presence flag: `(0, true)` means an explicit zero, `(0, false)` means absent.
+The facade does not automatically retry rate-limited requests.
+
+```go
+result, metadata, err := client.QueryInvoicesMetadataWithMetadata(ctx, filters, params)
+if err != nil {
+    var apiErr *ksef.ApiError
+    if errors.As(err, &apiErr) {
+        log.Printf("KSeF HTTP %d: %s; details: %+v", apiErr.Status, apiErr.Message, apiErr.Details)
+        if seconds, present := apiErr.RetryAfter.Get(); present {
+            log.Printf("Retry-After: %d seconds", seconds)
+        }
+    }
+    if errors.Is(err, ksef.ErrUnauthorized) {
+        log.Print("KSeF authentication required")
+    }
+    return err
+}
+if warning, present := metadata.XSystemWarning.Get(); present {
+    log.Printf("KSeF warning: %s", warning)
+}
+log.Printf("Received %d invoices", len(result.Invoices))
+```
+
+Use `errors.Is` for `ErrUnauthorized`, `ErrForbidden` and
+`ErrInvoiceExportExpired`: these markers are now wrapped by `*ksef.ApiError`, so
+direct equality comparisons with `err == sentinel` must be updated. `errors.As`
+continues to work through caller-added wrapping. Keyed `ApiError` literals remain
+compatible; positional literals must be converted to keyed literals.
+The standalone `HandleAPIError` keeps status zero because an `ExceptionResponse`
+alone does not carry an HTTP status; each facade operation supplies its status.
+
 ## Backward compatibility after the OpenAPI update
 
 **The update that adds collective identifiers is not fully source-compatible with the previous generated client.** The four new collective identifier methods are additive, but the accompanying OpenAPI and ogen update changes existing models in `ksef/api`.

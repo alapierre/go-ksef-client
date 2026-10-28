@@ -70,9 +70,15 @@ const PublicKeyRejectedErrorCode = 21470
 type ApiError struct {
 	Status  int // HTTP status (np. 401)
 	Details []ErrorDetail
-	Body    []byte // fragment body, do diagnostyki
+	Body    []byte // JSON of the decoded error body for diagnostics (not raw wire bytes)
 	Message string
+	// RetryAfter is the Retry-After header in seconds. Get distinguishes absent from zero.
+	RetryAfter api.OptRetryAfter
+	cause      error
 }
+
+// Unwrap preserves errors.Is checks for the facade's existing sentinel errors.
+func (e *ApiError) Unwrap() error { return e.cause }
 
 type ErrorDetail struct {
 	Code    int
@@ -109,7 +115,8 @@ func HandelOtherApiError(res interface{}) error {
 	return fmt.Errorf("inny typ odpowiedzi błędu: %T", res)
 }
 
-// HandleAPIError obsługuje generyczne błędy API (4xx/5xx)
+// HandleAPIError maps exception details without assuming an HTTP status.
+// Facade operations supply the status defined by their response contract.
 func HandleAPIError(ex *api.ExceptionResponse) error {
 
 	var d []ErrorDetail
