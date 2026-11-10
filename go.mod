@@ -2,7 +2,7 @@ module github.com/alapierre/go-ksef-client
 
 go 1.27
 
-toolchain go1.27.3
+toolchain go1.27.4
 
 require (
 	github.com/alapierre/godss v0.0.6
