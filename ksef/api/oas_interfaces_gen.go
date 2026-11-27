@@ -13,6 +13,10 @@ type AuthReferenceNumberGetRes interface {
 	authReferenceNumberGetRes()
 }
 
+type AuthRev2ReferenceNumberGetRes interface {
+	authRev2ReferenceNumberGetRes()
+}
+
 type AuthSessionsCurrentDeleteRes interface {
 	authSessionsCurrentDeleteRes()
 }
@@ -23,6 +27,10 @@ type AuthSessionsGetRes interface {
 
 type AuthSessionsReferenceNumberDeleteRes interface {
 	authSessionsReferenceNumberDeleteRes()
+}
+
+type AuthSessionsRev2GetRes interface {
+	authSessionsRev2GetRes()
 }
 
 type AuthTokenRedeemPostRes interface {
@@ -317,6 +325,10 @@ type TestdataSubjectRemovePostRes interface {
 	testdataSubjectRemovePostRes()
 }
 
+type TestdataTokensReferenceNumberExpireApprovalPostRes interface {
+	testdataTokensReferenceNumberExpireApprovalPostRes()
+}
+
 type TokensGetRes interface {
 	tokensGetRes()
 }
@@ -325,10 +337,26 @@ type TokensPostRes interface {
 	tokensPostRes()
 }
 
+type TokensReferenceNumberApprovePostRes interface {
+	tokensReferenceNumberApprovePostRes()
+}
+
 type TokensReferenceNumberDeleteRes interface {
 	tokensReferenceNumberDeleteRes()
 }
 
 type TokensReferenceNumberGetRes interface {
 	tokensReferenceNumberGetRes()
+}
+
+type TokensRev2GetRes interface {
+	tokensRev2GetRes()
+}
+
+type TokensRev2PostRes interface {
+	tokensRev2PostRes()
+}
+
+type TokensRev2ReferenceNumberGetRes interface {
+	tokensRev2ReferenceNumberGetRes()
 }

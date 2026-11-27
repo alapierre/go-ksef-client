@@ -19,9 +19,11 @@ type SecuritySource interface {
 // operationRolesBearer is a private map storing roles per operation.
 var operationRolesBearer = map[string][]string{
 	AuthReferenceNumberGetOperation:                                      []string{},
+	AuthRev2ReferenceNumberGetOperation:                                  []string{},
 	AuthSessionsCurrentDeleteOperation:                                   []string{},
 	AuthSessionsGetOperation:                                             []string{},
 	AuthSessionsReferenceNumberDeleteOperation:                           []string{},
+	AuthSessionsRev2GetOperation:                                         []string{},
 	AuthTokenRedeemPostOperation:                                         []string{},
 	AuthTokenRefreshPostOperation:                                        []string{},
 	CertificatesCertificateSerialNumberRevokePostOperation:               []string{},
@@ -82,10 +84,15 @@ var operationRolesBearer = map[string][]string{
 	TestdataRateLimitsDeleteOperation:                                    []string{},
 	TestdataRateLimitsPostOperation:                                      []string{},
 	TestdataRateLimitsProductionPostOperation:                            []string{},
+	TestdataTokensReferenceNumberExpireApprovalPostOperation:             []string{},
 	TokensGetOperation:                                                   []string{},
 	TokensPostOperation:                                                  []string{},
+	TokensReferenceNumberApprovePostOperation:                            []string{},
 	TokensReferenceNumberDeleteOperation:                                 []string{},
 	TokensReferenceNumberGetOperation:                                    []string{},
+	TokensRev2GetOperation:                                               []string{},
+	TokensRev2PostOperation:                                              []string{},
+	TokensRev2ReferenceNumberGetOperation:                                []string{},
 }
 
 // GetRolesForBearer returns the required roles for the given operation.

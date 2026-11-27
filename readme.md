@@ -19,6 +19,7 @@ The client provides high-level operations for authentication, invoice submission
 
 - **Authentication** — KSeF Token and XAdES authentication, including KSeF certificates, qualified electronic signatures and qualified electronic seals through `github.com/alapierre/godss`; waiting for authentication to complete, redeeming and refreshing tokens, and closing authentication sessions.
 - **Multi-NIP token management** — a concurrent token cache, automatic token refresh and reauthentication, loading persisted tokens with `SeedTokens`, and callbacks for persisting token updates. See [TokenProvider](#tokenprovider-multi-nip-token-cache).
+- **Response header listeners** — log KSeF system warnings or observe other headers across SDK calls. See [Logging KSeF system warnings](#logging-ksef-system-warnings).
 - **Encryption and public key rotation** — encryption of KSeF tokens and session keys, cached public keys, `publicKeyId` support, and key refresh with a retry when KSeF rejects a public key. See [EncryptionService](#encryptionservice).
 - **Interactive invoice submission** — opening a session, encrypting and sending invoices, and closing the session. See [Interactive sessions](#opening-an-interactive-session-and-sending-invoices).
 - **Batch invoice submission** — building ZIP batches from files or an `InvoiceSource`, splitting and encrypting upload parts, opening a batch session, uploading its parts, and closing the session.
@@ -76,6 +77,43 @@ continues to work through caller-added wrapping. Keyed `ApiError` literals remai
 compatible; positional literals must be converted to keyed literals.
 The standalone `HandleAPIError` keeps status zero because an `ExceptionResponse`
 alone does not carry an HTTP status; each facade operation supplies its status.
+
+### Logging KSeF system warnings
+
+Use `ksef.ObserveResponseHeader` to log `X-System-Warning` across SDK calls,
+including calls such as `GetInvoiceByKsefNumber` and intermediate authentication
+polls. Set up the transport before the first request, then pass the same
+`http.Client` to `NewClient`, `NewAuthFacade` and any separately constructed
+`NewEncryptionService`. This example uses the standard library's `log/slog`.
+
+```go
+httpClient := &http.Client{Timeout: 15 * time.Second}
+httpClient.Transport = ksef.ObserveResponseHeader(httpClient.Transport, ksef.SystemWarningHeader,
+	func(ctx context.Context, h ksef.ResponseHeader) {
+		for _, warning := range h.Values {
+			slog.WarnContext(ctx, "KSeF system warning", "warning", warning,
+				"method", h.Method, "path", h.Path, "status", h.StatusCode)
+		}
+	})
+```
+
+The listener runs once per HTTP response containing the selected header, including
+4xx and 5xx responses. It receives the request context, HTTP method, escaped path
+without the query string, status code and canonical header name. `h.Values` is
+a copy of all values in response order, including empty strings.
+
+Callbacks run synchronously. If several requests share the client, their callbacks
+can run concurrently. The SDK logs a callback panic and continues processing the response.
+
+To also observe `Retry-After`, wrap the configured transport a second time.
+Header names are case-insensitive. A nil base transport uses `http.DefaultTransport`.
+
+```go
+httpClient.Transport = ksef.ObserveResponseHeader(httpClient.Transport, "Retry-After",
+	func(ctx context.Context, h ksef.ResponseHeader) {
+		slog.InfoContext(ctx, "KSeF retry interval", "values", h.Values, "status", h.StatusCode)
+	})
+```
 
 ## Backward compatibility after the OpenAPI update
 
@@ -642,9 +680,17 @@ if err != nil {
 xmlReader := downloaded.GetResponse()
 hash := downloaded.GetXMsMetaHash() // Decoded SHA-256 bytes; nil when the header is absent.
 
+if assigned, ok := downloaded.XMsMetaAcquisitionDate.Get(); ok {
+	fmt.Println("KSeF number assigned", assigned)
+}
+if stored, ok := downloaded.XMsMetaPermanentStorageDate.Get(); ok {
+	fmt.Println("Invoice stored in KSeF", stored)
+}
 fmt.Println(hash)
 _ = xmlReader
 ````
+
+Both date headers are optional strings. Each `Get()` returns the original text and whether KSeF sent that header.
 
 ## Collective identifiers
 
@@ -777,20 +823,11 @@ For changes to generated model names, constructors and response types, see [Back
 
 ### Too many requests support
 
-KSeF OpenAPI specification now defines support for HTTP 429 (Too Many Requests) responses.
-
-However, the current version of this client does not yet handle 429 responses at the facade level:
-
-ogen-generated low-level client is capable of receiving 429 responses
-but higher-level abstractions (facades) do not yet implement automatic retries, Retry-After header handling and
-backoff strategies.
-
-As a result, handling of rate limiting must currently be implemented on the application side.
-
-Support for proper 429 handling is planned for future releases.
-
-Reference: https://github.com/CIRFMF/ksef-docs/issues/347
-
+For KSeF operations that define HTTP 429, the facade returns a `*ksef.ApiError` with
+`Status == http.StatusTooManyRequests`. Use `apiErr.RetryAfter.Get()` to check whether
+KSeF supplied a delay in seconds. The application decides whether and when to retry.
+A response header listener can log `Retry-After` from the same response. See
+[Response metadata and API errors](#response-metadata-and-api-errors) for an example.
 
 ## TokenProvider design and benchmarks
 

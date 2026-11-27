@@ -53,6 +53,9 @@ type Invoker interface {
 	AuthKsefTokenPost(ctx context.Context, request OptAuthKsefTokenPostReq) (AuthKsefTokenPostRes, error)
 	// AuthReferenceNumberGet invokes GET /auth/{referenceNumber} operation.
 	//
+	// Wycofanie: operacja jest przestarzała i zostanie wycofana 15.06.2027. Zastępuje ją nowa rewizja:
+	// [GET /auth/rev2/{referenceNumber}].
+	//
 	// Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
 	//
 	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
@@ -63,8 +66,26 @@ type Invoker interface {
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
 	// formacie Problem Details (`application/problem+json`).
 	//
+	// [GET /auth/rev2/{referenceNumber}]: /docs/v2/index.html#tag/Uzyskiwanie-dostepu/paths/~1auth~1rev2~1%7BreferenceNumber%7D/get
+	//
+	// Deprecated: schema marks this operation as deprecated.
+	//
 	// GET /auth/{referenceNumber}
 	AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error)
+	// AuthRev2ReferenceNumberGet invokes GET /auth/rev2/{referenceNumber} operation.
+	//
+	// Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
+	//
+	// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
+	// uwierzytelniania. Operacja jest dostępna przez 7 dni.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// GET /auth/rev2/{referenceNumber}
+	AuthRev2ReferenceNumberGet(ctx context.Context, params AuthRev2ReferenceNumberGetParams) (AuthRev2ReferenceNumberGetRes, error)
 	// AuthSessionsCurrentDelete invokes DELETE /auth/sessions/current operation.
 	//
 	// Unieważnia sesję powiązaną z tokenem użytym do wywołania tej operacji.
@@ -84,6 +105,9 @@ type Invoker interface {
 	AuthSessionsCurrentDelete(ctx context.Context) (AuthSessionsCurrentDeleteRes, error)
 	// AuthSessionsGet invokes GET /auth/sessions operation.
 	//
+	// Wycofanie: operacja jest przestarzała i zostanie wycofana 15.06.2027. Zastępuje ją nowa rewizja:
+	// [GET /auth/sessions/rev2].
+	//
 	// Zwraca listę aktywnych sesji uwierzytelnienia.
 	//
 	// Headers:
@@ -94,6 +118,10 @@ type Invoker interface {
 	// Sortowanie:
 	//
 	//  - startDate (Desc)
+	//
+	// [GET /auth/sessions/rev2]: /docs/v2/index.html#tag/Aktywne-sesje/paths/~1auth~1sessions~1rev2/get
+	//
+	// Deprecated: schema marks this operation as deprecated.
 	//
 	// GET /auth/sessions
 	AuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (AuthSessionsGetRes, error)
@@ -112,6 +140,21 @@ type Invoker interface {
 	//
 	// DELETE /auth/sessions/{referenceNumber}
 	AuthSessionsReferenceNumberDelete(ctx context.Context, params AuthSessionsReferenceNumberDeleteParams) (AuthSessionsReferenceNumberDeleteRes, error)
+	// AuthSessionsRev2Get invokes GET /auth/sessions/rev2 operation.
+	//
+	// Zwraca listę aktywnych sesji uwierzytelnienia.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - startDate (Desc)
+	//
+	// GET /auth/sessions/rev2
+	AuthSessionsRev2Get(ctx context.Context, params AuthSessionsRev2GetParams) (AuthSessionsRev2GetRes, error)
 	// AuthTokenRedeemPost invokes POST /auth/token/redeem operation.
 	//
 	// Pobiera parę tokenów (access token i refresh token) wygenerowanych w ramach pozytywnie
@@ -635,6 +678,7 @@ type Invoker interface {
 	//  - InvoiceWrite – wystawianie faktur
 	//  - InvoiceRead – przeglądanie faktur
 	//  - Introspection – przeglądanie historii sesji
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
 	//
 	// Metoda automatycznie nadaje wszystkie powyższe uprawnienia, bez konieczności ich wskazywania w
 	// żądaniu.
@@ -668,6 +712,7 @@ type Invoker interface {
 	//
 	//  - InvoiceWrite – wystawianie faktur
 	//  - InvoiceRead – przeglądanie faktur
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
 	//
 	// Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
 	//
@@ -925,6 +970,7 @@ type Invoker interface {
 	//  - InvoiceWrite – wystawianie faktur
 	//  - InvoiceRead – przeglądanie faktur
 	//  - Introspection – przeglądanie historii sesji
+	//  - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
 	//
 	// Odpowiedź może być filtrowana na podstawie następujących parametrów:
 	//
@@ -1441,7 +1487,13 @@ type Invoker interface {
 	SessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberGetRes, error)
 	// SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 	//
-	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+	// Zwraca UPO faktury przesłanej w sesji na podstawie jej numeru referencyjnego.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - Schemat UPO:
+	//
+	// 	    - [upo v4.3]
 	//
 	// Headers:
 	//
@@ -1450,12 +1502,20 @@ type Invoker interface {
 	//
 	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
+	//
+	// [upo v4.3]: https://github.com/CIRFMF/ksef-api/blob/main/faktury/upo/schemy/upo-v4-3.xsd
 	//
 	// GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
 	SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, error)
 	// SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 	//
-	// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+	// Zwraca UPO faktury przesłanej w sesji na podstawie jej numeru KSeF.
+	//
+	// 	Więcej informacji:
+	//
+	// 	 - Schemat UPO:
+	//
+	// 	    - [upo v4.3]
 	//
 	// Headers:
 	//
@@ -1464,6 +1524,8 @@ type Invoker interface {
 	//
 	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
+	//
+	// [upo v4.3]: https://github.com/CIRFMF/ksef-api/blob/main/faktury/upo/schemy/upo-v4-3.xsd
 	//
 	// GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
 	SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, error)
@@ -1471,6 +1533,12 @@ type Invoker interface {
 	//
 	// Zwraca XML zawierający zbiorcze UPO dla sesji.
 	//
+	// 	Więcej informacji:
+	//
+	// 	 - Schemat UPO:
+	//
+	// 	    - [upo v4.3]
+	//
 	// Headers:
 	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
@@ -1478,6 +1546,8 @@ type Invoker interface {
 	//
 	// Wymagane jedno z uprawnień: `InvoiceWrite`, `Introspection`, `PefInvoiceWrite`,
 	// `EnforcementOperations`.
+	//
+	// [upo v4.3]: https://github.com/CIRFMF/ksef-api/blob/main/faktury/upo/schemy/upo-v4-3.xsd
 	//
 	// GET /sessions/{referenceNumber}/upo/{upoReferenceNumber}
 	SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error)
@@ -1695,7 +1765,171 @@ type Invoker interface {
 	//
 	// POST /testdata/subject/remove
 	TestdataSubjectRemovePost(ctx context.Context, request OptTestdataSubjectRemovePostReq) (TestdataSubjectRemovePostRes, error)
+	// TestdataTokensReferenceNumberExpireApprovalPost invokes POST /testdata/tokens/{referenceNumber}/expire-approval operation.
+	//
+	// Przenosi wskazany token KSeF w bieżącym kontekście ze statusu `AwaitingApproval` do statusu
+	// `ApprovalExpired`, symulując upływ czasu przewidzianego na jego zatwierdzenie. Tylko na
+	// środowiskach testowych.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// POST /testdata/tokens/{referenceNumber}/expire-approval
+	TestdataTokensReferenceNumberExpireApprovalPost(ctx context.Context, params TestdataTokensReferenceNumberExpireApprovalPostParams) (TestdataTokensReferenceNumberExpireApprovalPostRes, error)
 	// TokensGet invokes GET /tokens operation.
+	//
+	// Wycofanie: operacja jest przestarzała i zostanie wycofana 30.09.2027. Zastępuje ją nowa rewizja:
+	// [GET /tokens/rev2].
+	//
+	// Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
+	// uprawnień podmiotu wywołującego.
+	//
+	// Jeżeli podmiot posiada uprawnienie CredentialsManage lub CredentialsRead, usługa zwraca wszystkie
+	// tokeny wygenerowane w danym kontekście niezależnie od metody uwierzytelnienia.
+	//
+	// Jeżeli podmiot nie posiada żadnego z powyższych uprawnień, zakres wyników jest ograniczony:
+	//
+	//  - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
+	//    uwierzytelnienia.
+	//  - Dla pozostałych metod uwierzytelnienia zwracane są tokeny, których autorem jest wywołujący
+	//    podmiot – z uwzględnieniem powiązania NIP–PESEL.
+	//
+	// Statusy tokenów wprowadzone w `rev2` są mapowane na dotychczasowe:
+	//
+	//  - `NotYetActive` → `Active`,
+	//  - `AwaitingApproval` → `Active`,
+	//  - `ApprovalExpired` → `Revoked`,
+	//  - `Expired` → `Revoked`.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// Sortowanie:
+	//
+	//  - dateCreated (Desc)
+	//
+	// [GET /tokens/rev2]: /docs/v2/index.html#tag/Tokeny-KSeF/paths/~1tokens~1rev2/get
+	//
+	// Deprecated: schema marks this operation as deprecated.
+	//
+	// GET /tokens
+	TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error)
+	// TokensPost invokes POST /tokens operation.
+	//
+	// Wycofanie: operacja jest przestarzała i zostanie wycofana 30.09.2027. Zastępuje ją nowa rewizja:
+	// [POST /tokens/rev2].
+	//
+	// Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
+	//
+	// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest zwracany
+	// tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
+	//
+	// Token wygenerowany od 07.11.2026 jest ważny przez 90 dni od momentu wygenerowania, o ile nie
+	// zostanie wcześniej unieważniony.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// [POST /tokens/rev2]: /docs/v2/index.html#tag/Tokeny-KSeF/paths/~1tokens~1rev2/post
+	//
+	// Deprecated: schema marks this operation as deprecated.
+	//
+	// POST /tokens
+	TokensPost(ctx context.Context, request OptTokensPostReq) (TokensPostRes, error)
+	// TokensReferenceNumberApprovePost invokes POST /tokens/{referenceNumber}/approve operation.
+	//
+	// Zatwierdza token w statusie `AwaitingApproval` wskazany numerem referencyjnym. Zatwierdzenia wymaga
+	// wyłącznie token, którego generowanie zainicjowano w `rev2` po uwierzytelnieniu tokenem KSeF. Do
+	// czasu zatwierdzenia token nie może być użyty do uwierzytelnienia. Tokeny wygenerowane po
+	// uwierzytelnieniu inną metodą lub przez dotychczasowe endpointy nie wymagają zatwierdzenia.
+	//
+	// Na zatwierdzenie tokena przewidziano 24 godziny od momentu nadania statusu `AwaitingApproval`. Po
+	// upływie tego czasu token automatycznie przechodzi w status `ApprovalExpired` i nie może już
+	// zostać zatwierdzony ani użyty do uwierzytelnienia. Uzyskanie nowego tokena wymaga ponownego
+	// zainicjowania generowania.
+	//
+	// Token może zatwierdzić:
+	//
+	//  - podmiot posiadający uprawnienia właścicielskie (`Owner`),
+	//  - podmiot z uprawnieniem `CredentialsManage`,
+	//  - właściciel tokena, jeśli posiada wszystkie uprawnienia przewidziane dla tego tokena.
+	//
+	// Właścicielem i autorem tokena jest podmiot, który zainicjował jego generowanie, wskazany w
+	// `authorIdentifier`. Zatwierdzenie tokena przez inny podmiot nie zmienia jego autora. Przy
+	// zatwierdzaniu jako właściciel tożsamość zatwierdzającego musi być zgodna z typem i
+	// wartością `authorIdentifier`.
+	//
+	// Zatwierdzenie tokena innego podmiotu wymaga uprawnień właścicielskich (`Owner`) lub uprawnienia
+	// `CredentialsManage` w danym kontekście.
+	//
+	// Zatwierdzenie wymaga uwierzytelnienia za pomocą Węzła Krajowego lub podpisu w formacie XAdES
+	// akceptowanego w procesie uwierzytelniania w KSeF.
+	//
+	// Po zatwierdzeniu token przechodzi ze statusu `AwaitingApproval` do `Active` albo `NotYetActive`,
+	// zależnie od tego, czy rozpoczął się jego okres ważności.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// POST /tokens/{referenceNumber}/approve
+	TokensReferenceNumberApprovePost(ctx context.Context, params TokensReferenceNumberApprovePostParams) (TokensReferenceNumberApprovePostRes, error)
+	// TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
+	//
+	// Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
+	// zależy od sposobu uwierzytelnienia oraz uprawnień podmiotu wywołującego.
+	//
+	// Jeżeli podmiot posiada uprawnienie CredentialsManage, może unieważnić dowolny aktywny token w
+	// danym kontekście niezależnie od metody uwierzytelnienia.
+	//
+	// Jeżeli podmiot nie posiada powyższego uprawnienia, zakres unieważnienia jest ograniczony:
+	//
+	//  - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
+	//    do uwierzytelnienia.
+	//  - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny, których jest autorem
+	//    – z uwzględnieniem powiązania NIP–PESEL.
+	//
+	// Unieważniony token nie pozwoli już na uwierzytelnienie się za jego pomocą. Unieważnienie nie
+	// może zostać cofnięte.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// DELETE /tokens/{referenceNumber}
+	TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error)
+	// TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
+	//
+	// Wycofanie: operacja jest przestarzała i zostanie wycofana 30.09.2027. Zastępuje ją nowa rewizja:
+	// [GET /tokens/rev2/{referenceNumber}].
+	//
+	// Statusy tokenów wprowadzone w `rev2` są mapowane na dotychczasowe:
+	//
+	//  - `NotYetActive` → `Active`,
+	//  - `AwaitingApproval` → `Active`,
+	//  - `ApprovalExpired` → `Revoked`,
+	//  - `Expired` → `Revoked`.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// [GET /tokens/rev2/{referenceNumber}]: /docs/v2/index.html#tag/Tokeny-KSeF/paths/~1tokens~1rev2~1%7BreferenceNumber%7D/get
+	//
+	// Deprecated: schema marks this operation as deprecated.
+	//
+	// GET /tokens/{referenceNumber}
+	TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error)
+	// TokensRev2Get invokes GET /tokens/rev2 operation.
 	//
 	// Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
 	// uprawnień podmiotu wywołującego.
@@ -1719,53 +1953,58 @@ type Invoker interface {
 	//
 	//  - dateCreated (Desc)
 	//
-	// GET /tokens
-	TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error)
-	// TokensPost invokes POST /tokens operation.
+	// GET /tokens/rev2
+	TokensRev2Get(ctx context.Context, params TokensRev2GetParams) (TokensRev2GetRes, error)
+	// TokensRev2Post invokes POST /tokens/rev2 operation.
 	//
-	// Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
+	// Zwraca token, który może być użyty do uwierzytelniania w KSeF. Token jest zwracany tylko raz i
+	// może być generowany wyłącznie w kontekście NIP lub identyfikatora wewnętrznego. Do
+	// uwierzytelniania można go użyć dopiero po uzyskaniu statusu `Active`.
 	//
-	// Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest zwracany
-	// tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
+	// Okres ważności tokena określają właściwości `validFrom` i `validTo`:
 	//
-	// Headers:
+	//  - `validFrom` może przypadać najpóźniej 60 dni po zainicjowaniu generowania tokena. Jeśli nie
+	//    zostanie podana, przyjmuje wartość odpowiadającą momentowi inicjacji.
+	//  - `validTo` może przypadać najpóźniej 365 dni po `validFrom`. Jeśli nie zostanie podana, okres
+	//    ważności wynosi 90 dni od `validFrom`.
 	//
-	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie Problem Details (`application/problem+json`).
+	// Jeśli okres ważności jeszcze się nie rozpoczął, token, który został zatwierdzony lub nie
+	// wymaga zatwierdzenia, ma status `NotYetActive`. Każdy token ma niezależny okres ważności.
+	// Wygaśnięcie lub unieważnienie tokena użytego do uwierzytelnienia sesji nie wpływa na ważność
+	// nowego tokena.
 	//
-	// POST /tokens
-	TokensPost(ctx context.Context, request OptTokensPostReq) (TokensPostRes, error)
-	// TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
+	// Pierwszy token można wygenerować wyłącznie po uwierzytelnieniu za pomocą Węzła Krajowego lub
+	// podpisu w formacie XAdES akceptowanego w procesie uwierzytelniania w KSeF. Kolejne tokeny można
+	// generować również w sesji uwierzytelnionej tokenem KSeF.
 	//
-	// Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
-	// zależy od sposobu uwierzytelnienia oraz uprawnień podmiotu wywołującego.
+	// Token wygenerowany po uwierzytelnieniu za pomocą Węzła Krajowego lub podpisu XAdES nie wymaga
+	// zatwierdzenia. Token wygenerowany w sesji uwierzytelnionej tokenem KSeF otrzymuje status
+	// `AwaitingApproval` i przed użyciem musi zostać zatwierdzony osobnym endpointem, po
+	// uwierzytelnieniu za pomocą Węzła Krajowego lub podpisu XAdES. Na zatwierdzenie przewidziano 24
+	// godziny od nadania statusu `AwaitingApproval`. Po tym czasie token przechodzi w status
+	// `ApprovalExpired` i nie może już zostać zatwierdzony.
 	//
-	// Jeżeli podmiot posiada uprawnienie CredentialsManage, może unieważnić dowolny aktywny token w
-	// danym kontekście niezależnie od metody uwierzytelnienia.
-	//
-	// Jeżeli podmiot nie posiada powyższego uprawnienia, zakres unieważnienia jest ograniczony:
-	//
-	//  - Dla podmiotu uwierzytelnionego tokenem możliwe jest unieważnienie wyłącznie tokena użytego
-	//    do uwierzytelnienia.
-	//  - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny, których jest autorem
-	//    – z uwzględnieniem powiązania NIP–PESEL.
-	//
-	// Headers:
-	//
-	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
-	// formacie Problem Details (`application/problem+json`).
-	//
-	// DELETE /tokens/{referenceNumber}
-	TokensReferenceNumberDelete(ctx context.Context, params TokensReferenceNumberDeleteParams) (TokensReferenceNumberDeleteRes, error)
-	// TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
+	// Maksymalna liczba tokenów w kontekście to 100. Do limitu wliczają się tokeny w statusach
+	// `Active`, `NotYetActive`, `Pending` i `AwaitingApproval`, niezależnie od autora i rewizji
+	// endpointu, za pomocą której zostały wygenerowane. Próba wygenerowania tokena ponad limit kończy
+	// się błędem.
 	//
 	// Headers:
 	//
 	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
 	// formacie Problem Details (`application/problem+json`).
 	//
-	// GET /tokens/{referenceNumber}
-	TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error)
+	// POST /tokens/rev2
+	TokensRev2Post(ctx context.Context, request OptTokensRev2PostReq) (TokensRev2PostRes, error)
+	// TokensRev2ReferenceNumberGet invokes GET /tokens/rev2/{referenceNumber} operation.
+	//
+	// Headers:
+	//
+	// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+	// formacie Problem Details (`application/problem+json`).
+	//
+	// GET /tokens/rev2/{referenceNumber}
+	TokensRev2ReferenceNumberGet(ctx context.Context, params TokensRev2ReferenceNumberGetParams) (TokensRev2ReferenceNumberGetRes, error)
 }
 
 // Client implements OAS client.
@@ -1933,6 +2172,9 @@ func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptAuthKsefT
 
 // AuthReferenceNumberGet invokes GET /auth/{referenceNumber} operation.
 //
+// Wycofanie: operacja jest przestarzała i zostanie wycofana 15.06.2027. Zastępuje ją nowa rewizja:
+// [GET /auth/rev2/{referenceNumber}].
+//
 // Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
 //
 // Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
@@ -1942,6 +2184,10 @@ func (c *Client) sendAuthKsefTokenPost(ctx context.Context, request OptAuthKsefT
 //
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
 // formacie Problem Details (`application/problem+json`).
+//
+// [GET /auth/rev2/{referenceNumber}]: /docs/v2/index.html#tag/Uzyskiwanie-dostepu/paths/~1auth~1rev2~1%7BreferenceNumber%7D/get
+//
+// Deprecated: schema marks this operation as deprecated.
 //
 // GET /auth/{referenceNumber}
 func (c *Client) AuthReferenceNumberGet(ctx context.Context, params AuthReferenceNumberGetParams) (AuthReferenceNumberGetRes, error) {
@@ -2029,6 +2275,111 @@ func (c *Client) sendAuthReferenceNumberGet(ctx context.Context, params AuthRefe
 	}()
 
 	result, err := decodeAuthReferenceNumberGetResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// AuthRev2ReferenceNumberGet invokes GET /auth/rev2/{referenceNumber} operation.
+//
+// Sprawdza bieżący status operacji uwierzytelniania dla podanego tokena.
+//
+// Sposób uwierzytelnienia: `AuthenticationToken` otrzymany przy rozpoczęciu operacji
+// uwierzytelniania. Operacja jest dostępna przez 7 dni.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// GET /auth/rev2/{referenceNumber}
+func (c *Client) AuthRev2ReferenceNumberGet(ctx context.Context, params AuthRev2ReferenceNumberGetParams) (AuthRev2ReferenceNumberGetRes, error) {
+	res, err := c.sendAuthRev2ReferenceNumberGet(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendAuthRev2ReferenceNumberGet(ctx context.Context, params AuthRev2ReferenceNumberGetParams) (res AuthRev2ReferenceNumberGetRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/auth/rev2/"
+	{
+		// Encode "referenceNumber" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "referenceNumber",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			if unwrapped := string(params.ReferenceNumber); true {
+				return e.EncodeValue(conv.StringToString(unwrapped))
+			}
+			return nil
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, AuthRev2ReferenceNumberGetOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeAuthRev2ReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2125,6 +2476,9 @@ func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSes
 
 // AuthSessionsGet invokes GET /auth/sessions operation.
 //
+// Wycofanie: operacja jest przestarzała i zostanie wycofana 15.06.2027. Zastępuje ją nowa rewizja:
+// [GET /auth/sessions/rev2].
+//
 // Zwraca listę aktywnych sesji uwierzytelnienia.
 //
 // Headers:
@@ -2135,6 +2489,10 @@ func (c *Client) sendAuthSessionsCurrentDelete(ctx context.Context) (res AuthSes
 // Sortowanie:
 //
 //   - startDate (Desc)
+//
+// [GET /auth/sessions/rev2]: /docs/v2/index.html#tag/Aktywne-sesje/paths/~1auth~1sessions~1rev2/get
+//
+// Deprecated: schema marks this operation as deprecated.
 //
 // GET /auth/sessions
 func (c *Client) AuthSessionsGet(ctx context.Context, params AuthSessionsGetParams) (AuthSessionsGetRes, error) {
@@ -2343,6 +2701,127 @@ func (c *Client) sendAuthSessionsReferenceNumberDelete(ctx context.Context, para
 	}()
 
 	result, err := decodeAuthSessionsReferenceNumberDeleteResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// AuthSessionsRev2Get invokes GET /auth/sessions/rev2 operation.
+//
+// Zwraca listę aktywnych sesji uwierzytelnienia.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - startDate (Desc)
+//
+// GET /auth/sessions/rev2
+func (c *Client) AuthSessionsRev2Get(ctx context.Context, params AuthSessionsRev2GetParams) (AuthSessionsRev2GetRes, error) {
+	res, err := c.sendAuthSessionsRev2Get(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendAuthSessionsRev2Get(ctx context.Context, params AuthSessionsRev2GetParams) (res AuthSessionsRev2GetRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/auth/sessions/rev2"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "pageSize" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageSize",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageSize.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "x-continuation-token",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.XContinuationToken.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, AuthSessionsRev2GetOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeAuthSessionsRev2GetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -5227,6 +5706,7 @@ func (c *Client) sendPermissionsEntitiesGrantsPost(ctx context.Context, request 
 //   - InvoiceWrite – wystawianie faktur
 //   - InvoiceRead – przeglądanie faktur
 //   - Introspection – przeglądanie historii sesji
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
 //
 // Metoda automatycznie nadaje wszystkie powyższe uprawnienia, bez konieczności ich wskazywania w
 // żądaniu.
@@ -5349,6 +5829,7 @@ func (c *Client) sendPermissionsEuEntitiesAdministrationGrantsPost(ctx context.C
 //
 //   - InvoiceWrite – wystawianie faktur
 //   - InvoiceRead – przeglądanie faktur
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
 //
 // Metoda pozwala na wybór dowolnej kombinacji powyższych uprawnień.
 //
@@ -6329,6 +6810,7 @@ func (c *Client) sendPermissionsQueryEntitiesRolesGet(ctx context.Context, param
 //   - InvoiceWrite – wystawianie faktur
 //   - InvoiceRead – przeglądanie faktur
 //   - Introspection – przeglądanie historii sesji
+//   - CollectiveIdentifierManage – zarządzanie identyfikatorami zbiorczymi
 //
 // Odpowiedź może być filtrowana na podstawie następujących parametrów:
 //
@@ -8884,7 +9366,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ct
 
 // SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo operation.
 //
-// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+// Zwraca UPO faktury przesłanej w sesji na podstawie jej numeru referencyjnego.
+//
+//	Więcej informacji:
+//
+//	 - Schemat UPO:
+//
+//	    - [upo v4.3]
 //
 // Headers:
 //
@@ -8895,6 +9383,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberGet(ct
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices/{invoiceReferenceNumber}/upo
+//
+// [upo v4.3]: https://github.com/CIRFMF/ksef-api/blob/main/faktury/upo/schemy/upo-v4-3.xsd
 func (c *Client) SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetParams) (SessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGetRes, error) {
 	res, err := c.sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet(ctx, params)
 	return res, err
@@ -9012,7 +9502,13 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet
 
 // SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet invokes GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo operation.
 //
-// Zwraca UPO faktury przesłanego w sesji na podstawie jego numeru KSeF.
+// Zwraca UPO faktury przesłanej w sesji na podstawie jej numeru KSeF.
+//
+//	Więcej informacji:
+//
+//	 - Schemat UPO:
+//
+//	    - [upo v4.3]
 //
 // Headers:
 //
@@ -9023,6 +9519,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesInvoiceReferenceNumberUpoGet
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/invoices/ksef/{ksefNumber}/upo
+//
+// [upo v4.3]: https://github.com/CIRFMF/ksef-api/blob/main/faktury/upo/schemy/upo-v4-3.xsd
 func (c *Client) SessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx context.Context, params SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetParams) (SessionsReferenceNumberInvoicesKsefKsefNumberUpoGetRes, error) {
 	res, err := c.sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx, params)
 	return res, err
@@ -9142,6 +9640,12 @@ func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx con
 //
 // Zwraca XML zawierający zbiorcze UPO dla sesji.
 //
+//	Więcej informacji:
+//
+//	 - Schemat UPO:
+//
+//	    - [upo v4.3]
+//
 // Headers:
 //
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
@@ -9151,6 +9655,8 @@ func (c *Client) sendSessionsReferenceNumberInvoicesKsefKsefNumberUpoGet(ctx con
 // `EnforcementOperations`.
 //
 // GET /sessions/{referenceNumber}/upo/{upoReferenceNumber}
+//
+// [upo v4.3]: https://github.com/CIRFMF/ksef-api/blob/main/faktury/upo/schemy/upo-v4-3.xsd
 func (c *Client) SessionsReferenceNumberUpoUpoReferenceNumberGet(ctx context.Context, params SessionsReferenceNumberUpoUpoReferenceNumberGetParams) (SessionsReferenceNumberUpoUpoReferenceNumberGetRes, error) {
 	res, err := c.sendSessionsReferenceNumberUpoUpoReferenceNumberGet(ctx, params)
 	return res, err
@@ -10661,7 +11167,115 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptT
 	return result, nil
 }
 
+// TestdataTokensReferenceNumberExpireApprovalPost invokes POST /testdata/tokens/{referenceNumber}/expire-approval operation.
+//
+// Przenosi wskazany token KSeF w bieżącym kontekście ze statusu `AwaitingApproval` do statusu
+// `ApprovalExpired`, symulując upływ czasu przewidzianego na jego zatwierdzenie. Tylko na
+// środowiskach testowych.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// POST /testdata/tokens/{referenceNumber}/expire-approval
+func (c *Client) TestdataTokensReferenceNumberExpireApprovalPost(ctx context.Context, params TestdataTokensReferenceNumberExpireApprovalPostParams) (TestdataTokensReferenceNumberExpireApprovalPostRes, error) {
+	res, err := c.sendTestdataTokensReferenceNumberExpireApprovalPost(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendTestdataTokensReferenceNumberExpireApprovalPost(ctx context.Context, params TestdataTokensReferenceNumberExpireApprovalPostParams) (res TestdataTokensReferenceNumberExpireApprovalPostRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/testdata/tokens/"
+	{
+		// Encode "referenceNumber" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "referenceNumber",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			if unwrapped := string(params.ReferenceNumber); true {
+				return e.EncodeValue(conv.StringToString(unwrapped))
+			}
+			return nil
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/expire-approval"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TestdataTokensReferenceNumberExpireApprovalPostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeTestdataTokensReferenceNumberExpireApprovalPostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // TokensGet invokes GET /tokens operation.
+//
+// Wycofanie: operacja jest przestarzała i zostanie wycofana 30.09.2027. Zastępuje ją nowa rewizja:
+// [GET /tokens/rev2].
 //
 // Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
 // uprawnień podmiotu wywołującego.
@@ -10676,6 +11290,13 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptT
 //   - Dla pozostałych metod uwierzytelnienia zwracane są tokeny, których autorem jest wywołujący
 //     podmiot – z uwzględnieniem powiązania NIP–PESEL.
 //
+// Statusy tokenów wprowadzone w `rev2` są mapowane na dotychczasowe:
+//
+//   - `NotYetActive` → `Active`,
+//   - `AwaitingApproval` → `Active`,
+//   - `ApprovalExpired` → `Revoked`,
+//   - `Expired` → `Revoked`.
+//
 // Headers:
 //
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
@@ -10684,6 +11305,10 @@ func (c *Client) sendTestdataSubjectRemovePost(ctx context.Context, request OptT
 // Sortowanie:
 //
 //   - dateCreated (Desc)
+//
+// [GET /tokens/rev2]: /docs/v2/index.html#tag/Tokeny-KSeF/paths/~1tokens~1rev2/get
+//
+// Deprecated: schema marks this operation as deprecated.
 //
 // GET /tokens
 func (c *Client) TokensGet(ctx context.Context, params TokensGetParams) (TokensGetRes, error) {
@@ -10872,15 +11497,25 @@ func (c *Client) sendTokensGet(ctx context.Context, params TokensGetParams) (res
 
 // TokensPost invokes POST /tokens operation.
 //
+// Wycofanie: operacja jest przestarzała i zostanie wycofana 30.09.2027. Zastępuje ją nowa rewizja:
+// [POST /tokens/rev2].
+//
 // Zwraca token, który może być użyty do uwierzytelniania się w KSeF.
 //
 // Token może być generowany tylko w kontekście NIP lub identyfikatora wewnętrznego. Jest zwracany
 // tylko raz. Zaczyna być aktywny w momencie gdy jego status zmieni się na `Active`.
 //
+// Token wygenerowany od 07.11.2026 jest ważny przez 90 dni od momentu wygenerowania, o ile nie
+// zostanie wcześniej unieważniony.
+//
 // Headers:
 //
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
 // formacie Problem Details (`application/problem+json`).
+//
+// [POST /tokens/rev2]: /docs/v2/index.html#tag/Tokeny-KSeF/paths/~1tokens~1rev2/post
+//
+// Deprecated: schema marks this operation as deprecated.
 //
 // POST /tokens
 func (c *Client) TokensPost(ctx context.Context, request OptTokensPostReq) (TokensPostRes, error) {
@@ -10973,6 +11608,137 @@ func (c *Client) sendTokensPost(ctx context.Context, request OptTokensPostReq) (
 	return result, nil
 }
 
+// TokensReferenceNumberApprovePost invokes POST /tokens/{referenceNumber}/approve operation.
+//
+// Zatwierdza token w statusie `AwaitingApproval` wskazany numerem referencyjnym. Zatwierdzenia wymaga
+// wyłącznie token, którego generowanie zainicjowano w `rev2` po uwierzytelnieniu tokenem KSeF. Do
+// czasu zatwierdzenia token nie może być użyty do uwierzytelnienia. Tokeny wygenerowane po
+// uwierzytelnieniu inną metodą lub przez dotychczasowe endpointy nie wymagają zatwierdzenia.
+//
+// Na zatwierdzenie tokena przewidziano 24 godziny od momentu nadania statusu `AwaitingApproval`. Po
+// upływie tego czasu token automatycznie przechodzi w status `ApprovalExpired` i nie może już
+// zostać zatwierdzony ani użyty do uwierzytelnienia. Uzyskanie nowego tokena wymaga ponownego
+// zainicjowania generowania.
+//
+// Token może zatwierdzić:
+//
+//   - podmiot posiadający uprawnienia właścicielskie (`Owner`),
+//   - podmiot z uprawnieniem `CredentialsManage`,
+//   - właściciel tokena, jeśli posiada wszystkie uprawnienia przewidziane dla tego tokena.
+//
+// Właścicielem i autorem tokena jest podmiot, który zainicjował jego generowanie, wskazany w
+// `authorIdentifier`. Zatwierdzenie tokena przez inny podmiot nie zmienia jego autora. Przy
+// zatwierdzaniu jako właściciel tożsamość zatwierdzającego musi być zgodna z typem i
+// wartością `authorIdentifier`.
+//
+// Zatwierdzenie tokena innego podmiotu wymaga uprawnień właścicielskich (`Owner`) lub uprawnienia
+// `CredentialsManage` w danym kontekście.
+//
+// Zatwierdzenie wymaga uwierzytelnienia za pomocą Węzła Krajowego lub podpisu w formacie XAdES
+// akceptowanego w procesie uwierzytelniania w KSeF.
+//
+// Po zatwierdzeniu token przechodzi ze statusu `AwaitingApproval` do `Active` albo `NotYetActive`,
+// zależnie od tego, czy rozpoczął się jego okres ważności.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// POST /tokens/{referenceNumber}/approve
+func (c *Client) TokensReferenceNumberApprovePost(ctx context.Context, params TokensReferenceNumberApprovePostParams) (TokensReferenceNumberApprovePostRes, error) {
+	res, err := c.sendTokensReferenceNumberApprovePost(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendTokensReferenceNumberApprovePost(ctx context.Context, params TokensReferenceNumberApprovePostParams) (res TokensReferenceNumberApprovePostRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/tokens/"
+	{
+		// Encode "referenceNumber" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "referenceNumber",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			if unwrapped := string(params.ReferenceNumber); true {
+				return e.EncodeValue(conv.StringToString(unwrapped))
+			}
+			return nil
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/approve"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TokensReferenceNumberApprovePostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeTokensReferenceNumberApprovePostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // TokensReferenceNumberDelete invokes DELETE /tokens/{referenceNumber} operation.
 //
 // Unieważnia token o podanym numerze referencyjnym. Zakres tokenów dostępnych do unieważnienia
@@ -10987,6 +11753,9 @@ func (c *Client) sendTokensPost(ctx context.Context, request OptTokensPostReq) (
 //     do uwierzytelnienia.
 //   - Dla pozostałych metod uwierzytelnienia podmiot może unieważnić tokeny, których jest autorem
 //     – z uwzględnieniem powiązania NIP–PESEL.
+//
+// Unieważniony token nie pozwoli już na uwierzytelnienie się za jego pomocą. Unieważnienie nie
+// może zostać cofnięte.
 //
 // Headers:
 //
@@ -11088,10 +11857,24 @@ func (c *Client) sendTokensReferenceNumberDelete(ctx context.Context, params Tok
 
 // TokensReferenceNumberGet invokes GET /tokens/{referenceNumber} operation.
 //
+// Wycofanie: operacja jest przestarzała i zostanie wycofana 30.09.2027. Zastępuje ją nowa rewizja:
+// [GET /tokens/rev2/{referenceNumber}].
+//
+// Statusy tokenów wprowadzone w `rev2` są mapowane na dotychczasowe:
+//
+//   - `NotYetActive` → `Active`,
+//   - `AwaitingApproval` → `Active`,
+//   - `ApprovalExpired` → `Revoked`,
+//   - `Expired` → `Revoked`.
+//
 // Headers:
 //
 // `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
 // formacie Problem Details (`application/problem+json`).
+//
+// [GET /tokens/rev2/{referenceNumber}]: /docs/v2/index.html#tag/Tokeny-KSeF/paths/~1tokens~1rev2~1%7BreferenceNumber%7D/get
+//
+// Deprecated: schema marks this operation as deprecated.
 //
 // GET /tokens/{referenceNumber}
 func (c *Client) TokensReferenceNumberGet(ctx context.Context, params TokensReferenceNumberGetParams) (TokensReferenceNumberGetRes, error) {
@@ -11179,6 +11962,479 @@ func (c *Client) sendTokensReferenceNumberGet(ctx context.Context, params Tokens
 	}()
 
 	result, err := decodeTokensReferenceNumberGetResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TokensRev2Get invokes GET /tokens/rev2 operation.
+//
+// Zwraca listę metadanych tokenów. Zakres wyników zależy od sposobu uwierzytelnienia oraz
+// uprawnień podmiotu wywołującego.
+//
+// Jeżeli podmiot posiada uprawnienie CredentialsManage lub CredentialsRead, usługa zwraca wszystkie
+// tokeny wygenerowane w danym kontekście niezależnie od metody uwierzytelnienia.
+//
+// Jeżeli podmiot nie posiada żadnego z powyższych uprawnień, zakres wyników jest ograniczony:
+//
+//   - Dla podmiotu uwierzytelnionego tokenem zwracany jest wyłącznie token użyty do
+//     uwierzytelnienia.
+//   - Dla pozostałych metod uwierzytelnienia zwracane są tokeny, których autorem jest wywołujący
+//     podmiot – z uwzględnieniem powiązania NIP–PESEL.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// Sortowanie:
+//
+//   - dateCreated (Desc)
+//
+// GET /tokens/rev2
+func (c *Client) TokensRev2Get(ctx context.Context, params TokensRev2GetParams) (TokensRev2GetRes, error) {
+	res, err := c.sendTokensRev2Get(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendTokensRev2Get(ctx context.Context, params TokensRev2GetParams) (res TokensRev2GetRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/tokens/rev2"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "status" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "status",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if params.Status != nil {
+				return e.EncodeArray(func(e uri.Encoder) error {
+					for i, item := range params.Status {
+						if err := func() error {
+							return e.EncodeValue(conv.StringToString(string(item)))
+						}(); err != nil {
+							return errors.Wrapf(err, "[%d]", i)
+						}
+					}
+					return nil
+				})
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "description" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "description",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.Description.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "authorIdentifier" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "authorIdentifier",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.AuthorIdentifier.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "authorIdentifierType" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "authorIdentifierType",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.AuthorIdentifierType.Get(); ok {
+				return e.EncodeValue(conv.StringToString(string(val)))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "validFrom" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "validFrom",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.ValidFrom.Get(); ok {
+				return e.EncodeValue(conv.DateTimeToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "validTo" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "validTo",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.ValidTo.Get(); ok {
+				return e.EncodeValue(conv.DateTimeToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "pageSize" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "pageSize",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.PageSize.Get(); ok {
+				return e.EncodeValue(conv.Int32ToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "x-continuation-token",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.XContinuationToken.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TokensRev2GetOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeTokensRev2GetResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TokensRev2Post invokes POST /tokens/rev2 operation.
+//
+// Zwraca token, który może być użyty do uwierzytelniania w KSeF. Token jest zwracany tylko raz i
+// może być generowany wyłącznie w kontekście NIP lub identyfikatora wewnętrznego. Do
+// uwierzytelniania można go użyć dopiero po uzyskaniu statusu `Active`.
+//
+// Okres ważności tokena określają właściwości `validFrom` i `validTo`:
+//
+//   - `validFrom` może przypadać najpóźniej 60 dni po zainicjowaniu generowania tokena. Jeśli nie
+//     zostanie podana, przyjmuje wartość odpowiadającą momentowi inicjacji.
+//   - `validTo` może przypadać najpóźniej 365 dni po `validFrom`. Jeśli nie zostanie podana, okres
+//     ważności wynosi 90 dni od `validFrom`.
+//
+// Jeśli okres ważności jeszcze się nie rozpoczął, token, który został zatwierdzony lub nie
+// wymaga zatwierdzenia, ma status `NotYetActive`. Każdy token ma niezależny okres ważności.
+// Wygaśnięcie lub unieważnienie tokena użytego do uwierzytelnienia sesji nie wpływa na ważność
+// nowego tokena.
+//
+// Pierwszy token można wygenerować wyłącznie po uwierzytelnieniu za pomocą Węzła Krajowego lub
+// podpisu w formacie XAdES akceptowanego w procesie uwierzytelniania w KSeF. Kolejne tokeny można
+// generować również w sesji uwierzytelnionej tokenem KSeF.
+//
+// Token wygenerowany po uwierzytelnieniu za pomocą Węzła Krajowego lub podpisu XAdES nie wymaga
+// zatwierdzenia. Token wygenerowany w sesji uwierzytelnionej tokenem KSeF otrzymuje status
+// `AwaitingApproval` i przed użyciem musi zostać zatwierdzony osobnym endpointem, po
+// uwierzytelnieniu za pomocą Węzła Krajowego lub podpisu XAdES. Na zatwierdzenie przewidziano 24
+// godziny od nadania statusu `AwaitingApproval`. Po tym czasie token przechodzi w status
+// `ApprovalExpired` i nie może już zostać zatwierdzony.
+//
+// Maksymalna liczba tokenów w kontekście to 100. Do limitu wliczają się tokeny w statusach
+// `Active`, `NotYetActive`, `Pending` i `AwaitingApproval`, niezależnie od autora i rewizji
+// endpointu, za pomocą której zostały wygenerowane. Próba wygenerowania tokena ponad limit kończy
+// się błędem.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// POST /tokens/rev2
+func (c *Client) TokensRev2Post(ctx context.Context, request OptTokensRev2PostReq) (TokensRev2PostRes, error) {
+	res, err := c.sendTokensRev2Post(ctx, request)
+	return res, err
+}
+
+func (c *Client) sendTokensRev2Post(ctx context.Context, request OptTokensRev2PostReq) (res TokensRev2PostRes, err error) {
+	// Validate request before sending.
+	if err := func() error {
+		if value, ok := request.Get(); ok {
+			if err := func() error {
+				if err := value.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return res, errors.Wrap(err, "validate")
+	}
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/tokens/rev2"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeTokensRev2PostRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TokensRev2PostOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeTokensRev2PostResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// TokensRev2ReferenceNumberGet invokes GET /tokens/rev2/{referenceNumber} operation.
+//
+// Headers:
+//
+// `X-Error-Format: problem-details` - ustawienie tego nagłówka powoduje zwracanie błędów w
+// formacie Problem Details (`application/problem+json`).
+//
+// GET /tokens/rev2/{referenceNumber}
+func (c *Client) TokensRev2ReferenceNumberGet(ctx context.Context, params TokensRev2ReferenceNumberGetParams) (TokensRev2ReferenceNumberGetRes, error) {
+	res, err := c.sendTokensRev2ReferenceNumberGet(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendTokensRev2ReferenceNumberGet(ctx context.Context, params TokensRev2ReferenceNumberGetParams) (res TokensRev2ReferenceNumberGetRes, err error) {
+
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/tokens/rev2/"
+	{
+		// Encode "referenceNumber" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "referenceNumber",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			if unwrapped := string(params.ReferenceNumber); true {
+				return e.EncodeValue(conv.StringToString(unwrapped))
+			}
+			return nil
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+
+			switch err := c.securityBearer(ctx, TokensRev2ReferenceNumberGetOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"Bearer\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
+	}
+
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer func() {
+		// Drain the body to EOF before closing, so the underlying
+		// connection can be reused by the Transport regardless of the
+		// response status code. See https://github.com/ogen-go/ogen/issues/1670.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}()
+
+	result, err := decodeTokensRev2ReferenceNumberGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

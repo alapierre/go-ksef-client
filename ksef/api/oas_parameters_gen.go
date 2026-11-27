@@ -8,6 +8,12 @@ type AuthReferenceNumberGetParams struct {
 	ReferenceNumber ReferenceNumber
 }
 
+// AuthRev2ReferenceNumberGetParams is parameters of GET /auth/rev2/{referenceNumber} operation.
+type AuthRev2ReferenceNumberGetParams struct {
+	// Numer referencyjny tokena otrzymanego przy inicjalizacji operacji uwierzytelniania.
+	ReferenceNumber ReferenceNumber
+}
+
 // AuthSessionsGetParams is parameters of GET /auth/sessions operation.
 type AuthSessionsGetParams struct {
 	// Token służący do pobrania kolejnej strony wyników.
@@ -20,6 +26,14 @@ type AuthSessionsGetParams struct {
 type AuthSessionsReferenceNumberDeleteParams struct {
 	// Numer referencyjny sesji uwierzytelnienia.
 	ReferenceNumber ReferenceNumber
+}
+
+// AuthSessionsRev2GetParams is parameters of GET /auth/sessions/rev2 operation.
+type AuthSessionsRev2GetParams struct {
+	// Token służący do pobrania kolejnej strony wyników.
+	XContinuationToken OptString `json:",omitempty,omitzero"`
+	// Rozmiar strony wyników.
+	PageSize OptInt32 `json:",omitempty,omitzero"`
 }
 
 // AuthXadesSignaturePostParams is parameters of POST /auth/xades-signature operation.
@@ -309,6 +323,12 @@ type TestdataCertificatesSerialNumberPutParams struct {
 	SerialNumber string
 }
 
+// TestdataTokensReferenceNumberExpireApprovalPostParams is parameters of POST /testdata/tokens/{referenceNumber}/expire-approval operation.
+type TestdataTokensReferenceNumberExpireApprovalPostParams struct {
+	// Numer referencyjny tokena KSeF.
+	ReferenceNumber ReferenceNumber
+}
+
 // TokensGetParams is parameters of GET /tokens operation.
 type TokensGetParams struct {
 	// Status tokenów do zwrócenia. W przypadku braku parametru zwracane są wszystkie tokeny. Parametr
@@ -343,6 +363,12 @@ type TokensGetParams struct {
 	XContinuationToken OptString `json:",omitempty,omitzero"`
 }
 
+// TokensReferenceNumberApprovePostParams is parameters of POST /tokens/{referenceNumber}/approve operation.
+type TokensReferenceNumberApprovePostParams struct {
+	// Numer referencyjny tokena KSeF.
+	ReferenceNumber ReferenceNumber
+}
+
 // TokensReferenceNumberDeleteParams is parameters of DELETE /tokens/{referenceNumber} operation.
 type TokensReferenceNumberDeleteParams struct {
 	// Numer referencyjny tokena KSeF.
@@ -351,6 +377,56 @@ type TokensReferenceNumberDeleteParams struct {
 
 // TokensReferenceNumberGetParams is parameters of GET /tokens/{referenceNumber} operation.
 type TokensReferenceNumberGetParams struct {
+	// Numer referencyjny tokena KSeF.
+	ReferenceNumber ReferenceNumber
+}
+
+// TokensRev2GetParams is parameters of GET /tokens/rev2 operation.
+type TokensRev2GetParams struct {
+	// Status tokenów do zwrócenia. W przypadku braku parametru zwracane są wszystkie tokeny. Parametr
+	// można przekazać wielokrotnie.
+	//
+	// 	Wartość        | Opis
+	// 	-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 	Pending          | Token został utworzony ale jest jeszcze w trakcie aktywacji i nadawania uprawnień. Nie może być jeszcze wykorzystywany do uwierzytelniania.
+	// 	Active           | Token jest aktywny i może być wykorzystywany do uwierzytelniania.
+	// 	Revoking         | Token jest w trakcie unieważniania. Nie może już być wykorzystywany do uwierzytelniania.
+	// 	Revoked          | Token został unieważniony i nie może być wykorzystywany do uwierzytelniania.
+	// 	Failed           | Nie udało się aktywować tokena. Należy wygenerować nowy token, obecny nie może być wykorzystywany do uwierzytelniania.
+	// 	NotYetActive     | Token został wygenerowany poprawnie natomiast, termin jego ważności jeszcze się nie rozpoczął.
+	// 	AwaitingApproval | Token został wygenerowany za pomocą tokena KSeF i oczekuje na zatwierdzenie. Do czasu zatwierdzenia nie może być używany do uwierzytelniania.
+	// 	ApprovalExpired  | Upłynął czas na zatwierdzenie (24 godziny od nadania statusu `AwaitingApproval`). Token nie może już zostać zatwierdzony ani być wykorzystywany do uwierzytelniania. Należy ponownie zainicjować generowanie nowego tokena.
+	// 	Expired          | Termin ważności tokena upłynął.
+	Status []TokenStatusFilterRev2 `json:",omitempty"`
+	// Umożliwia filtrowanie tokenów po opisie. Wartość parametru jest wyszukiwana w opisie tokena
+	// (operacja nie rozróżnia wielkości liter). Należy podać co najmniej 3 znaki.
+	Description OptString `json:",omitempty,omitzero"`
+	// Umożliwia filtrowanie tokenów po ich twórcy. Wartość parametru jest wyszukiwana w
+	// identyfikatorze (operacja nie rozróżnia wielkości liter). Należy podać co najmniej 3 znaki.
+	AuthorIdentifier OptString `json:",omitempty,omitzero"`
+	// Umożliwia filtrowanie tokenów po ich twórcy. Wartość parametru określa typ identyfikatora w
+	// którym będzie wyszukiwany ciąg znaków przekazany w parametrze `authorIdentifier`.
+	//
+	// 	Wartość   | Opis
+	// 	------------+--------------------------
+	// 	Nip         | NIP.
+	// 	Pesel       | PESEL.
+	// 	Fingerprint | Odcisk palca certyfikatu.
+	AuthorIdentifierType OptTokenAuthorIdentifierTypeFilterRev2 `json:",omitempty,omitzero"`
+	// Umożliwia filtrowanie tokenów po dacie rozpoczęcia okresu ważności. Zwracane są tokeny,
+	// których `validFrom` przypada w tym samym momencie lub później niż wskazana data.
+	ValidFrom OptDateTime `json:",omitempty,omitzero"`
+	// Umożliwia filtrowanie tokenów po dacie zakończenia okresu ważności. Zwracane są tokeny,
+	// których `validTo` przypada w tym samym momencie lub wcześniej niż wskazana data.
+	ValidTo OptDateTime `json:",omitempty,omitzero"`
+	// Rozmiar strony wyników.
+	PageSize OptInt32 `json:",omitempty,omitzero"`
+	// Token służący do pobrania kolejnej strony wyników.
+	XContinuationToken OptString `json:",omitempty,omitzero"`
+}
+
+// TokensRev2ReferenceNumberGetParams is parameters of GET /tokens/rev2/{referenceNumber} operation.
+type TokensRev2ReferenceNumberGetParams struct {
 	// Numer referencyjny tokena KSeF.
 	ReferenceNumber ReferenceNumber
 }

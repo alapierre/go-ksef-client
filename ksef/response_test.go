@@ -374,6 +374,44 @@ func facadeResult(t *testing.T, result any) any {
 	}
 }
 
+func TestInvoiceDownloadDates(t *testing.T) {
+	acquisition := api.NewOptString("2026-11-27T08:15:30.1234567+01:00")
+	storage := api.NewOptString("2026-11-27T07:16:00Z")
+	for _, tc := range []struct {
+		name                 string
+		acquisition, storage api.OptString
+	}{
+		{name: "both", acquisition: acquisition, storage: storage},
+		{name: "neither"},
+		{name: "acquisition only", acquisition: acquisition},
+		{name: "storage only", storage: storage},
+		{name: "empty header", acquisition: api.NewOptString("")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := newTestClient(t, func(*http.Request) (*http.Response, error) {
+				resp := testJSONResponse(http.StatusOK, "application/xml", "<invoice/>")
+				if value, ok := tc.acquisition.Get(); ok {
+					resp.Header.Set("x-ms-meta-acquisition-date", value)
+				}
+				if value, ok := tc.storage.Get(); ok {
+					resp.Header.Set("x-ms-meta-permanent-storage-date", value)
+				}
+				return resp, nil
+			})
+			invoice, err := c.GetInvoiceByKsefNumber(context.Background(), collectiveTestInvoice)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := invoice.XMsMetaAcquisitionDate; got != tc.acquisition {
+				t.Errorf("acquisition date = %+v, want %+v", got, tc.acquisition)
+			}
+			if got := invoice.XMsMetaPermanentStorageDate; got != tc.storage {
+				t.Errorf("permanent storage date = %+v, want %+v", got, tc.storage)
+			}
+		})
+	}
+}
+
 func TestExceptionStatusIsProvidedByOperation(t *testing.T) {
 	exception := &api.ExceptionResponse{}
 	if got := HandleAPIError(exception).(*ApiError).Status; got != 0 {

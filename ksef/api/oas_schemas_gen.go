@@ -252,6 +252,114 @@ func (s *AuthSessionsCurrentDeleteNoContent) SetXSystemWarning(val OptSystemWarn
 
 func (*AuthSessionsCurrentDeleteNoContent) authSessionsCurrentDeleteRes() {}
 
+// AuthSessionsGetTooManyRequestsApplicationJSONHeaders wraps TooManyRequestsResponse with response headers.
+type AuthSessionsGetTooManyRequestsApplicationJSONHeaders struct {
+	Deprecation OptString
+	RetryAfter  OptRetryAfter
+	Sunset      OptString
+	Response    TooManyRequestsResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetRetryAfter returns the value of RetryAfter.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) GetRetryAfter() OptRetryAfter {
+	return s.RetryAfter
+}
+
+// GetSunset returns the value of Sunset.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) GetSunset() OptString {
+	return s.Sunset
+}
+
+// GetResponse returns the value of Response.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) GetResponse() TooManyRequestsResponse {
+	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetRetryAfter sets the value of RetryAfter.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) SetRetryAfter(val OptRetryAfter) {
+	s.RetryAfter = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) SetSunset(val OptString) {
+	s.Sunset = val
+}
+
+// SetResponse sets the value of Response.
+func (s *AuthSessionsGetTooManyRequestsApplicationJSONHeaders) SetResponse(val TooManyRequestsResponse) {
+	s.Response = val
+}
+
+func (*AuthSessionsGetTooManyRequestsApplicationJSONHeaders) authReferenceNumberGetRes()   {}
+func (*AuthSessionsGetTooManyRequestsApplicationJSONHeaders) authSessionsGetRes()          {}
+func (*AuthSessionsGetTooManyRequestsApplicationJSONHeaders) tokensGetRes()                {}
+func (*AuthSessionsGetTooManyRequestsApplicationJSONHeaders) tokensPostRes()               {}
+func (*AuthSessionsGetTooManyRequestsApplicationJSONHeaders) tokensReferenceNumberGetRes() {}
+
+// AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders wraps TooManyRequestsProblemDetails with response headers.
+type AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders struct {
+	Deprecation OptString
+	RetryAfter  OptRetryAfter
+	Sunset      OptString
+	Response    TooManyRequestsProblemDetails
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetRetryAfter returns the value of RetryAfter.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) GetRetryAfter() OptRetryAfter {
+	return s.RetryAfter
+}
+
+// GetSunset returns the value of Sunset.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) GetSunset() OptString {
+	return s.Sunset
+}
+
+// GetResponse returns the value of Response.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) GetResponse() TooManyRequestsProblemDetails {
+	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetRetryAfter sets the value of RetryAfter.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) SetRetryAfter(val OptRetryAfter) {
+	s.RetryAfter = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) SetSunset(val OptString) {
+	s.Sunset = val
+}
+
+// SetResponse sets the value of Response.
+func (s *AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) SetResponse(val TooManyRequestsProblemDetails) {
+	s.Response = val
+}
+
+func (*AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) authReferenceNumberGetRes()   {}
+func (*AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) authSessionsGetRes()          {}
+func (*AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) tokensGetRes()                {}
+func (*AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) tokensPostRes()               {}
+func (*AuthSessionsGetTooManyRequestsApplicationProblemJSONHeaders) tokensReferenceNumberGetRes() {}
+
 // AuthSessionsReferenceNumberDeleteNoContent is response for AuthSessionsReferenceNumberDelete operation.
 type AuthSessionsReferenceNumberDeleteNoContent struct {
 	XSystemWarning OptSystemWarning
@@ -536,6 +644,7 @@ type AuthenticationListItem struct {
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowy czas tokena
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token unieważniony
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nieaktywny
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token poza okresem ważności
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe szyfrowanie tokena
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe kodowanie tokena
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nie może być użyty w kontekście {contextIdentifier}
@@ -699,6 +808,172 @@ func (s *AuthenticationListItemAuthenticationMethodInfo) SetDisplayName(val stri
 	s.DisplayName = val
 }
 
+// Ref: #/components/schemas/AuthenticationListItemRev2
+type AuthenticationListItemRev2 struct {
+	// Data rozpoczęcia operacji uwierzytelnienia.
+	StartDate time.Time `json:"startDate"`
+	// Użyta metoda uwierzytelnienia.
+	AuthenticationMethodInfo AuthenticationListItemRev2AuthenticationMethodInfo `json:"authenticationMethodInfo"`
+	// Informacje o aktualnym statusie.
+	//
+	// 	Code | Description                                                              | Details
+	// 	-----+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------
+	// 	100  | Uwierzytelnianie w toku                                                  | -
+	// 	200  | Uwierzytelnianie zakończone sukcesem                                    | -
+	// 	415  | Uwierzytelnianie zakończone niepowodzeniem                              | Brak przypisanych uprawnień
+	// 	425  | Uwierzytelnienie unieważnione                                           | Uwierzytelnienie i powiązane refresh tokeny zostały unieważnione przez użytkownika
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe wyzwanie autoryzacyjne
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowy token
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowy czas tokena
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token unieważniony
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nieaktywny
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token poza okresem ważności
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe szyfrowanie tokena
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe kodowanie tokena
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nie może być użyty w kontekście {contextIdentifier}
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Nieważny certyfikat
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Błąd weryfikacji łańcucha certyfikatów
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Niezaufany łańcuch certyfikatów
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat odwołany
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat zawieszony
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Niepoprawny certyfikat
+	// 	470  | Uwierzytelnianie zakończone niepowodzeniem                              | Próba wykorzystania metod autoryzacyjnych osoby zmarłej
+	// 	480  | Uwierzytelnienie zablokowane                                             | Podejrzenie incydentu bezpieczeństwa. Skontaktuj się z Ministerstwem Finansów przez formularz zgłoszeniowy.
+	// 	500  | Nieznany błąd                                                          | -
+	// 	550  | Operacja została anulowana przez system                                 | Przetwarzanie zostało przerwane z przyczyn wewnętrznych systemu. Spróbuj ponownie
+	Status StatusInfo `json:"status"`
+	// Czy został już wydany refresh token powiązany z danym uwierzytelnieniem.
+	IsTokenRedeemed OptNilBool `json:"isTokenRedeemed"`
+	// Data ostatniego odświeżenia tokena.
+	LastTokenRefreshDate OptNilDateTime `json:"lastTokenRefreshDate"`
+	// Termin ważności refresh tokena (o ile nie zostanie wcześniej unieważniony).
+	RefreshTokenValidUntil OptNilDateTime `json:"refreshTokenValidUntil"`
+	// Numer referencyjny sesji uwierzytelnienia.
+	ReferenceNumber ReferenceNumber `json:"referenceNumber"`
+	// Czy sesja jest powiązana z aktualnie używanym tokenem.
+	IsCurrent OptBool `json:"isCurrent"`
+}
+
+// GetStartDate returns the value of StartDate.
+func (s *AuthenticationListItemRev2) GetStartDate() time.Time {
+	return s.StartDate
+}
+
+// GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
+func (s *AuthenticationListItemRev2) GetAuthenticationMethodInfo() AuthenticationListItemRev2AuthenticationMethodInfo {
+	return s.AuthenticationMethodInfo
+}
+
+// GetStatus returns the value of Status.
+func (s *AuthenticationListItemRev2) GetStatus() StatusInfo {
+	return s.Status
+}
+
+// GetIsTokenRedeemed returns the value of IsTokenRedeemed.
+func (s *AuthenticationListItemRev2) GetIsTokenRedeemed() OptNilBool {
+	return s.IsTokenRedeemed
+}
+
+// GetLastTokenRefreshDate returns the value of LastTokenRefreshDate.
+func (s *AuthenticationListItemRev2) GetLastTokenRefreshDate() OptNilDateTime {
+	return s.LastTokenRefreshDate
+}
+
+// GetRefreshTokenValidUntil returns the value of RefreshTokenValidUntil.
+func (s *AuthenticationListItemRev2) GetRefreshTokenValidUntil() OptNilDateTime {
+	return s.RefreshTokenValidUntil
+}
+
+// GetReferenceNumber returns the value of ReferenceNumber.
+func (s *AuthenticationListItemRev2) GetReferenceNumber() ReferenceNumber {
+	return s.ReferenceNumber
+}
+
+// GetIsCurrent returns the value of IsCurrent.
+func (s *AuthenticationListItemRev2) GetIsCurrent() OptBool {
+	return s.IsCurrent
+}
+
+// SetStartDate sets the value of StartDate.
+func (s *AuthenticationListItemRev2) SetStartDate(val time.Time) {
+	s.StartDate = val
+}
+
+// SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
+func (s *AuthenticationListItemRev2) SetAuthenticationMethodInfo(val AuthenticationListItemRev2AuthenticationMethodInfo) {
+	s.AuthenticationMethodInfo = val
+}
+
+// SetStatus sets the value of Status.
+func (s *AuthenticationListItemRev2) SetStatus(val StatusInfo) {
+	s.Status = val
+}
+
+// SetIsTokenRedeemed sets the value of IsTokenRedeemed.
+func (s *AuthenticationListItemRev2) SetIsTokenRedeemed(val OptNilBool) {
+	s.IsTokenRedeemed = val
+}
+
+// SetLastTokenRefreshDate sets the value of LastTokenRefreshDate.
+func (s *AuthenticationListItemRev2) SetLastTokenRefreshDate(val OptNilDateTime) {
+	s.LastTokenRefreshDate = val
+}
+
+// SetRefreshTokenValidUntil sets the value of RefreshTokenValidUntil.
+func (s *AuthenticationListItemRev2) SetRefreshTokenValidUntil(val OptNilDateTime) {
+	s.RefreshTokenValidUntil = val
+}
+
+// SetReferenceNumber sets the value of ReferenceNumber.
+func (s *AuthenticationListItemRev2) SetReferenceNumber(val ReferenceNumber) {
+	s.ReferenceNumber = val
+}
+
+// SetIsCurrent sets the value of IsCurrent.
+func (s *AuthenticationListItemRev2) SetIsCurrent(val OptBool) {
+	s.IsCurrent = val
+}
+
+// Merged schema.
+type AuthenticationListItemRev2AuthenticationMethodInfo struct {
+	// Kategoria metody uwierzytelnienia.
+	Category AuthenticationMethodCategoryRev2 `json:"category"`
+	// Kod metody uwierzytelnienia.
+	Code string `json:"code"`
+	// Nazwa metody uwierzytelnienia do wyświetlenia użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCategory returns the value of Category.
+func (s *AuthenticationListItemRev2AuthenticationMethodInfo) GetCategory() AuthenticationMethodCategoryRev2 {
+	return s.Category
+}
+
+// GetCode returns the value of Code.
+func (s *AuthenticationListItemRev2AuthenticationMethodInfo) GetCode() string {
+	return s.Code
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *AuthenticationListItemRev2AuthenticationMethodInfo) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCategory sets the value of Category.
+func (s *AuthenticationListItemRev2AuthenticationMethodInfo) SetCategory(val AuthenticationMethodCategoryRev2) {
+	s.Category = val
+}
+
+// SetCode sets the value of Code.
+func (s *AuthenticationListItemRev2AuthenticationMethodInfo) SetCode(val string) {
+	s.Code = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *AuthenticationListItemRev2AuthenticationMethodInfo) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
 // Ref: #/components/schemas/AuthenticationListResponse
 type AuthenticationListResponse struct {
 	// Token służący do pobrania kolejnej strony wyników. Jeśli jest pusty, to nie ma kolejnych stron.
@@ -729,8 +1004,20 @@ func (s *AuthenticationListResponse) SetItems(val []AuthenticationListItem) {
 
 // AuthenticationListResponseHeaders wraps AuthenticationListResponse with response headers.
 type AuthenticationListResponseHeaders struct {
+	Deprecation    OptString
+	Sunset         OptString
 	XSystemWarning OptSystemWarning
 	Response       AuthenticationListResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *AuthenticationListResponseHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *AuthenticationListResponseHeaders) GetSunset() OptString {
+	return s.Sunset
 }
 
 // GetXSystemWarning returns the value of XSystemWarning.
@@ -741,6 +1028,16 @@ func (s *AuthenticationListResponseHeaders) GetXSystemWarning() OptSystemWarning
 // GetResponse returns the value of Response.
 func (s *AuthenticationListResponseHeaders) GetResponse() AuthenticationListResponse {
 	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *AuthenticationListResponseHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *AuthenticationListResponseHeaders) SetSunset(val OptString) {
+	s.Sunset = val
 }
 
 // SetXSystemWarning sets the value of XSystemWarning.
@@ -754,6 +1051,62 @@ func (s *AuthenticationListResponseHeaders) SetResponse(val AuthenticationListRe
 }
 
 func (*AuthenticationListResponseHeaders) authSessionsGetRes() {}
+
+// Ref: #/components/schemas/AuthenticationListResponseRev2
+type AuthenticationListResponseRev2 struct {
+	// Token służący do pobrania kolejnej strony wyników. Jeśli jest pusty, to nie ma kolejnych stron.
+	ContinuationToken OptNilString `json:"continuationToken"`
+	// Lista sesji uwierzytelniania.
+	Items []AuthenticationListItemRev2 `json:"items"`
+}
+
+// GetContinuationToken returns the value of ContinuationToken.
+func (s *AuthenticationListResponseRev2) GetContinuationToken() OptNilString {
+	return s.ContinuationToken
+}
+
+// GetItems returns the value of Items.
+func (s *AuthenticationListResponseRev2) GetItems() []AuthenticationListItemRev2 {
+	return s.Items
+}
+
+// SetContinuationToken sets the value of ContinuationToken.
+func (s *AuthenticationListResponseRev2) SetContinuationToken(val OptNilString) {
+	s.ContinuationToken = val
+}
+
+// SetItems sets the value of Items.
+func (s *AuthenticationListResponseRev2) SetItems(val []AuthenticationListItemRev2) {
+	s.Items = val
+}
+
+// AuthenticationListResponseRev2Headers wraps AuthenticationListResponseRev2 with response headers.
+type AuthenticationListResponseRev2Headers struct {
+	XSystemWarning OptSystemWarning
+	Response       AuthenticationListResponseRev2
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *AuthenticationListResponseRev2Headers) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// GetResponse returns the value of Response.
+func (s *AuthenticationListResponseRev2Headers) GetResponse() AuthenticationListResponseRev2 {
+	return s.Response
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *AuthenticationListResponseRev2Headers) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+// SetResponse sets the value of Response.
+func (s *AuthenticationListResponseRev2Headers) SetResponse(val AuthenticationListResponseRev2) {
+	s.Response = val
+}
+
+func (*AuthenticationListResponseRev2Headers) authSessionsRev2GetRes() {}
 
 // Metoda uwierzytelnienia.
 //
@@ -908,6 +1261,116 @@ func (s *AuthenticationMethodCategory) UnmarshalText(data []byte) error {
 	}
 }
 
+// Ref: #/components/schemas/AuthenticationMethodCategoryRev2
+type AuthenticationMethodCategoryRev2 struct {
+	// Kod wartości słownikowej.
+	//
+	// 	Code           | DisplayName     | Opis
+	// 	---------------+-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 	XadesSignature | Podpis XAdES    | Uwierzytelnienie podpisem XAdES.
+	// 	NationalNode   | Węzeł Krajowy | Uwierzytelnienie za pomocą Węzła Krajowego.
+	// 	Token          | Token           | Uwierzytelnienie tokenem.
+	// 	FutureValue    |                 | Kategoria metody uwierzytelnienia nieznana w momencie wydania bieżącej wersji modelu. Rzeczywisty kod kategorii jest dostępny w polu `rawCode`, a jej nazwa w polu `displayName`.
+	Code AuthenticationMethodCategoryRev2Code `json:"code"`
+	// Oryginalny kod wartości słownikowej.
+	RawCode string `json:"rawCode"`
+	// Nazwa przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *AuthenticationMethodCategoryRev2) GetCode() AuthenticationMethodCategoryRev2Code {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *AuthenticationMethodCategoryRev2) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *AuthenticationMethodCategoryRev2) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *AuthenticationMethodCategoryRev2) SetCode(val AuthenticationMethodCategoryRev2Code) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *AuthenticationMethodCategoryRev2) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *AuthenticationMethodCategoryRev2) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+//	Code           | DisplayName     | Opis
+//	---------------+-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	XadesSignature | Podpis XAdES    | Uwierzytelnienie podpisem XAdES.
+//	NationalNode   | Węzeł Krajowy | Uwierzytelnienie za pomocą Węzła Krajowego.
+//	Token          | Token           | Uwierzytelnienie tokenem.
+//	FutureValue    |                 | Kategoria metody uwierzytelnienia nieznana w momencie wydania bieżącej wersji modelu. Rzeczywisty kod kategorii jest dostępny w polu `rawCode`, a jej nazwa w polu `displayName`.
+//
+// Ref: #/components/schemas/AuthenticationMethodCategoryRev2Code
+type AuthenticationMethodCategoryRev2Code string
+
+const (
+	AuthenticationMethodCategoryRev2CodeXadesSignature AuthenticationMethodCategoryRev2Code = "XadesSignature"
+	AuthenticationMethodCategoryRev2CodeNationalNode   AuthenticationMethodCategoryRev2Code = "NationalNode"
+	AuthenticationMethodCategoryRev2CodeToken          AuthenticationMethodCategoryRev2Code = "Token"
+	AuthenticationMethodCategoryRev2CodeFutureValue    AuthenticationMethodCategoryRev2Code = "FutureValue"
+)
+
+// AllValues returns all AuthenticationMethodCategoryRev2Code values.
+func (AuthenticationMethodCategoryRev2Code) AllValues() []AuthenticationMethodCategoryRev2Code {
+	return []AuthenticationMethodCategoryRev2Code{
+		AuthenticationMethodCategoryRev2CodeXadesSignature,
+		AuthenticationMethodCategoryRev2CodeNationalNode,
+		AuthenticationMethodCategoryRev2CodeToken,
+		AuthenticationMethodCategoryRev2CodeFutureValue,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s AuthenticationMethodCategoryRev2Code) MarshalText() ([]byte, error) {
+	switch s {
+	case AuthenticationMethodCategoryRev2CodeXadesSignature:
+		return []byte(s), nil
+	case AuthenticationMethodCategoryRev2CodeNationalNode:
+		return []byte(s), nil
+	case AuthenticationMethodCategoryRev2CodeToken:
+		return []byte(s), nil
+	case AuthenticationMethodCategoryRev2CodeFutureValue:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *AuthenticationMethodCategoryRev2Code) UnmarshalText(data []byte) error {
+	switch AuthenticationMethodCategoryRev2Code(data) {
+	case AuthenticationMethodCategoryRev2CodeXadesSignature:
+		*s = AuthenticationMethodCategoryRev2CodeXadesSignature
+		return nil
+	case AuthenticationMethodCategoryRev2CodeNationalNode:
+		*s = AuthenticationMethodCategoryRev2CodeNationalNode
+		return nil
+	case AuthenticationMethodCategoryRev2CodeToken:
+		*s = AuthenticationMethodCategoryRev2CodeToken
+		return nil
+	case AuthenticationMethodCategoryRev2CodeFutureValue:
+		*s = AuthenticationMethodCategoryRev2CodeFutureValue
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 // Ref: #/components/schemas/AuthenticationOperationStatusResponse
 type AuthenticationOperationStatusResponse struct {
 	// Data rozpoczęcia operacji uwierzytelnienia.
@@ -941,6 +1404,7 @@ type AuthenticationOperationStatusResponse struct {
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowy czas tokena
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token unieważniony
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nieaktywny
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token poza okresem ważności
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe szyfrowanie tokena
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe kodowanie tokena
 	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nie może być użyty w kontekście {contextIdentifier}
@@ -1082,8 +1546,20 @@ func (s *AuthenticationOperationStatusResponseAuthenticationMethodInfo) SetDispl
 
 // AuthenticationOperationStatusResponseHeaders wraps AuthenticationOperationStatusResponse with response headers.
 type AuthenticationOperationStatusResponseHeaders struct {
+	Deprecation    OptString
+	Sunset         OptString
 	XSystemWarning OptSystemWarning
 	Response       AuthenticationOperationStatusResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *AuthenticationOperationStatusResponseHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *AuthenticationOperationStatusResponseHeaders) GetSunset() OptString {
+	return s.Sunset
 }
 
 // GetXSystemWarning returns the value of XSystemWarning.
@@ -1094,6 +1570,16 @@ func (s *AuthenticationOperationStatusResponseHeaders) GetXSystemWarning() OptSy
 // GetResponse returns the value of Response.
 func (s *AuthenticationOperationStatusResponseHeaders) GetResponse() AuthenticationOperationStatusResponse {
 	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *AuthenticationOperationStatusResponseHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *AuthenticationOperationStatusResponseHeaders) SetSunset(val OptString) {
+	s.Sunset = val
 }
 
 // SetXSystemWarning sets the value of XSystemWarning.
@@ -1107,6 +1593,176 @@ func (s *AuthenticationOperationStatusResponseHeaders) SetResponse(val Authentic
 }
 
 func (*AuthenticationOperationStatusResponseHeaders) authReferenceNumberGetRes() {}
+
+// Ref: #/components/schemas/AuthenticationOperationStatusResponseRev2
+type AuthenticationOperationStatusResponseRev2 struct {
+	// Data rozpoczęcia operacji uwierzytelnienia.
+	StartDate time.Time `json:"startDate"`
+	// Użyta metoda uwierzytelnienia.
+	AuthenticationMethodInfo AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo `json:"authenticationMethodInfo"`
+	// Informacje o aktualnym statusie.
+	//
+	// 	Code | Description                                                              | Details
+	// 	-----+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------
+	// 	100  | Uwierzytelnianie w toku                                                  | -
+	// 	200  | Uwierzytelnianie zakończone sukcesem                                    | -
+	// 	415  | Uwierzytelnianie zakończone niepowodzeniem                              | Brak przypisanych uprawnień
+	// 	425  | Uwierzytelnienie unieważnione                                           | Uwierzytelnienie i powiązane refresh tokeny zostały unieważnione przez użytkownika
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe wyzwanie autoryzacyjne
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowy token
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowy czas tokena
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token unieważniony
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nieaktywny
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token poza okresem ważności
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe szyfrowanie tokena
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Nieprawidłowe kodowanie tokena
+	// 	450  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędnego tokenu   | Token nie może być użyty w kontekście {contextIdentifier}
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Nieważny certyfikat
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Błąd weryfikacji łańcucha certyfikatów
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Niezaufany łańcuch certyfikatów
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat odwołany
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Certyfikat zawieszony
+	// 	460  | Uwierzytelnianie zakończone niepowodzeniem z powodu błędu certyfikatu | Niepoprawny certyfikat
+	// 	470  | Uwierzytelnianie zakończone niepowodzeniem                              | Próba wykorzystania metod autoryzacyjnych osoby zmarłej
+	// 	480  | Uwierzytelnienie zablokowane                                             | Podejrzenie incydentu bezpieczeństwa. Skontaktuj się z Ministerstwem Finansów przez formularz zgłoszeniowy.
+	// 	500  | Nieznany błąd                                                          | -
+	// 	550  | Operacja została anulowana przez system                                 | Przetwarzanie zostało przerwane z przyczyn wewnętrznych systemu. Spróbuj ponownie
+	Status StatusInfo `json:"status"`
+	// Czy został już wydany refresh token powiązany z danym uwierzytelnieniem.
+	IsTokenRedeemed OptNilBool `json:"isTokenRedeemed"`
+	// Data ostatniego odświeżenia tokena.
+	LastTokenRefreshDate OptNilDateTime `json:"lastTokenRefreshDate"`
+	// Termin ważności refresh tokena (o ile nie zostanie wcześniej unieważniony).
+	RefreshTokenValidUntil OptNilDateTime `json:"refreshTokenValidUntil"`
+}
+
+// GetStartDate returns the value of StartDate.
+func (s *AuthenticationOperationStatusResponseRev2) GetStartDate() time.Time {
+	return s.StartDate
+}
+
+// GetAuthenticationMethodInfo returns the value of AuthenticationMethodInfo.
+func (s *AuthenticationOperationStatusResponseRev2) GetAuthenticationMethodInfo() AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo {
+	return s.AuthenticationMethodInfo
+}
+
+// GetStatus returns the value of Status.
+func (s *AuthenticationOperationStatusResponseRev2) GetStatus() StatusInfo {
+	return s.Status
+}
+
+// GetIsTokenRedeemed returns the value of IsTokenRedeemed.
+func (s *AuthenticationOperationStatusResponseRev2) GetIsTokenRedeemed() OptNilBool {
+	return s.IsTokenRedeemed
+}
+
+// GetLastTokenRefreshDate returns the value of LastTokenRefreshDate.
+func (s *AuthenticationOperationStatusResponseRev2) GetLastTokenRefreshDate() OptNilDateTime {
+	return s.LastTokenRefreshDate
+}
+
+// GetRefreshTokenValidUntil returns the value of RefreshTokenValidUntil.
+func (s *AuthenticationOperationStatusResponseRev2) GetRefreshTokenValidUntil() OptNilDateTime {
+	return s.RefreshTokenValidUntil
+}
+
+// SetStartDate sets the value of StartDate.
+func (s *AuthenticationOperationStatusResponseRev2) SetStartDate(val time.Time) {
+	s.StartDate = val
+}
+
+// SetAuthenticationMethodInfo sets the value of AuthenticationMethodInfo.
+func (s *AuthenticationOperationStatusResponseRev2) SetAuthenticationMethodInfo(val AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) {
+	s.AuthenticationMethodInfo = val
+}
+
+// SetStatus sets the value of Status.
+func (s *AuthenticationOperationStatusResponseRev2) SetStatus(val StatusInfo) {
+	s.Status = val
+}
+
+// SetIsTokenRedeemed sets the value of IsTokenRedeemed.
+func (s *AuthenticationOperationStatusResponseRev2) SetIsTokenRedeemed(val OptNilBool) {
+	s.IsTokenRedeemed = val
+}
+
+// SetLastTokenRefreshDate sets the value of LastTokenRefreshDate.
+func (s *AuthenticationOperationStatusResponseRev2) SetLastTokenRefreshDate(val OptNilDateTime) {
+	s.LastTokenRefreshDate = val
+}
+
+// SetRefreshTokenValidUntil sets the value of RefreshTokenValidUntil.
+func (s *AuthenticationOperationStatusResponseRev2) SetRefreshTokenValidUntil(val OptNilDateTime) {
+	s.RefreshTokenValidUntil = val
+}
+
+// Merged schema.
+type AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo struct {
+	// Kategoria metody uwierzytelnienia.
+	Category AuthenticationMethodCategoryRev2 `json:"category"`
+	// Kod metody uwierzytelnienia.
+	Code string `json:"code"`
+	// Nazwa metody uwierzytelnienia do wyświetlenia użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCategory returns the value of Category.
+func (s *AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) GetCategory() AuthenticationMethodCategoryRev2 {
+	return s.Category
+}
+
+// GetCode returns the value of Code.
+func (s *AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) GetCode() string {
+	return s.Code
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCategory sets the value of Category.
+func (s *AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) SetCategory(val AuthenticationMethodCategoryRev2) {
+	s.Category = val
+}
+
+// SetCode sets the value of Code.
+func (s *AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) SetCode(val string) {
+	s.Code = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *AuthenticationOperationStatusResponseRev2AuthenticationMethodInfo) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+// AuthenticationOperationStatusResponseRev2Headers wraps AuthenticationOperationStatusResponseRev2 with response headers.
+type AuthenticationOperationStatusResponseRev2Headers struct {
+	XSystemWarning OptSystemWarning
+	Response       AuthenticationOperationStatusResponseRev2
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *AuthenticationOperationStatusResponseRev2Headers) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// GetResponse returns the value of Response.
+func (s *AuthenticationOperationStatusResponseRev2Headers) GetResponse() AuthenticationOperationStatusResponseRev2 {
+	return s.Response
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *AuthenticationOperationStatusResponseRev2Headers) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+// SetResponse sets the value of Response.
+func (s *AuthenticationOperationStatusResponseRev2Headers) SetResponse(val AuthenticationOperationStatusResponseRev2) {
+	s.Response = val
+}
+
+func (*AuthenticationOperationStatusResponseRev2Headers) authRev2ReferenceNumberGetRes() {}
 
 // Ref: #/components/schemas/AuthenticationTokenRefreshResponse
 type AuthenticationTokenRefreshResponse struct {
@@ -1475,10 +2131,10 @@ func (s *BadRequestProblemDetails) SetTraceId(val string) {
 
 func (*BadRequestProblemDetails) authChallengePostRes()                                           {}
 func (*BadRequestProblemDetails) authKsefTokenPostRes()                                           {}
-func (*BadRequestProblemDetails) authReferenceNumberGetRes()                                      {}
+func (*BadRequestProblemDetails) authRev2ReferenceNumberGetRes()                                  {}
 func (*BadRequestProblemDetails) authSessionsCurrentDeleteRes()                                   {}
-func (*BadRequestProblemDetails) authSessionsGetRes()                                             {}
 func (*BadRequestProblemDetails) authSessionsReferenceNumberDeleteRes()                           {}
+func (*BadRequestProblemDetails) authSessionsRev2GetRes()                                         {}
 func (*BadRequestProblemDetails) authTokenRedeemPostRes()                                         {}
 func (*BadRequestProblemDetails) authTokenRefreshPostRes()                                        {}
 func (*BadRequestProblemDetails) authXadesSignaturePostRes()                                      {}
@@ -1552,10 +2208,55 @@ func (*BadRequestProblemDetails) testdataRateLimitsPostRes()                    
 func (*BadRequestProblemDetails) testdataRateLimitsProductionPostRes()                            {}
 func (*BadRequestProblemDetails) testdataSubjectPostRes()                                         {}
 func (*BadRequestProblemDetails) testdataSubjectRemovePostRes()                                   {}
-func (*BadRequestProblemDetails) tokensGetRes()                                                   {}
-func (*BadRequestProblemDetails) tokensPostRes()                                                  {}
+func (*BadRequestProblemDetails) testdataTokensReferenceNumberExpireApprovalPostRes()             {}
+func (*BadRequestProblemDetails) tokensReferenceNumberApprovePostRes()                            {}
 func (*BadRequestProblemDetails) tokensReferenceNumberDeleteRes()                                 {}
-func (*BadRequestProblemDetails) tokensReferenceNumberGetRes()                                    {}
+func (*BadRequestProblemDetails) tokensRev2GetRes()                                               {}
+func (*BadRequestProblemDetails) tokensRev2PostRes()                                              {}
+func (*BadRequestProblemDetails) tokensRev2ReferenceNumberGetRes()                                {}
+
+// BadRequestProblemDetailsHeaders wraps BadRequestProblemDetails with response headers.
+type BadRequestProblemDetailsHeaders struct {
+	Deprecation OptString
+	Sunset      OptString
+	Response    BadRequestProblemDetails
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *BadRequestProblemDetailsHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *BadRequestProblemDetailsHeaders) GetSunset() OptString {
+	return s.Sunset
+}
+
+// GetResponse returns the value of Response.
+func (s *BadRequestProblemDetailsHeaders) GetResponse() BadRequestProblemDetails {
+	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *BadRequestProblemDetailsHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *BadRequestProblemDetailsHeaders) SetSunset(val OptString) {
+	s.Sunset = val
+}
+
+// SetResponse sets the value of Response.
+func (s *BadRequestProblemDetailsHeaders) SetResponse(val BadRequestProblemDetails) {
+	s.Response = val
+}
+
+func (*BadRequestProblemDetailsHeaders) authReferenceNumberGetRes()   {}
+func (*BadRequestProblemDetailsHeaders) authSessionsGetRes()          {}
+func (*BadRequestProblemDetailsHeaders) tokensGetRes()                {}
+func (*BadRequestProblemDetailsHeaders) tokensPostRes()               {}
+func (*BadRequestProblemDetailsHeaders) tokensReferenceNumberGetRes() {}
 
 // Ref: #/components/schemas/BatchFilePartInfo
 type BatchFilePartInfo struct {
@@ -2401,21 +3102,6 @@ func (s *CertificateSubjectIdentifierType) UnmarshalText(data []byte) error {
 	default:
 		return errors.Errorf("invalid value: %q", data)
 	}
-}
-
-// Ref: #/components/schemas/CertificateSubjectLimitsOverride
-type CertificateSubjectLimitsOverride struct {
-	MaxCertificates OptNilInt32 `json:"maxCertificates"`
-}
-
-// GetMaxCertificates returns the value of MaxCertificates.
-func (s *CertificateSubjectLimitsOverride) GetMaxCertificates() OptNilInt32 {
-	return s.MaxCertificates
-}
-
-// SetMaxCertificates sets the value of MaxCertificates.
-func (s *CertificateSubjectLimitsOverride) SetMaxCertificates(val OptNilInt32) {
-	s.MaxCertificates = val
 }
 
 // CertificatesCertificateSerialNumberRevokePostNoContent is response for CertificatesCertificateSerialNumberRevokePost operation.
@@ -5469,6 +6155,8 @@ type EffectiveContextLimits struct {
 	BatchSession EffectiveContextLimitsBatchSession `json:"batchSession"`
 	// Limity dla identyfikatorów zbiorczych.
 	CollectiveIdentifier EffectiveContextLimitsCollectiveIdentifier `json:"collectiveIdentifier"`
+	// Limity dla tokenów KSeF.
+	Tokens EffectiveContextLimitsTokens `json:"tokens"`
 }
 
 // GetOnlineSession returns the value of OnlineSession.
@@ -5486,6 +6174,11 @@ func (s *EffectiveContextLimits) GetCollectiveIdentifier() EffectiveContextLimit
 	return s.CollectiveIdentifier
 }
 
+// GetTokens returns the value of Tokens.
+func (s *EffectiveContextLimits) GetTokens() EffectiveContextLimitsTokens {
+	return s.Tokens
+}
+
 // SetOnlineSession sets the value of OnlineSession.
 func (s *EffectiveContextLimits) SetOnlineSession(val EffectiveContextLimitsOnlineSession) {
 	s.OnlineSession = val
@@ -5499,6 +6192,11 @@ func (s *EffectiveContextLimits) SetBatchSession(val EffectiveContextLimitsBatch
 // SetCollectiveIdentifier sets the value of CollectiveIdentifier.
 func (s *EffectiveContextLimits) SetCollectiveIdentifier(val EffectiveContextLimitsCollectiveIdentifier) {
 	s.CollectiveIdentifier = val
+}
+
+// SetTokens sets the value of Tokens.
+func (s *EffectiveContextLimits) SetTokens(val EffectiveContextLimitsTokens) {
+	s.Tokens = val
 }
 
 // Merged schema.
@@ -5625,6 +6323,22 @@ func (s *EffectiveContextLimitsOnlineSession) SetMaxInvoices(val int32) {
 	s.MaxInvoices = val
 }
 
+// Merged schema.
+type EffectiveContextLimitsTokens struct {
+	// Maksymalna liczba tokenów KSeF w kontekście, wliczanych do limitu.
+	MaxTokens int32 `json:"maxTokens"`
+}
+
+// GetMaxTokens returns the value of MaxTokens.
+func (s *EffectiveContextLimitsTokens) GetMaxTokens() int32 {
+	return s.MaxTokens
+}
+
+// SetMaxTokens sets the value of MaxTokens.
+func (s *EffectiveContextLimitsTokens) SetMaxTokens(val int32) {
+	s.MaxTokens = val
+}
+
 // Ref: #/components/schemas/EffectiveSubjectLimits
 type EffectiveSubjectLimits struct {
 	Enrollment  OptNilEnrollmentEffectiveSubjectLimits  `json:"enrollment"`
@@ -5747,21 +6461,6 @@ func (s *EnrollmentEffectiveSubjectLimits) GetMaxEnrollments() OptInt32 {
 
 // SetMaxEnrollments sets the value of MaxEnrollments.
 func (s *EnrollmentEffectiveSubjectLimits) SetMaxEnrollments(val OptInt32) {
-	s.MaxEnrollments = val
-}
-
-// Ref: #/components/schemas/EnrollmentSubjectLimitsOverride
-type EnrollmentSubjectLimitsOverride struct {
-	MaxEnrollments OptNilInt32 `json:"maxEnrollments"`
-}
-
-// GetMaxEnrollments returns the value of MaxEnrollments.
-func (s *EnrollmentSubjectLimitsOverride) GetMaxEnrollments() OptNilInt32 {
-	return s.MaxEnrollments
-}
-
-// SetMaxEnrollments sets the value of MaxEnrollments.
-func (s *EnrollmentSubjectLimitsOverride) SetMaxEnrollments(val OptNilInt32) {
 	s.MaxEnrollments = val
 }
 
@@ -7451,8 +8150,9 @@ func (s *EuEntityPermissionSubjectPersonDetailsPersonIdentifier) SetValue(val st
 type EuEntityPermissionType string
 
 const (
-	EuEntityPermissionTypeInvoiceWrite EuEntityPermissionType = "InvoiceWrite"
-	EuEntityPermissionTypeInvoiceRead  EuEntityPermissionType = "InvoiceRead"
+	EuEntityPermissionTypeInvoiceWrite               EuEntityPermissionType = "InvoiceWrite"
+	EuEntityPermissionTypeInvoiceRead                EuEntityPermissionType = "InvoiceRead"
+	EuEntityPermissionTypeCollectiveIdentifierManage EuEntityPermissionType = "CollectiveIdentifierManage"
 )
 
 // AllValues returns all EuEntityPermissionType values.
@@ -7460,6 +8160,7 @@ func (EuEntityPermissionType) AllValues() []EuEntityPermissionType {
 	return []EuEntityPermissionType{
 		EuEntityPermissionTypeInvoiceWrite,
 		EuEntityPermissionTypeInvoiceRead,
+		EuEntityPermissionTypeCollectiveIdentifierManage,
 	}
 }
 
@@ -7469,6 +8170,8 @@ func (s EuEntityPermissionType) MarshalText() ([]byte, error) {
 	case EuEntityPermissionTypeInvoiceWrite:
 		return []byte(s), nil
 	case EuEntityPermissionTypeInvoiceRead:
+		return []byte(s), nil
+	case EuEntityPermissionTypeCollectiveIdentifierManage:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -7483,6 +8186,9 @@ func (s *EuEntityPermissionType) UnmarshalText(data []byte) error {
 		return nil
 	case EuEntityPermissionTypeInvoiceRead:
 		*s = EuEntityPermissionTypeInvoiceRead
+		return nil
+	case EuEntityPermissionTypeCollectiveIdentifierManage:
+		*s = EuEntityPermissionTypeCollectiveIdentifierManage
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -7542,10 +8248,11 @@ func (s *EuEntityPermissionsAuthorIdentifierType) UnmarshalText(data []byte) err
 type EuEntityPermissionsQueryPermissionType string
 
 const (
-	EuEntityPermissionsQueryPermissionTypeVatUeManage   EuEntityPermissionsQueryPermissionType = "VatUeManage"
-	EuEntityPermissionsQueryPermissionTypeInvoiceWrite  EuEntityPermissionsQueryPermissionType = "InvoiceWrite"
-	EuEntityPermissionsQueryPermissionTypeInvoiceRead   EuEntityPermissionsQueryPermissionType = "InvoiceRead"
-	EuEntityPermissionsQueryPermissionTypeIntrospection EuEntityPermissionsQueryPermissionType = "Introspection"
+	EuEntityPermissionsQueryPermissionTypeVatUeManage                EuEntityPermissionsQueryPermissionType = "VatUeManage"
+	EuEntityPermissionsQueryPermissionTypeInvoiceWrite               EuEntityPermissionsQueryPermissionType = "InvoiceWrite"
+	EuEntityPermissionsQueryPermissionTypeInvoiceRead                EuEntityPermissionsQueryPermissionType = "InvoiceRead"
+	EuEntityPermissionsQueryPermissionTypeIntrospection              EuEntityPermissionsQueryPermissionType = "Introspection"
+	EuEntityPermissionsQueryPermissionTypeCollectiveIdentifierManage EuEntityPermissionsQueryPermissionType = "CollectiveIdentifierManage"
 )
 
 // AllValues returns all EuEntityPermissionsQueryPermissionType values.
@@ -7555,6 +8262,7 @@ func (EuEntityPermissionsQueryPermissionType) AllValues() []EuEntityPermissionsQ
 		EuEntityPermissionsQueryPermissionTypeInvoiceWrite,
 		EuEntityPermissionsQueryPermissionTypeInvoiceRead,
 		EuEntityPermissionsQueryPermissionTypeIntrospection,
+		EuEntityPermissionsQueryPermissionTypeCollectiveIdentifierManage,
 	}
 }
 
@@ -7568,6 +8276,8 @@ func (s EuEntityPermissionsQueryPermissionType) MarshalText() ([]byte, error) {
 	case EuEntityPermissionsQueryPermissionTypeInvoiceRead:
 		return []byte(s), nil
 	case EuEntityPermissionsQueryPermissionTypeIntrospection:
+		return []byte(s), nil
+	case EuEntityPermissionsQueryPermissionTypeCollectiveIdentifierManage:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -7588,6 +8298,9 @@ func (s *EuEntityPermissionsQueryPermissionType) UnmarshalText(data []byte) erro
 		return nil
 	case EuEntityPermissionsQueryPermissionTypeIntrospection:
 		*s = EuEntityPermissionsQueryPermissionTypeIntrospection
+		return nil
+	case EuEntityPermissionsQueryPermissionTypeCollectiveIdentifierManage:
+		*s = EuEntityPermissionsQueryPermissionTypeCollectiveIdentifierManage
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -7794,10 +8507,10 @@ func (s *ExceptionResponse) SetException(val OptNilExceptionInfo) {
 
 func (*ExceptionResponse) authChallengePostRes()                                           {}
 func (*ExceptionResponse) authKsefTokenPostRes()                                           {}
-func (*ExceptionResponse) authReferenceNumberGetRes()                                      {}
+func (*ExceptionResponse) authRev2ReferenceNumberGetRes()                                  {}
 func (*ExceptionResponse) authSessionsCurrentDeleteRes()                                   {}
-func (*ExceptionResponse) authSessionsGetRes()                                             {}
 func (*ExceptionResponse) authSessionsReferenceNumberDeleteRes()                           {}
+func (*ExceptionResponse) authSessionsRev2GetRes()                                         {}
 func (*ExceptionResponse) authTokenRedeemPostRes()                                         {}
 func (*ExceptionResponse) authTokenRefreshPostRes()                                        {}
 func (*ExceptionResponse) authXadesSignaturePostRes()                                      {}
@@ -7871,10 +8584,55 @@ func (*ExceptionResponse) testdataRateLimitsPostRes()                           
 func (*ExceptionResponse) testdataRateLimitsProductionPostRes()                            {}
 func (*ExceptionResponse) testdataSubjectPostRes()                                         {}
 func (*ExceptionResponse) testdataSubjectRemovePostRes()                                   {}
-func (*ExceptionResponse) tokensGetRes()                                                   {}
-func (*ExceptionResponse) tokensPostRes()                                                  {}
+func (*ExceptionResponse) testdataTokensReferenceNumberExpireApprovalPostRes()             {}
+func (*ExceptionResponse) tokensReferenceNumberApprovePostRes()                            {}
 func (*ExceptionResponse) tokensReferenceNumberDeleteRes()                                 {}
-func (*ExceptionResponse) tokensReferenceNumberGetRes()                                    {}
+func (*ExceptionResponse) tokensRev2GetRes()                                               {}
+func (*ExceptionResponse) tokensRev2PostRes()                                              {}
+func (*ExceptionResponse) tokensRev2ReferenceNumberGetRes()                                {}
+
+// ExceptionResponseHeaders wraps ExceptionResponse with response headers.
+type ExceptionResponseHeaders struct {
+	Deprecation OptString
+	Sunset      OptString
+	Response    ExceptionResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *ExceptionResponseHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *ExceptionResponseHeaders) GetSunset() OptString {
+	return s.Sunset
+}
+
+// GetResponse returns the value of Response.
+func (s *ExceptionResponseHeaders) GetResponse() ExceptionResponse {
+	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *ExceptionResponseHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *ExceptionResponseHeaders) SetSunset(val OptString) {
+	s.Sunset = val
+}
+
+// SetResponse sets the value of Response.
+func (s *ExceptionResponseHeaders) SetResponse(val ExceptionResponse) {
+	s.Response = val
+}
+
+func (*ExceptionResponseHeaders) authReferenceNumberGetRes()   {}
+func (*ExceptionResponseHeaders) authSessionsGetRes()          {}
+func (*ExceptionResponseHeaders) tokensGetRes()                {}
+func (*ExceptionResponseHeaders) tokensPostRes()               {}
+func (*ExceptionResponseHeaders) tokensReferenceNumberGetRes() {}
 
 // Ref: #/components/schemas/ExportInvoicesResponse
 type ExportInvoicesResponse struct {
@@ -8039,9 +8797,11 @@ func (s *ForbiddenProblemDetails) SetTimestamp(val OptDateTime) {
 }
 
 func (*ForbiddenProblemDetails) authReferenceNumberGetRes()                                      {}
+func (*ForbiddenProblemDetails) authRev2ReferenceNumberGetRes()                                  {}
 func (*ForbiddenProblemDetails) authSessionsCurrentDeleteRes()                                   {}
 func (*ForbiddenProblemDetails) authSessionsGetRes()                                             {}
 func (*ForbiddenProblemDetails) authSessionsReferenceNumberDeleteRes()                           {}
+func (*ForbiddenProblemDetails) authSessionsRev2GetRes()                                         {}
 func (*ForbiddenProblemDetails) authTokenRedeemPostRes()                                         {}
 func (*ForbiddenProblemDetails) authTokenRefreshPostRes()                                        {}
 func (*ForbiddenProblemDetails) certificatesCertificateSerialNumberRevokePostRes()               {}
@@ -8102,10 +8862,15 @@ func (*ForbiddenProblemDetails) testdataLimitsSubjectCertificatePostRes()       
 func (*ForbiddenProblemDetails) testdataRateLimitsDeleteRes()                                    {}
 func (*ForbiddenProblemDetails) testdataRateLimitsPostRes()                                      {}
 func (*ForbiddenProblemDetails) testdataRateLimitsProductionPostRes()                            {}
+func (*ForbiddenProblemDetails) testdataTokensReferenceNumberExpireApprovalPostRes()             {}
 func (*ForbiddenProblemDetails) tokensGetRes()                                                   {}
 func (*ForbiddenProblemDetails) tokensPostRes()                                                  {}
+func (*ForbiddenProblemDetails) tokensReferenceNumberApprovePostRes()                            {}
 func (*ForbiddenProblemDetails) tokensReferenceNumberDeleteRes()                                 {}
 func (*ForbiddenProblemDetails) tokensReferenceNumberGetRes()                                    {}
+func (*ForbiddenProblemDetails) tokensRev2GetRes()                                               {}
+func (*ForbiddenProblemDetails) tokensRev2PostRes()                                              {}
+func (*ForbiddenProblemDetails) tokensRev2ReferenceNumberGetRes()                                {}
 
 // Dodatkowe dane zależne od `reasonCode`.
 //
@@ -8220,8 +8985,20 @@ func (s *GenerateTokenResponse) SetToken(val string) {
 
 // GenerateTokenResponseHeaders wraps GenerateTokenResponse with response headers.
 type GenerateTokenResponseHeaders struct {
+	Deprecation    OptString
+	Sunset         OptString
 	XSystemWarning OptSystemWarning
 	Response       GenerateTokenResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *GenerateTokenResponseHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *GenerateTokenResponseHeaders) GetSunset() OptString {
+	return s.Sunset
 }
 
 // GetXSystemWarning returns the value of XSystemWarning.
@@ -8232,6 +9009,16 @@ func (s *GenerateTokenResponseHeaders) GetXSystemWarning() OptSystemWarning {
 // GetResponse returns the value of Response.
 func (s *GenerateTokenResponseHeaders) GetResponse() GenerateTokenResponse {
 	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *GenerateTokenResponseHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *GenerateTokenResponseHeaders) SetSunset(val OptString) {
+	s.Sunset = val
 }
 
 // SetXSystemWarning sets the value of XSystemWarning.
@@ -8245,6 +9032,62 @@ func (s *GenerateTokenResponseHeaders) SetResponse(val GenerateTokenResponse) {
 }
 
 func (*GenerateTokenResponseHeaders) tokensPostRes() {}
+
+// Ref: #/components/schemas/GenerateTokenResponseRev2
+type GenerateTokenResponseRev2 struct {
+	// Numer referencyjny tokena KSeF.
+	ReferenceNumber ReferenceNumber `json:"referenceNumber"`
+	// Token KSeF.
+	Token string `json:"token"`
+}
+
+// GetReferenceNumber returns the value of ReferenceNumber.
+func (s *GenerateTokenResponseRev2) GetReferenceNumber() ReferenceNumber {
+	return s.ReferenceNumber
+}
+
+// GetToken returns the value of Token.
+func (s *GenerateTokenResponseRev2) GetToken() string {
+	return s.Token
+}
+
+// SetReferenceNumber sets the value of ReferenceNumber.
+func (s *GenerateTokenResponseRev2) SetReferenceNumber(val ReferenceNumber) {
+	s.ReferenceNumber = val
+}
+
+// SetToken sets the value of Token.
+func (s *GenerateTokenResponseRev2) SetToken(val string) {
+	s.Token = val
+}
+
+// GenerateTokenResponseRev2Headers wraps GenerateTokenResponseRev2 with response headers.
+type GenerateTokenResponseRev2Headers struct {
+	XSystemWarning OptSystemWarning
+	Response       GenerateTokenResponseRev2
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *GenerateTokenResponseRev2Headers) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// GetResponse returns the value of Response.
+func (s *GenerateTokenResponseRev2Headers) GetResponse() GenerateTokenResponseRev2 {
+	return s.Response
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *GenerateTokenResponseRev2Headers) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+// SetResponse sets the value of Response.
+func (s *GenerateTokenResponseRev2Headers) SetResponse(val GenerateTokenResponseRev2) {
+	s.Response = val
+}
+
+func (*GenerateTokenResponseRev2Headers) tokensRev2PostRes() {}
 
 // Ref: #/components/schemas/GoneProblemDetails
 type GoneProblemDetails struct {
@@ -8322,10 +9165,53 @@ func (s *GoneProblemDetails) SetTraceId(val string) {
 	s.TraceId = val
 }
 
-func (*GoneProblemDetails) authReferenceNumberGetRes()                    {}
+func (*GoneProblemDetails) authRev2ReferenceNumberGetRes()                {}
+func (*GoneProblemDetails) authSessionsGetRes()                           {}
 func (*GoneProblemDetails) certificatesEnrollmentsReferenceNumberGetRes() {}
 func (*GoneProblemDetails) invoicesExportsReferenceNumberGetRes()         {}
 func (*GoneProblemDetails) permissionsOperationsReferenceNumberGetRes()   {}
+func (*GoneProblemDetails) tokensGetRes()                                 {}
+func (*GoneProblemDetails) tokensPostRes()                                {}
+func (*GoneProblemDetails) tokensReferenceNumberGetRes()                  {}
+
+// GoneProblemDetailsHeaders wraps GoneProblemDetails with response headers.
+type GoneProblemDetailsHeaders struct {
+	Deprecation OptString
+	Sunset      OptString
+	Response    GoneProblemDetails
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *GoneProblemDetailsHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *GoneProblemDetailsHeaders) GetSunset() OptString {
+	return s.Sunset
+}
+
+// GetResponse returns the value of Response.
+func (s *GoneProblemDetailsHeaders) GetResponse() GoneProblemDetails {
+	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *GoneProblemDetailsHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *GoneProblemDetailsHeaders) SetSunset(val OptString) {
+	s.Sunset = val
+}
+
+// SetResponse sets the value of Response.
+func (s *GoneProblemDetailsHeaders) SetResponse(val GoneProblemDetails) {
+	s.Response = val
+}
+
+func (*GoneProblemDetailsHeaders) authReferenceNumberGetRes() {}
 
 // Ref: #/components/schemas/IndirectPermissionType
 type IndirectPermissionType string
@@ -10266,9 +11152,11 @@ func (s InvoicesKsefKsefNumberGetOK) Read(p []byte) (n int, err error) {
 
 // InvoicesKsefKsefNumberGetOKHeaders wraps InvoicesKsefKsefNumberGetOK with response headers.
 type InvoicesKsefKsefNumberGetOKHeaders struct {
-	XSystemWarning OptSystemWarning
-	XMsMetaHash    Sha256HashBase64
-	Response       InvoicesKsefKsefNumberGetOK
+	XSystemWarning              OptSystemWarning
+	XMsMetaAcquisitionDate      OptString
+	XMsMetaHash                 Sha256HashBase64
+	XMsMetaPermanentStorageDate OptString
+	Response                    InvoicesKsefKsefNumberGetOK
 }
 
 // GetXSystemWarning returns the value of XSystemWarning.
@@ -10276,9 +11164,19 @@ func (s *InvoicesKsefKsefNumberGetOKHeaders) GetXSystemWarning() OptSystemWarnin
 	return s.XSystemWarning
 }
 
+// GetXMsMetaAcquisitionDate returns the value of XMsMetaAcquisitionDate.
+func (s *InvoicesKsefKsefNumberGetOKHeaders) GetXMsMetaAcquisitionDate() OptString {
+	return s.XMsMetaAcquisitionDate
+}
+
 // GetXMsMetaHash returns the value of XMsMetaHash.
 func (s *InvoicesKsefKsefNumberGetOKHeaders) GetXMsMetaHash() Sha256HashBase64 {
 	return s.XMsMetaHash
+}
+
+// GetXMsMetaPermanentStorageDate returns the value of XMsMetaPermanentStorageDate.
+func (s *InvoicesKsefKsefNumberGetOKHeaders) GetXMsMetaPermanentStorageDate() OptString {
+	return s.XMsMetaPermanentStorageDate
 }
 
 // GetResponse returns the value of Response.
@@ -10291,9 +11189,19 @@ func (s *InvoicesKsefKsefNumberGetOKHeaders) SetXSystemWarning(val OptSystemWarn
 	s.XSystemWarning = val
 }
 
+// SetXMsMetaAcquisitionDate sets the value of XMsMetaAcquisitionDate.
+func (s *InvoicesKsefKsefNumberGetOKHeaders) SetXMsMetaAcquisitionDate(val OptString) {
+	s.XMsMetaAcquisitionDate = val
+}
+
 // SetXMsMetaHash sets the value of XMsMetaHash.
 func (s *InvoicesKsefKsefNumberGetOKHeaders) SetXMsMetaHash(val Sha256HashBase64) {
 	s.XMsMetaHash = val
+}
+
+// SetXMsMetaPermanentStorageDate sets the value of XMsMetaPermanentStorageDate.
+func (s *InvoicesKsefKsefNumberGetOKHeaders) SetXMsMetaPermanentStorageDate(val OptString) {
+	s.XMsMetaPermanentStorageDate = val
 }
 
 // SetResponse sets the value of Response.
@@ -12191,74 +13099,6 @@ func (o OptNilCertificateRevocationReason) Or(d CertificateRevocationReason) Cer
 	return d
 }
 
-// NewOptNilCertificateSubjectLimitsOverride returns new OptNilCertificateSubjectLimitsOverride with value set to v.
-func NewOptNilCertificateSubjectLimitsOverride(v CertificateSubjectLimitsOverride) OptNilCertificateSubjectLimitsOverride {
-	return OptNilCertificateSubjectLimitsOverride{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptNilCertificateSubjectLimitsOverride is optional nullable CertificateSubjectLimitsOverride.
-type OptNilCertificateSubjectLimitsOverride struct {
-	Value CertificateSubjectLimitsOverride
-	Set   bool
-	Null  bool
-}
-
-// IsSet returns true if OptNilCertificateSubjectLimitsOverride was set.
-func (o OptNilCertificateSubjectLimitsOverride) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptNilCertificateSubjectLimitsOverride) Reset() {
-	var v CertificateSubjectLimitsOverride
-	o.Value = v
-	o.Set = false
-	o.Null = false
-}
-
-// SetTo sets value to v.
-func (o *OptNilCertificateSubjectLimitsOverride) SetTo(v CertificateSubjectLimitsOverride) {
-	o.Set = true
-	o.Null = false
-	o.Value = v
-}
-
-// IsNull returns true if value is Null.
-func (o OptNilCertificateSubjectLimitsOverride) IsNull() bool { return o.Null }
-
-// SetToNull sets value to null.
-func (o *OptNilCertificateSubjectLimitsOverride) SetToNull() {
-	o.Set = true
-	o.Null = true
-	var v CertificateSubjectLimitsOverride
-	o.Value = v
-}
-
-// IsEmpty returns true if the field was omitted from the payload (not Set and not Null).
-func (o OptNilCertificateSubjectLimitsOverride) IsEmpty() bool {
-	return !o.Set && !o.Null
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptNilCertificateSubjectLimitsOverride) Get() (v CertificateSubjectLimitsOverride, ok bool) {
-	if o.Null {
-		return v, false
-	}
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptNilCertificateSubjectLimitsOverride) Or(d CertificateSubjectLimitsOverride) CertificateSubjectLimitsOverride {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptNilCollectiveIdentifierInvoicePayment returns new OptNilCollectiveIdentifierInvoicePayment with value set to v.
 func NewOptNilCollectiveIdentifierInvoicePayment(v CollectiveIdentifierInvoicePayment) OptNilCollectiveIdentifierInvoicePayment {
 	return OptNilCollectiveIdentifierInvoicePayment{
@@ -12729,74 +13569,6 @@ func (o OptNilEnrollmentEffectiveSubjectLimits) Get() (v EnrollmentEffectiveSubj
 
 // Or returns value if set, or given parameter if does not.
 func (o OptNilEnrollmentEffectiveSubjectLimits) Or(d EnrollmentEffectiveSubjectLimits) EnrollmentEffectiveSubjectLimits {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptNilEnrollmentSubjectLimitsOverride returns new OptNilEnrollmentSubjectLimitsOverride with value set to v.
-func NewOptNilEnrollmentSubjectLimitsOverride(v EnrollmentSubjectLimitsOverride) OptNilEnrollmentSubjectLimitsOverride {
-	return OptNilEnrollmentSubjectLimitsOverride{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptNilEnrollmentSubjectLimitsOverride is optional nullable EnrollmentSubjectLimitsOverride.
-type OptNilEnrollmentSubjectLimitsOverride struct {
-	Value EnrollmentSubjectLimitsOverride
-	Set   bool
-	Null  bool
-}
-
-// IsSet returns true if OptNilEnrollmentSubjectLimitsOverride was set.
-func (o OptNilEnrollmentSubjectLimitsOverride) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptNilEnrollmentSubjectLimitsOverride) Reset() {
-	var v EnrollmentSubjectLimitsOverride
-	o.Value = v
-	o.Set = false
-	o.Null = false
-}
-
-// SetTo sets value to v.
-func (o *OptNilEnrollmentSubjectLimitsOverride) SetTo(v EnrollmentSubjectLimitsOverride) {
-	o.Set = true
-	o.Null = false
-	o.Value = v
-}
-
-// IsNull returns true if value is Null.
-func (o OptNilEnrollmentSubjectLimitsOverride) IsNull() bool { return o.Null }
-
-// SetToNull sets value to null.
-func (o *OptNilEnrollmentSubjectLimitsOverride) SetToNull() {
-	o.Set = true
-	o.Null = true
-	var v EnrollmentSubjectLimitsOverride
-	o.Value = v
-}
-
-// IsEmpty returns true if the field was omitted from the payload (not Set and not Null).
-func (o OptNilEnrollmentSubjectLimitsOverride) IsEmpty() bool {
-	return !o.Set && !o.Null
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptNilEnrollmentSubjectLimitsOverride) Get() (v EnrollmentSubjectLimitsOverride, ok bool) {
-	if o.Null {
-		return v, false
-	}
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptNilEnrollmentSubjectLimitsOverride) Or(d EnrollmentSubjectLimitsOverride) EnrollmentSubjectLimitsOverride {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -17819,6 +18591,142 @@ func (o OptNilSessionStatusResponseUpo) Or(d SessionStatusResponseUpo) SessionSt
 	return d
 }
 
+// NewOptNilSetSubjectLimitsRequestCertificate returns new OptNilSetSubjectLimitsRequestCertificate with value set to v.
+func NewOptNilSetSubjectLimitsRequestCertificate(v SetSubjectLimitsRequestCertificate) OptNilSetSubjectLimitsRequestCertificate {
+	return OptNilSetSubjectLimitsRequestCertificate{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilSetSubjectLimitsRequestCertificate is optional nullable SetSubjectLimitsRequestCertificate.
+type OptNilSetSubjectLimitsRequestCertificate struct {
+	Value SetSubjectLimitsRequestCertificate
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilSetSubjectLimitsRequestCertificate was set.
+func (o OptNilSetSubjectLimitsRequestCertificate) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilSetSubjectLimitsRequestCertificate) Reset() {
+	var v SetSubjectLimitsRequestCertificate
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilSetSubjectLimitsRequestCertificate) SetTo(v SetSubjectLimitsRequestCertificate) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilSetSubjectLimitsRequestCertificate) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilSetSubjectLimitsRequestCertificate) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v SetSubjectLimitsRequestCertificate
+	o.Value = v
+}
+
+// IsEmpty returns true if the field was omitted from the payload (not Set and not Null).
+func (o OptNilSetSubjectLimitsRequestCertificate) IsEmpty() bool {
+	return !o.Set && !o.Null
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilSetSubjectLimitsRequestCertificate) Get() (v SetSubjectLimitsRequestCertificate, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilSetSubjectLimitsRequestCertificate) Or(d SetSubjectLimitsRequestCertificate) SetSubjectLimitsRequestCertificate {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilSetSubjectLimitsRequestEnrollment returns new OptNilSetSubjectLimitsRequestEnrollment with value set to v.
+func NewOptNilSetSubjectLimitsRequestEnrollment(v SetSubjectLimitsRequestEnrollment) OptNilSetSubjectLimitsRequestEnrollment {
+	return OptNilSetSubjectLimitsRequestEnrollment{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilSetSubjectLimitsRequestEnrollment is optional nullable SetSubjectLimitsRequestEnrollment.
+type OptNilSetSubjectLimitsRequestEnrollment struct {
+	Value SetSubjectLimitsRequestEnrollment
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilSetSubjectLimitsRequestEnrollment was set.
+func (o OptNilSetSubjectLimitsRequestEnrollment) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilSetSubjectLimitsRequestEnrollment) Reset() {
+	var v SetSubjectLimitsRequestEnrollment
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilSetSubjectLimitsRequestEnrollment) SetTo(v SetSubjectLimitsRequestEnrollment) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilSetSubjectLimitsRequestEnrollment) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilSetSubjectLimitsRequestEnrollment) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v SetSubjectLimitsRequestEnrollment
+	o.Value = v
+}
+
+// IsEmpty returns true if the field was omitted from the payload (not Set and not Null).
+func (o OptNilSetSubjectLimitsRequestEnrollment) IsEmpty() bool {
+	return !o.Set && !o.Null
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilSetSubjectLimitsRequestEnrollment) Get() (v SetSubjectLimitsRequestEnrollment, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilSetSubjectLimitsRequestEnrollment) Or(d SetSubjectLimitsRequestEnrollment) SetSubjectLimitsRequestEnrollment {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptNilSha256HashBase64 returns new OptNilSha256HashBase64 with value set to v.
 func NewOptNilSha256HashBase64(v Sha256HashBase64) OptNilSha256HashBase64 {
 	return OptNilSha256HashBase64{
@@ -18429,6 +19337,74 @@ func (o OptNilSubunitPermissionsQueryRequestSubunitIdentifier) Get() (v SubunitP
 
 // Or returns value if set, or given parameter if does not.
 func (o OptNilSubunitPermissionsQueryRequestSubunitIdentifier) Or(d SubunitPermissionsQueryRequestSubunitIdentifier) SubunitPermissionsQueryRequestSubunitIdentifier {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilTokenFailureRev2 returns new OptNilTokenFailureRev2 with value set to v.
+func NewOptNilTokenFailureRev2(v TokenFailureRev2) OptNilTokenFailureRev2 {
+	return OptNilTokenFailureRev2{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilTokenFailureRev2 is optional nullable TokenFailureRev2.
+type OptNilTokenFailureRev2 struct {
+	Value TokenFailureRev2
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilTokenFailureRev2 was set.
+func (o OptNilTokenFailureRev2) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilTokenFailureRev2) Reset() {
+	var v TokenFailureRev2
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilTokenFailureRev2) SetTo(v TokenFailureRev2) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilTokenFailureRev2) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilTokenFailureRev2) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v TokenFailureRev2
+	o.Value = v
+}
+
+// IsEmpty returns true if the field was omitted from the payload (not Set and not Null).
+func (o OptNilTokenFailureRev2) IsEmpty() bool {
+	return !o.Set && !o.Null
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilTokenFailureRev2) Get() (v TokenFailureRev2, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilTokenFailureRev2) Or(d TokenFailureRev2) TokenFailureRev2 {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -20181,6 +21157,52 @@ func (o OptTokenAuthorIdentifierType) Or(d TokenAuthorIdentifierType) TokenAutho
 	return d
 }
 
+// NewOptTokenAuthorIdentifierTypeFilterRev2 returns new OptTokenAuthorIdentifierTypeFilterRev2 with value set to v.
+func NewOptTokenAuthorIdentifierTypeFilterRev2(v TokenAuthorIdentifierTypeFilterRev2) OptTokenAuthorIdentifierTypeFilterRev2 {
+	return OptTokenAuthorIdentifierTypeFilterRev2{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptTokenAuthorIdentifierTypeFilterRev2 is optional TokenAuthorIdentifierTypeFilterRev2.
+type OptTokenAuthorIdentifierTypeFilterRev2 struct {
+	Value TokenAuthorIdentifierTypeFilterRev2
+	Set   bool
+}
+
+// IsSet returns true if OptTokenAuthorIdentifierTypeFilterRev2 was set.
+func (o OptTokenAuthorIdentifierTypeFilterRev2) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptTokenAuthorIdentifierTypeFilterRev2) Reset() {
+	var v TokenAuthorIdentifierTypeFilterRev2
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptTokenAuthorIdentifierTypeFilterRev2) SetTo(v TokenAuthorIdentifierTypeFilterRev2) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptTokenAuthorIdentifierTypeFilterRev2) Get() (v TokenAuthorIdentifierTypeFilterRev2, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptTokenAuthorIdentifierTypeFilterRev2) Or(d TokenAuthorIdentifierTypeFilterRev2) TokenAuthorIdentifierTypeFilterRev2 {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptTokensPostReq returns new OptTokensPostReq with value set to v.
 func NewOptTokensPostReq(v TokensPostReq) OptTokensPostReq {
 	return OptTokensPostReq{
@@ -20221,6 +21243,52 @@ func (o OptTokensPostReq) Get() (v TokensPostReq, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptTokensPostReq) Or(d TokensPostReq) TokensPostReq {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptTokensRev2PostReq returns new OptTokensRev2PostReq with value set to v.
+func NewOptTokensRev2PostReq(v TokensRev2PostReq) OptTokensRev2PostReq {
+	return OptTokensRev2PostReq{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptTokensRev2PostReq is optional TokensRev2PostReq.
+type OptTokensRev2PostReq struct {
+	Value TokensRev2PostReq
+	Set   bool
+}
+
+// IsSet returns true if OptTokensRev2PostReq was set.
+func (o OptTokensRev2PostReq) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptTokensRev2PostReq) Reset() {
+	var v TokensRev2PostReq
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptTokensRev2PostReq) SetTo(v TokensRev2PostReq) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptTokensRev2PostReq) Get() (v TokensRev2PostReq, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptTokensRev2PostReq) Or(d TokensRev2PostReq) TokensRev2PostReq {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -25938,8 +27006,20 @@ func (s *QueryTokensResponse) SetTokens(val []QueryTokensResponseItem) {
 
 // QueryTokensResponseHeaders wraps QueryTokensResponse with response headers.
 type QueryTokensResponseHeaders struct {
+	Deprecation    OptString
+	Sunset         OptString
 	XSystemWarning OptSystemWarning
 	Response       QueryTokensResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *QueryTokensResponseHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *QueryTokensResponseHeaders) GetSunset() OptString {
+	return s.Sunset
 }
 
 // GetXSystemWarning returns the value of XSystemWarning.
@@ -25950,6 +27030,16 @@ func (s *QueryTokensResponseHeaders) GetXSystemWarning() OptSystemWarning {
 // GetResponse returns the value of Response.
 func (s *QueryTokensResponseHeaders) GetResponse() QueryTokensResponse {
 	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *QueryTokensResponseHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *QueryTokensResponseHeaders) SetSunset(val OptString) {
+	s.Sunset = val
 }
 
 // SetXSystemWarning sets the value of XSystemWarning.
@@ -26152,6 +27242,350 @@ func (s *QueryTokensResponseItemContextIdentifier) SetType(val TokenContextIdent
 func (s *QueryTokensResponseItemContextIdentifier) SetValue(val string) {
 	s.Value = val
 }
+
+// Ref: #/components/schemas/QueryTokensResponseItemRev2
+type QueryTokensResponseItemRev2 struct {
+	// Numer referencyjny tokena KSeF.
+	ReferenceNumber ReferenceNumber `json:"referenceNumber"`
+	// Identyfikator osoby która wygenerowała token.
+	AuthorIdentifier QueryTokensResponseItemRev2AuthorIdentifier `json:"authorIdentifier"`
+	// Identyfikator kontekstu, w którym został wygenerowany token i do którego daje dostęp.
+	ContextIdentifier QueryTokensResponseItemRev2ContextIdentifier `json:"contextIdentifier"`
+	// Opis tokena.
+	Description string `json:"description"`
+	// Uprawnienia przypisane tokenowi.
+	RequestedPermissions []TokenPermissionRev2 `json:"requestedPermissions"`
+	// Data i czas utworzenia tokena.
+	DateCreated time.Time `json:"dateCreated"`
+	// Data ostatniego użycia tokena.
+	LastUseDate OptNilDateTime `json:"lastUseDate"`
+	// Data rozpoczęcia okresu ważności tokena.
+	ValidFrom time.Time `json:"validFrom"`
+	// Data wygaśnięcia tokena.
+	ValidTo time.Time `json:"validTo"`
+	// Status tokena.
+	Status TokenStatusRev2 `json:"status"`
+	// Informacje o przyczynie niepowodzenia aktywacji tokenu. Pole jest uzupełniane wyłącznie dla
+	// statusu `Failed`.
+	Failure OptNilTokenFailureRev2 `json:"failure"`
+}
+
+// GetReferenceNumber returns the value of ReferenceNumber.
+func (s *QueryTokensResponseItemRev2) GetReferenceNumber() ReferenceNumber {
+	return s.ReferenceNumber
+}
+
+// GetAuthorIdentifier returns the value of AuthorIdentifier.
+func (s *QueryTokensResponseItemRev2) GetAuthorIdentifier() QueryTokensResponseItemRev2AuthorIdentifier {
+	return s.AuthorIdentifier
+}
+
+// GetContextIdentifier returns the value of ContextIdentifier.
+func (s *QueryTokensResponseItemRev2) GetContextIdentifier() QueryTokensResponseItemRev2ContextIdentifier {
+	return s.ContextIdentifier
+}
+
+// GetDescription returns the value of Description.
+func (s *QueryTokensResponseItemRev2) GetDescription() string {
+	return s.Description
+}
+
+// GetRequestedPermissions returns the value of RequestedPermissions.
+func (s *QueryTokensResponseItemRev2) GetRequestedPermissions() []TokenPermissionRev2 {
+	return s.RequestedPermissions
+}
+
+// GetDateCreated returns the value of DateCreated.
+func (s *QueryTokensResponseItemRev2) GetDateCreated() time.Time {
+	return s.DateCreated
+}
+
+// GetLastUseDate returns the value of LastUseDate.
+func (s *QueryTokensResponseItemRev2) GetLastUseDate() OptNilDateTime {
+	return s.LastUseDate
+}
+
+// GetValidFrom returns the value of ValidFrom.
+func (s *QueryTokensResponseItemRev2) GetValidFrom() time.Time {
+	return s.ValidFrom
+}
+
+// GetValidTo returns the value of ValidTo.
+func (s *QueryTokensResponseItemRev2) GetValidTo() time.Time {
+	return s.ValidTo
+}
+
+// GetStatus returns the value of Status.
+func (s *QueryTokensResponseItemRev2) GetStatus() TokenStatusRev2 {
+	return s.Status
+}
+
+// GetFailure returns the value of Failure.
+func (s *QueryTokensResponseItemRev2) GetFailure() OptNilTokenFailureRev2 {
+	return s.Failure
+}
+
+// SetReferenceNumber sets the value of ReferenceNumber.
+func (s *QueryTokensResponseItemRev2) SetReferenceNumber(val ReferenceNumber) {
+	s.ReferenceNumber = val
+}
+
+// SetAuthorIdentifier sets the value of AuthorIdentifier.
+func (s *QueryTokensResponseItemRev2) SetAuthorIdentifier(val QueryTokensResponseItemRev2AuthorIdentifier) {
+	s.AuthorIdentifier = val
+}
+
+// SetContextIdentifier sets the value of ContextIdentifier.
+func (s *QueryTokensResponseItemRev2) SetContextIdentifier(val QueryTokensResponseItemRev2ContextIdentifier) {
+	s.ContextIdentifier = val
+}
+
+// SetDescription sets the value of Description.
+func (s *QueryTokensResponseItemRev2) SetDescription(val string) {
+	s.Description = val
+}
+
+// SetRequestedPermissions sets the value of RequestedPermissions.
+func (s *QueryTokensResponseItemRev2) SetRequestedPermissions(val []TokenPermissionRev2) {
+	s.RequestedPermissions = val
+}
+
+// SetDateCreated sets the value of DateCreated.
+func (s *QueryTokensResponseItemRev2) SetDateCreated(val time.Time) {
+	s.DateCreated = val
+}
+
+// SetLastUseDate sets the value of LastUseDate.
+func (s *QueryTokensResponseItemRev2) SetLastUseDate(val OptNilDateTime) {
+	s.LastUseDate = val
+}
+
+// SetValidFrom sets the value of ValidFrom.
+func (s *QueryTokensResponseItemRev2) SetValidFrom(val time.Time) {
+	s.ValidFrom = val
+}
+
+// SetValidTo sets the value of ValidTo.
+func (s *QueryTokensResponseItemRev2) SetValidTo(val time.Time) {
+	s.ValidTo = val
+}
+
+// SetStatus sets the value of Status.
+func (s *QueryTokensResponseItemRev2) SetStatus(val TokenStatusRev2) {
+	s.Status = val
+}
+
+// SetFailure sets the value of Failure.
+func (s *QueryTokensResponseItemRev2) SetFailure(val OptNilTokenFailureRev2) {
+	s.Failure = val
+}
+
+// Merged schema.
+type QueryTokensResponseItemRev2AuthorIdentifier struct {
+	// Informacje o typie identyfikatora.
+	Type QueryTokensResponseItemRev2AuthorIdentifierType `json:"type"`
+	// Wartość identyfikatora.
+	Value string `json:"value"`
+}
+
+// GetType returns the value of Type.
+func (s *QueryTokensResponseItemRev2AuthorIdentifier) GetType() QueryTokensResponseItemRev2AuthorIdentifierType {
+	return s.Type
+}
+
+// GetValue returns the value of Value.
+func (s *QueryTokensResponseItemRev2AuthorIdentifier) GetValue() string {
+	return s.Value
+}
+
+// SetType sets the value of Type.
+func (s *QueryTokensResponseItemRev2AuthorIdentifier) SetType(val QueryTokensResponseItemRev2AuthorIdentifierType) {
+	s.Type = val
+}
+
+// SetValue sets the value of Value.
+func (s *QueryTokensResponseItemRev2AuthorIdentifier) SetValue(val string) {
+	s.Value = val
+}
+
+// Merged schema.
+type QueryTokensResponseItemRev2AuthorIdentifierType struct {
+	// Kod typu identyfikatora.
+	//
+	// 	Code        | DisplayName              | Opis
+	// 	------------+--------------------------+-------------------------------------------------------------------------------------------------------------------
+	// 	Nip         | NIP                      | Numer identyfikacji podatkowej (NIP).
+	// 	Pesel       | PESEL                    | Numer PESEL.
+	// 	Fingerprint | Odcisk palca certyfikatu | Odcisk palca certyfikatu.
+	// 	FutureValue |                          | Typ identyfikatora autora nieznany w bieżącej rewizji operacji. Rzeczywisty kod jest dostępny w polu `rawCode`.
+	Code TokenAuthorIdentifierTypeCodeRev2 `json:"code"`
+	// Rzeczywisty, stabilny kod typu identyfikatora.
+	RawCode string `json:"rawCode"`
+	// Nazwa typu identyfikatora przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *QueryTokensResponseItemRev2AuthorIdentifierType) GetCode() TokenAuthorIdentifierTypeCodeRev2 {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *QueryTokensResponseItemRev2AuthorIdentifierType) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *QueryTokensResponseItemRev2AuthorIdentifierType) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *QueryTokensResponseItemRev2AuthorIdentifierType) SetCode(val TokenAuthorIdentifierTypeCodeRev2) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *QueryTokensResponseItemRev2AuthorIdentifierType) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *QueryTokensResponseItemRev2AuthorIdentifierType) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+// Merged schema.
+type QueryTokensResponseItemRev2ContextIdentifier struct {
+	// Informacje o typie identyfikatora.
+	Type QueryTokensResponseItemRev2ContextIdentifierType `json:"type"`
+	// Wartość identyfikatora.
+	Value string `json:"value"`
+}
+
+// GetType returns the value of Type.
+func (s *QueryTokensResponseItemRev2ContextIdentifier) GetType() QueryTokensResponseItemRev2ContextIdentifierType {
+	return s.Type
+}
+
+// GetValue returns the value of Value.
+func (s *QueryTokensResponseItemRev2ContextIdentifier) GetValue() string {
+	return s.Value
+}
+
+// SetType sets the value of Type.
+func (s *QueryTokensResponseItemRev2ContextIdentifier) SetType(val QueryTokensResponseItemRev2ContextIdentifierType) {
+	s.Type = val
+}
+
+// SetValue sets the value of Value.
+func (s *QueryTokensResponseItemRev2ContextIdentifier) SetValue(val string) {
+	s.Value = val
+}
+
+// Merged schema.
+type QueryTokensResponseItemRev2ContextIdentifierType struct {
+	// Kod typu identyfikatora.
+	//
+	// 	Code        | DisplayName                          | Opis
+	// 	------------+--------------------------------------+----------------------------------------------------------------------------------------------------------------------
+	// 	Nip         | NIP                                  | Numer identyfikacji podatkowej (NIP).
+	// 	InternalId  | Identyfikator wewnętrzny            | Identyfikator wewnętrzny.
+	// 	NipVatUe    | NIP VAT-UE                           | Dwuczłonowy identyfikator składający się z numeru NIP i numeru VAT-UE: `{nip}-{vat_ue}`.
+	// 	PeppolId    | Identyfikator dostawcy usług Peppol | Identyfikator dostawcy usług Peppol.
+	// 	FutureValue |                                      | Typ identyfikatora kontekstu nieznany w bieżącej rewizji operacji. Rzeczywisty kod jest dostępny w polu `rawCode`.
+	Code TokenContextIdentifierTypeCodeRev2 `json:"code"`
+	// Rzeczywisty, stabilny kod typu identyfikatora.
+	RawCode string `json:"rawCode"`
+	// Nazwa typu identyfikatora przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *QueryTokensResponseItemRev2ContextIdentifierType) GetCode() TokenContextIdentifierTypeCodeRev2 {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *QueryTokensResponseItemRev2ContextIdentifierType) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *QueryTokensResponseItemRev2ContextIdentifierType) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *QueryTokensResponseItemRev2ContextIdentifierType) SetCode(val TokenContextIdentifierTypeCodeRev2) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *QueryTokensResponseItemRev2ContextIdentifierType) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *QueryTokensResponseItemRev2ContextIdentifierType) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+// Ref: #/components/schemas/QueryTokensResponseRev2
+type QueryTokensResponseRev2 struct {
+	// Token służący do pobrania kolejnej strony wyników. Jeśli jest pusty, to nie ma kolejnych stron.
+	ContinuationToken OptNilString `json:"continuationToken"`
+	// Lista tokenów uwierzytelniających.
+	Tokens []QueryTokensResponseItemRev2 `json:"tokens"`
+}
+
+// GetContinuationToken returns the value of ContinuationToken.
+func (s *QueryTokensResponseRev2) GetContinuationToken() OptNilString {
+	return s.ContinuationToken
+}
+
+// GetTokens returns the value of Tokens.
+func (s *QueryTokensResponseRev2) GetTokens() []QueryTokensResponseItemRev2 {
+	return s.Tokens
+}
+
+// SetContinuationToken sets the value of ContinuationToken.
+func (s *QueryTokensResponseRev2) SetContinuationToken(val OptNilString) {
+	s.ContinuationToken = val
+}
+
+// SetTokens sets the value of Tokens.
+func (s *QueryTokensResponseRev2) SetTokens(val []QueryTokensResponseItemRev2) {
+	s.Tokens = val
+}
+
+// QueryTokensResponseRev2Headers wraps QueryTokensResponseRev2 with response headers.
+type QueryTokensResponseRev2Headers struct {
+	XSystemWarning OptSystemWarning
+	Response       QueryTokensResponseRev2
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *QueryTokensResponseRev2Headers) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// GetResponse returns the value of Response.
+func (s *QueryTokensResponseRev2Headers) GetResponse() QueryTokensResponseRev2 {
+	return s.Response
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *QueryTokensResponseRev2Headers) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+// SetResponse sets the value of Response.
+func (s *QueryTokensResponseRev2Headers) SetResponse(val QueryTokensResponseRev2) {
+	s.Response = val
+}
+
+func (*QueryTokensResponseRev2Headers) tokensRev2GetRes() {}
 
 // Ref: #/components/schemas/QueryType
 type QueryType string
@@ -27662,9 +29096,9 @@ func (*SessionsReferenceNumberUpoUpoReferenceNumberGetOKHeaders) sessionsReferen
 
 // Ref: #/components/schemas/SetSubjectLimitsRequest
 type SetSubjectLimitsRequest struct {
-	SubjectIdentifierType OptSubjectIdentifierType               `json:"subjectIdentifierType"`
-	Enrollment            OptNilEnrollmentSubjectLimitsOverride  `json:"enrollment"`
-	Certificate           OptNilCertificateSubjectLimitsOverride `json:"certificate"`
+	SubjectIdentifierType OptSubjectIdentifierType                 `json:"subjectIdentifierType"`
+	Enrollment            OptNilSetSubjectLimitsRequestEnrollment  `json:"enrollment"`
+	Certificate           OptNilSetSubjectLimitsRequestCertificate `json:"certificate"`
 }
 
 // GetSubjectIdentifierType returns the value of SubjectIdentifierType.
@@ -27673,12 +29107,12 @@ func (s *SetSubjectLimitsRequest) GetSubjectIdentifierType() OptSubjectIdentifie
 }
 
 // GetEnrollment returns the value of Enrollment.
-func (s *SetSubjectLimitsRequest) GetEnrollment() OptNilEnrollmentSubjectLimitsOverride {
+func (s *SetSubjectLimitsRequest) GetEnrollment() OptNilSetSubjectLimitsRequestEnrollment {
 	return s.Enrollment
 }
 
 // GetCertificate returns the value of Certificate.
-func (s *SetSubjectLimitsRequest) GetCertificate() OptNilCertificateSubjectLimitsOverride {
+func (s *SetSubjectLimitsRequest) GetCertificate() OptNilSetSubjectLimitsRequestCertificate {
 	return s.Certificate
 }
 
@@ -27688,13 +29122,45 @@ func (s *SetSubjectLimitsRequest) SetSubjectIdentifierType(val OptSubjectIdentif
 }
 
 // SetEnrollment sets the value of Enrollment.
-func (s *SetSubjectLimitsRequest) SetEnrollment(val OptNilEnrollmentSubjectLimitsOverride) {
+func (s *SetSubjectLimitsRequest) SetEnrollment(val OptNilSetSubjectLimitsRequestEnrollment) {
 	s.Enrollment = val
 }
 
 // SetCertificate sets the value of Certificate.
-func (s *SetSubjectLimitsRequest) SetCertificate(val OptNilCertificateSubjectLimitsOverride) {
+func (s *SetSubjectLimitsRequest) SetCertificate(val OptNilSetSubjectLimitsRequestCertificate) {
 	s.Certificate = val
+}
+
+// Merged schema.
+type SetSubjectLimitsRequestCertificate struct {
+	// Maksymalna ilość aktywnych certyfikatów.
+	MaxCertificates int32 `json:"maxCertificates"`
+}
+
+// GetMaxCertificates returns the value of MaxCertificates.
+func (s *SetSubjectLimitsRequestCertificate) GetMaxCertificates() int32 {
+	return s.MaxCertificates
+}
+
+// SetMaxCertificates sets the value of MaxCertificates.
+func (s *SetSubjectLimitsRequestCertificate) SetMaxCertificates(val int32) {
+	s.MaxCertificates = val
+}
+
+// Merged schema.
+type SetSubjectLimitsRequestEnrollment struct {
+	// Maksymalna ilość aktywnych wniosków o certyfikat.
+	MaxEnrollments int32 `json:"maxEnrollments"`
+}
+
+// GetMaxEnrollments returns the value of MaxEnrollments.
+func (s *SetSubjectLimitsRequestEnrollment) GetMaxEnrollments() int32 {
+	return s.MaxEnrollments
+}
+
+// SetMaxEnrollments sets the value of MaxEnrollments.
+func (s *SetSubjectLimitsRequestEnrollment) SetMaxEnrollments(val int32) {
+	s.MaxEnrollments = val
 }
 
 type Sha256HashBase64 []byte
@@ -30480,6 +31946,24 @@ func (s *TestdataSubjectRemovePostReq) SetSubjectNip(val Nip) {
 	s.SubjectNip = val
 }
 
+// TestdataTokensReferenceNumberExpireApprovalPostNoContent is response for TestdataTokensReferenceNumberExpireApprovalPost operation.
+type TestdataTokensReferenceNumberExpireApprovalPostNoContent struct {
+	XSystemWarning OptSystemWarning
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *TestdataTokensReferenceNumberExpireApprovalPostNoContent) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *TestdataTokensReferenceNumberExpireApprovalPostNoContent) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+func (*TestdataTokensReferenceNumberExpireApprovalPostNoContent) testdataTokensReferenceNumberExpireApprovalPostRes() {
+}
+
 //	Wartość  | Opis
 //	-----------+--------------------------------------------------------------------
 //	Nip        | 10 cyfrowy numer NIP
@@ -30606,6 +32090,124 @@ func (s *TokenAuthorIdentifierType) UnmarshalText(data []byte) error {
 	}
 }
 
+//	Code        | DisplayName              | Opis
+//	------------+--------------------------+-------------------------------------------------------------------------------------------------------------------
+//	Nip         | NIP                      | Numer identyfikacji podatkowej (NIP).
+//	Pesel       | PESEL                    | Numer PESEL.
+//	Fingerprint | Odcisk palca certyfikatu | Odcisk palca certyfikatu.
+//	FutureValue |                          | Typ identyfikatora autora nieznany w bieżącej rewizji operacji. Rzeczywisty kod jest dostępny w polu `rawCode`.
+//
+// Ref: #/components/schemas/TokenAuthorIdentifierTypeCodeRev2
+type TokenAuthorIdentifierTypeCodeRev2 string
+
+const (
+	TokenAuthorIdentifierTypeCodeRev2Nip         TokenAuthorIdentifierTypeCodeRev2 = "Nip"
+	TokenAuthorIdentifierTypeCodeRev2Pesel       TokenAuthorIdentifierTypeCodeRev2 = "Pesel"
+	TokenAuthorIdentifierTypeCodeRev2Fingerprint TokenAuthorIdentifierTypeCodeRev2 = "Fingerprint"
+	TokenAuthorIdentifierTypeCodeRev2FutureValue TokenAuthorIdentifierTypeCodeRev2 = "FutureValue"
+)
+
+// AllValues returns all TokenAuthorIdentifierTypeCodeRev2 values.
+func (TokenAuthorIdentifierTypeCodeRev2) AllValues() []TokenAuthorIdentifierTypeCodeRev2 {
+	return []TokenAuthorIdentifierTypeCodeRev2{
+		TokenAuthorIdentifierTypeCodeRev2Nip,
+		TokenAuthorIdentifierTypeCodeRev2Pesel,
+		TokenAuthorIdentifierTypeCodeRev2Fingerprint,
+		TokenAuthorIdentifierTypeCodeRev2FutureValue,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TokenAuthorIdentifierTypeCodeRev2) MarshalText() ([]byte, error) {
+	switch s {
+	case TokenAuthorIdentifierTypeCodeRev2Nip:
+		return []byte(s), nil
+	case TokenAuthorIdentifierTypeCodeRev2Pesel:
+		return []byte(s), nil
+	case TokenAuthorIdentifierTypeCodeRev2Fingerprint:
+		return []byte(s), nil
+	case TokenAuthorIdentifierTypeCodeRev2FutureValue:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TokenAuthorIdentifierTypeCodeRev2) UnmarshalText(data []byte) error {
+	switch TokenAuthorIdentifierTypeCodeRev2(data) {
+	case TokenAuthorIdentifierTypeCodeRev2Nip:
+		*s = TokenAuthorIdentifierTypeCodeRev2Nip
+		return nil
+	case TokenAuthorIdentifierTypeCodeRev2Pesel:
+		*s = TokenAuthorIdentifierTypeCodeRev2Pesel
+		return nil
+	case TokenAuthorIdentifierTypeCodeRev2Fingerprint:
+		*s = TokenAuthorIdentifierTypeCodeRev2Fingerprint
+		return nil
+	case TokenAuthorIdentifierTypeCodeRev2FutureValue:
+		*s = TokenAuthorIdentifierTypeCodeRev2FutureValue
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+//	Wartość   | Opis
+//	------------+--------------------------
+//	Nip         | NIP.
+//	Pesel       | PESEL.
+//	Fingerprint | Odcisk palca certyfikatu.
+//
+// Ref: #/components/schemas/TokenAuthorIdentifierTypeFilterRev2
+type TokenAuthorIdentifierTypeFilterRev2 string
+
+const (
+	TokenAuthorIdentifierTypeFilterRev2Nip         TokenAuthorIdentifierTypeFilterRev2 = "Nip"
+	TokenAuthorIdentifierTypeFilterRev2Pesel       TokenAuthorIdentifierTypeFilterRev2 = "Pesel"
+	TokenAuthorIdentifierTypeFilterRev2Fingerprint TokenAuthorIdentifierTypeFilterRev2 = "Fingerprint"
+)
+
+// AllValues returns all TokenAuthorIdentifierTypeFilterRev2 values.
+func (TokenAuthorIdentifierTypeFilterRev2) AllValues() []TokenAuthorIdentifierTypeFilterRev2 {
+	return []TokenAuthorIdentifierTypeFilterRev2{
+		TokenAuthorIdentifierTypeFilterRev2Nip,
+		TokenAuthorIdentifierTypeFilterRev2Pesel,
+		TokenAuthorIdentifierTypeFilterRev2Fingerprint,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TokenAuthorIdentifierTypeFilterRev2) MarshalText() ([]byte, error) {
+	switch s {
+	case TokenAuthorIdentifierTypeFilterRev2Nip:
+		return []byte(s), nil
+	case TokenAuthorIdentifierTypeFilterRev2Pesel:
+		return []byte(s), nil
+	case TokenAuthorIdentifierTypeFilterRev2Fingerprint:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TokenAuthorIdentifierTypeFilterRev2) UnmarshalText(data []byte) error {
+	switch TokenAuthorIdentifierTypeFilterRev2(data) {
+	case TokenAuthorIdentifierTypeFilterRev2Nip:
+		*s = TokenAuthorIdentifierTypeFilterRev2Nip
+		return nil
+	case TokenAuthorIdentifierTypeFilterRev2Pesel:
+		*s = TokenAuthorIdentifierTypeFilterRev2Pesel
+		return nil
+	case TokenAuthorIdentifierTypeFilterRev2Fingerprint:
+		*s = TokenAuthorIdentifierTypeFilterRev2Fingerprint
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 //	Wartość  | Opis
 //	-----------+---------------------------------------------------------------------------------------------
 //	Nip        | NIP.
@@ -30667,6 +32269,266 @@ func (s *TokenContextIdentifierType) UnmarshalText(data []byte) error {
 	default:
 		return errors.Errorf("invalid value: %q", data)
 	}
+}
+
+//	Code        | DisplayName                          | Opis
+//	------------+--------------------------------------+----------------------------------------------------------------------------------------------------------------------
+//	Nip         | NIP                                  | Numer identyfikacji podatkowej (NIP).
+//	InternalId  | Identyfikator wewnętrzny            | Identyfikator wewnętrzny.
+//	NipVatUe    | NIP VAT-UE                           | Dwuczłonowy identyfikator składający się z numeru NIP i numeru VAT-UE: `{nip}-{vat_ue}`.
+//	PeppolId    | Identyfikator dostawcy usług Peppol | Identyfikator dostawcy usług Peppol.
+//	FutureValue |                                      | Typ identyfikatora kontekstu nieznany w bieżącej rewizji operacji. Rzeczywisty kod jest dostępny w polu `rawCode`.
+//
+// Ref: #/components/schemas/TokenContextIdentifierTypeCodeRev2
+type TokenContextIdentifierTypeCodeRev2 string
+
+const (
+	TokenContextIdentifierTypeCodeRev2Nip         TokenContextIdentifierTypeCodeRev2 = "Nip"
+	TokenContextIdentifierTypeCodeRev2InternalId  TokenContextIdentifierTypeCodeRev2 = "InternalId"
+	TokenContextIdentifierTypeCodeRev2NipVatUe    TokenContextIdentifierTypeCodeRev2 = "NipVatUe"
+	TokenContextIdentifierTypeCodeRev2PeppolId    TokenContextIdentifierTypeCodeRev2 = "PeppolId"
+	TokenContextIdentifierTypeCodeRev2FutureValue TokenContextIdentifierTypeCodeRev2 = "FutureValue"
+)
+
+// AllValues returns all TokenContextIdentifierTypeCodeRev2 values.
+func (TokenContextIdentifierTypeCodeRev2) AllValues() []TokenContextIdentifierTypeCodeRev2 {
+	return []TokenContextIdentifierTypeCodeRev2{
+		TokenContextIdentifierTypeCodeRev2Nip,
+		TokenContextIdentifierTypeCodeRev2InternalId,
+		TokenContextIdentifierTypeCodeRev2NipVatUe,
+		TokenContextIdentifierTypeCodeRev2PeppolId,
+		TokenContextIdentifierTypeCodeRev2FutureValue,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TokenContextIdentifierTypeCodeRev2) MarshalText() ([]byte, error) {
+	switch s {
+	case TokenContextIdentifierTypeCodeRev2Nip:
+		return []byte(s), nil
+	case TokenContextIdentifierTypeCodeRev2InternalId:
+		return []byte(s), nil
+	case TokenContextIdentifierTypeCodeRev2NipVatUe:
+		return []byte(s), nil
+	case TokenContextIdentifierTypeCodeRev2PeppolId:
+		return []byte(s), nil
+	case TokenContextIdentifierTypeCodeRev2FutureValue:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TokenContextIdentifierTypeCodeRev2) UnmarshalText(data []byte) error {
+	switch TokenContextIdentifierTypeCodeRev2(data) {
+	case TokenContextIdentifierTypeCodeRev2Nip:
+		*s = TokenContextIdentifierTypeCodeRev2Nip
+		return nil
+	case TokenContextIdentifierTypeCodeRev2InternalId:
+		*s = TokenContextIdentifierTypeCodeRev2InternalId
+		return nil
+	case TokenContextIdentifierTypeCodeRev2NipVatUe:
+		*s = TokenContextIdentifierTypeCodeRev2NipVatUe
+		return nil
+	case TokenContextIdentifierTypeCodeRev2PeppolId:
+		*s = TokenContextIdentifierTypeCodeRev2PeppolId
+		return nil
+	case TokenContextIdentifierTypeCodeRev2FutureValue:
+		*s = TokenContextIdentifierTypeCodeRev2FutureValue
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Ref: #/components/schemas/TokenFailureRev2
+type TokenFailureRev2 struct {
+	// Kod niepowodzenia.
+	//
+	// 	Code                          | Description
+	// 	------------------------------+-------------------------------------------
+	// 	token.permission-grant-failed | Nie udało się nadać uprawnień tokenowi
+	// 	token.context-limit-exceeded  | Przekroczono limit tokenów w kontekście
+	// 	token.unknown-error           | Wystąpił nieznany błąd
+	Code string `json:"code"`
+	// Opis niepowodzenia przeznaczony do prezentacji użytkownikowi.
+	Description string `json:"description"`
+	// Dodatkowe szczegóły błędu.
+	Details OptNilStringArray `json:"details"`
+}
+
+// GetCode returns the value of Code.
+func (s *TokenFailureRev2) GetCode() string {
+	return s.Code
+}
+
+// GetDescription returns the value of Description.
+func (s *TokenFailureRev2) GetDescription() string {
+	return s.Description
+}
+
+// GetDetails returns the value of Details.
+func (s *TokenFailureRev2) GetDetails() OptNilStringArray {
+	return s.Details
+}
+
+// SetCode sets the value of Code.
+func (s *TokenFailureRev2) SetCode(val string) {
+	s.Code = val
+}
+
+// SetDescription sets the value of Description.
+func (s *TokenFailureRev2) SetDescription(val string) {
+	s.Description = val
+}
+
+// SetDetails sets the value of Details.
+func (s *TokenFailureRev2) SetDetails(val OptNilStringArray) {
+	s.Details = val
+}
+
+// Ref: #/components/schemas/TokenPermissionCodeRev2
+type TokenPermissionCodeRev2 string
+
+const (
+	TokenPermissionCodeRev2InvoiceRead                TokenPermissionCodeRev2 = "InvoiceRead"
+	TokenPermissionCodeRev2InvoiceWrite               TokenPermissionCodeRev2 = "InvoiceWrite"
+	TokenPermissionCodeRev2CredentialsRead            TokenPermissionCodeRev2 = "CredentialsRead"
+	TokenPermissionCodeRev2CredentialsManage          TokenPermissionCodeRev2 = "CredentialsManage"
+	TokenPermissionCodeRev2SubunitManage              TokenPermissionCodeRev2 = "SubunitManage"
+	TokenPermissionCodeRev2EnforcementOperations      TokenPermissionCodeRev2 = "EnforcementOperations"
+	TokenPermissionCodeRev2Introspection              TokenPermissionCodeRev2 = "Introspection"
+	TokenPermissionCodeRev2CollectiveIdentifierManage TokenPermissionCodeRev2 = "CollectiveIdentifierManage"
+	TokenPermissionCodeRev2FutureValue                TokenPermissionCodeRev2 = "FutureValue"
+)
+
+// AllValues returns all TokenPermissionCodeRev2 values.
+func (TokenPermissionCodeRev2) AllValues() []TokenPermissionCodeRev2 {
+	return []TokenPermissionCodeRev2{
+		TokenPermissionCodeRev2InvoiceRead,
+		TokenPermissionCodeRev2InvoiceWrite,
+		TokenPermissionCodeRev2CredentialsRead,
+		TokenPermissionCodeRev2CredentialsManage,
+		TokenPermissionCodeRev2SubunitManage,
+		TokenPermissionCodeRev2EnforcementOperations,
+		TokenPermissionCodeRev2Introspection,
+		TokenPermissionCodeRev2CollectiveIdentifierManage,
+		TokenPermissionCodeRev2FutureValue,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TokenPermissionCodeRev2) MarshalText() ([]byte, error) {
+	switch s {
+	case TokenPermissionCodeRev2InvoiceRead:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2InvoiceWrite:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2CredentialsRead:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2CredentialsManage:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2SubunitManage:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2EnforcementOperations:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2Introspection:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2CollectiveIdentifierManage:
+		return []byte(s), nil
+	case TokenPermissionCodeRev2FutureValue:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TokenPermissionCodeRev2) UnmarshalText(data []byte) error {
+	switch TokenPermissionCodeRev2(data) {
+	case TokenPermissionCodeRev2InvoiceRead:
+		*s = TokenPermissionCodeRev2InvoiceRead
+		return nil
+	case TokenPermissionCodeRev2InvoiceWrite:
+		*s = TokenPermissionCodeRev2InvoiceWrite
+		return nil
+	case TokenPermissionCodeRev2CredentialsRead:
+		*s = TokenPermissionCodeRev2CredentialsRead
+		return nil
+	case TokenPermissionCodeRev2CredentialsManage:
+		*s = TokenPermissionCodeRev2CredentialsManage
+		return nil
+	case TokenPermissionCodeRev2SubunitManage:
+		*s = TokenPermissionCodeRev2SubunitManage
+		return nil
+	case TokenPermissionCodeRev2EnforcementOperations:
+		*s = TokenPermissionCodeRev2EnforcementOperations
+		return nil
+	case TokenPermissionCodeRev2Introspection:
+		*s = TokenPermissionCodeRev2Introspection
+		return nil
+	case TokenPermissionCodeRev2CollectiveIdentifierManage:
+		*s = TokenPermissionCodeRev2CollectiveIdentifierManage
+		return nil
+	case TokenPermissionCodeRev2FutureValue:
+		*s = TokenPermissionCodeRev2FutureValue
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Ref: #/components/schemas/TokenPermissionRev2
+type TokenPermissionRev2 struct {
+	// Uprawnienie tokenu.
+	//
+	// 	Code                       | DisplayName
+	// 	---------------------------+-----------------------------------------------------------------------------------------------------------------
+	// 	InvoiceRead                | Przeglądanie faktur
+	// 	InvoiceWrite               | Wystawianie faktur
+	// 	CredentialsRead            | Przeglądanie uprawnień
+	// 	CredentialsManage          | Zarządzanie uprawnieniami
+	// 	SubunitManage              | Zarządzanie jednostkami podrzędnymi
+	// 	EnforcementOperations      | Wykonywanie operacji egzekucyjnych
+	// 	Introspection              | Przeglądanie historii sesji i generowanie UPO
+	// 	CollectiveIdentifierManage | Zarządzanie identyfikatorami zbiorczymi
+	// 	FutureValue                | Uprawnienie nieznane w bieżącej rewizji operacji. Rzeczywisty kod uprawnienia jest dostępny w polu `rawCode`.
+	Code TokenPermissionCodeRev2 `json:"code"`
+	// Rzeczywisty, stabilny kod uprawnienia.
+	RawCode string `json:"rawCode"`
+	// Nazwa uprawnienia przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *TokenPermissionRev2) GetCode() TokenPermissionCodeRev2 {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *TokenPermissionRev2) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *TokenPermissionRev2) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *TokenPermissionRev2) SetCode(val TokenPermissionCodeRev2) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *TokenPermissionRev2) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *TokenPermissionRev2) SetDisplayName(val string) {
+	s.DisplayName = val
 }
 
 // Ref: #/components/schemas/TokenPermissionType
@@ -30747,6 +32609,109 @@ func (s *TokenPermissionType) UnmarshalText(data []byte) error {
 		return nil
 	case TokenPermissionTypeCollectiveIdentifierManage:
 		*s = TokenPermissionTypeCollectiveIdentifierManage
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+//	Wartość        | Opis
+//	-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Pending          | Token został utworzony ale jest jeszcze w trakcie aktywacji i nadawania uprawnień. Nie może być jeszcze wykorzystywany do uwierzytelniania.
+//	Active           | Token jest aktywny i może być wykorzystywany do uwierzytelniania.
+//	Revoking         | Token jest w trakcie unieważniania. Nie może już być wykorzystywany do uwierzytelniania.
+//	Revoked          | Token został unieważniony i nie może być wykorzystywany do uwierzytelniania.
+//	Failed           | Nie udało się aktywować tokena. Należy wygenerować nowy token, obecny nie może być wykorzystywany do uwierzytelniania.
+//	NotYetActive     | Token został wygenerowany poprawnie natomiast, termin jego ważności jeszcze się nie rozpoczął.
+//	AwaitingApproval | Token został wygenerowany za pomocą tokena KSeF i oczekuje na zatwierdzenie. Do czasu zatwierdzenia nie może być używany do uwierzytelniania.
+//	ApprovalExpired  | Upłynął czas na zatwierdzenie (24 godziny od nadania statusu `AwaitingApproval`). Token nie może już zostać zatwierdzony ani być wykorzystywany do uwierzytelniania. Należy ponownie zainicjować generowanie nowego tokena.
+//	Expired          | Termin ważności tokena upłynął.
+//
+// Ref: #/components/schemas/TokenStatusFilterRev2
+type TokenStatusFilterRev2 string
+
+const (
+	TokenStatusFilterRev2Pending          TokenStatusFilterRev2 = "Pending"
+	TokenStatusFilterRev2Active           TokenStatusFilterRev2 = "Active"
+	TokenStatusFilterRev2Revoking         TokenStatusFilterRev2 = "Revoking"
+	TokenStatusFilterRev2Revoked          TokenStatusFilterRev2 = "Revoked"
+	TokenStatusFilterRev2Failed           TokenStatusFilterRev2 = "Failed"
+	TokenStatusFilterRev2NotYetActive     TokenStatusFilterRev2 = "NotYetActive"
+	TokenStatusFilterRev2AwaitingApproval TokenStatusFilterRev2 = "AwaitingApproval"
+	TokenStatusFilterRev2ApprovalExpired  TokenStatusFilterRev2 = "ApprovalExpired"
+	TokenStatusFilterRev2Expired          TokenStatusFilterRev2 = "Expired"
+)
+
+// AllValues returns all TokenStatusFilterRev2 values.
+func (TokenStatusFilterRev2) AllValues() []TokenStatusFilterRev2 {
+	return []TokenStatusFilterRev2{
+		TokenStatusFilterRev2Pending,
+		TokenStatusFilterRev2Active,
+		TokenStatusFilterRev2Revoking,
+		TokenStatusFilterRev2Revoked,
+		TokenStatusFilterRev2Failed,
+		TokenStatusFilterRev2NotYetActive,
+		TokenStatusFilterRev2AwaitingApproval,
+		TokenStatusFilterRev2ApprovalExpired,
+		TokenStatusFilterRev2Expired,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TokenStatusFilterRev2) MarshalText() ([]byte, error) {
+	switch s {
+	case TokenStatusFilterRev2Pending:
+		return []byte(s), nil
+	case TokenStatusFilterRev2Active:
+		return []byte(s), nil
+	case TokenStatusFilterRev2Revoking:
+		return []byte(s), nil
+	case TokenStatusFilterRev2Revoked:
+		return []byte(s), nil
+	case TokenStatusFilterRev2Failed:
+		return []byte(s), nil
+	case TokenStatusFilterRev2NotYetActive:
+		return []byte(s), nil
+	case TokenStatusFilterRev2AwaitingApproval:
+		return []byte(s), nil
+	case TokenStatusFilterRev2ApprovalExpired:
+		return []byte(s), nil
+	case TokenStatusFilterRev2Expired:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TokenStatusFilterRev2) UnmarshalText(data []byte) error {
+	switch TokenStatusFilterRev2(data) {
+	case TokenStatusFilterRev2Pending:
+		*s = TokenStatusFilterRev2Pending
+		return nil
+	case TokenStatusFilterRev2Active:
+		*s = TokenStatusFilterRev2Active
+		return nil
+	case TokenStatusFilterRev2Revoking:
+		*s = TokenStatusFilterRev2Revoking
+		return nil
+	case TokenStatusFilterRev2Revoked:
+		*s = TokenStatusFilterRev2Revoked
+		return nil
+	case TokenStatusFilterRev2Failed:
+		*s = TokenStatusFilterRev2Failed
+		return nil
+	case TokenStatusFilterRev2NotYetActive:
+		*s = TokenStatusFilterRev2NotYetActive
+		return nil
+	case TokenStatusFilterRev2AwaitingApproval:
+		*s = TokenStatusFilterRev2AwaitingApproval
+		return nil
+	case TokenStatusFilterRev2ApprovalExpired:
+		*s = TokenStatusFilterRev2ApprovalExpired
+		return nil
+	case TokenStatusFilterRev2Expired:
+		*s = TokenStatusFilterRev2Expired
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -30944,8 +32909,20 @@ func (s *TokenStatusResponseContextIdentifier) SetValue(val string) {
 
 // TokenStatusResponseHeaders wraps TokenStatusResponse with response headers.
 type TokenStatusResponseHeaders struct {
+	Deprecation    OptString
+	Sunset         OptString
 	XSystemWarning OptSystemWarning
 	Response       TokenStatusResponse
+}
+
+// GetDeprecation returns the value of Deprecation.
+func (s *TokenStatusResponseHeaders) GetDeprecation() OptString {
+	return s.Deprecation
+}
+
+// GetSunset returns the value of Sunset.
+func (s *TokenStatusResponseHeaders) GetSunset() OptString {
+	return s.Sunset
 }
 
 // GetXSystemWarning returns the value of XSystemWarning.
@@ -30956,6 +32933,16 @@ func (s *TokenStatusResponseHeaders) GetXSystemWarning() OptSystemWarning {
 // GetResponse returns the value of Response.
 func (s *TokenStatusResponseHeaders) GetResponse() TokenStatusResponse {
 	return s.Response
+}
+
+// SetDeprecation sets the value of Deprecation.
+func (s *TokenStatusResponseHeaders) SetDeprecation(val OptString) {
+	s.Deprecation = val
+}
+
+// SetSunset sets the value of Sunset.
+func (s *TokenStatusResponseHeaders) SetSunset(val OptString) {
+	s.Sunset = val
 }
 
 // SetXSystemWarning sets the value of XSystemWarning.
@@ -30969,6 +32956,486 @@ func (s *TokenStatusResponseHeaders) SetResponse(val TokenStatusResponse) {
 }
 
 func (*TokenStatusResponseHeaders) tokensReferenceNumberGetRes() {}
+
+// Ref: #/components/schemas/TokenStatusResponseRev2
+type TokenStatusResponseRev2 struct {
+	// Numer referencyjny tokena KSeF.
+	ReferenceNumber ReferenceNumber `json:"referenceNumber"`
+	// Identyfikator osoby która wygenerowała token.
+	AuthorIdentifier TokenStatusResponseRev2AuthorIdentifier `json:"authorIdentifier"`
+	// Identyfikator kontekstu, w którym został wygenerowany token i do którego daje dostęp.
+	ContextIdentifier TokenStatusResponseRev2ContextIdentifier `json:"contextIdentifier"`
+	// Opis tokena.
+	Description string `json:"description"`
+	// Uprawnienia przypisane tokenowi.
+	RequestedPermissions []TokenPermissionRev2 `json:"requestedPermissions"`
+	// Data i czas utworzenia tokena.
+	DateCreated time.Time `json:"dateCreated"`
+	// Data ostatniego użycia tokena.
+	LastUseDate OptNilDateTime `json:"lastUseDate"`
+	// Data rozpoczęcia okresu ważności tokena.
+	ValidFrom time.Time `json:"validFrom"`
+	// Data wygaśnięcia tokena.
+	ValidTo time.Time `json:"validTo"`
+	// Status tokena.
+	Status TokenStatusRev2 `json:"status"`
+	// Informacje o przyczynie niepowodzenia aktywacji tokenu. Pole jest uzupełniane wyłącznie dla
+	// statusu `Failed`.
+	Failure OptNilTokenFailureRev2 `json:"failure"`
+}
+
+// GetReferenceNumber returns the value of ReferenceNumber.
+func (s *TokenStatusResponseRev2) GetReferenceNumber() ReferenceNumber {
+	return s.ReferenceNumber
+}
+
+// GetAuthorIdentifier returns the value of AuthorIdentifier.
+func (s *TokenStatusResponseRev2) GetAuthorIdentifier() TokenStatusResponseRev2AuthorIdentifier {
+	return s.AuthorIdentifier
+}
+
+// GetContextIdentifier returns the value of ContextIdentifier.
+func (s *TokenStatusResponseRev2) GetContextIdentifier() TokenStatusResponseRev2ContextIdentifier {
+	return s.ContextIdentifier
+}
+
+// GetDescription returns the value of Description.
+func (s *TokenStatusResponseRev2) GetDescription() string {
+	return s.Description
+}
+
+// GetRequestedPermissions returns the value of RequestedPermissions.
+func (s *TokenStatusResponseRev2) GetRequestedPermissions() []TokenPermissionRev2 {
+	return s.RequestedPermissions
+}
+
+// GetDateCreated returns the value of DateCreated.
+func (s *TokenStatusResponseRev2) GetDateCreated() time.Time {
+	return s.DateCreated
+}
+
+// GetLastUseDate returns the value of LastUseDate.
+func (s *TokenStatusResponseRev2) GetLastUseDate() OptNilDateTime {
+	return s.LastUseDate
+}
+
+// GetValidFrom returns the value of ValidFrom.
+func (s *TokenStatusResponseRev2) GetValidFrom() time.Time {
+	return s.ValidFrom
+}
+
+// GetValidTo returns the value of ValidTo.
+func (s *TokenStatusResponseRev2) GetValidTo() time.Time {
+	return s.ValidTo
+}
+
+// GetStatus returns the value of Status.
+func (s *TokenStatusResponseRev2) GetStatus() TokenStatusRev2 {
+	return s.Status
+}
+
+// GetFailure returns the value of Failure.
+func (s *TokenStatusResponseRev2) GetFailure() OptNilTokenFailureRev2 {
+	return s.Failure
+}
+
+// SetReferenceNumber sets the value of ReferenceNumber.
+func (s *TokenStatusResponseRev2) SetReferenceNumber(val ReferenceNumber) {
+	s.ReferenceNumber = val
+}
+
+// SetAuthorIdentifier sets the value of AuthorIdentifier.
+func (s *TokenStatusResponseRev2) SetAuthorIdentifier(val TokenStatusResponseRev2AuthorIdentifier) {
+	s.AuthorIdentifier = val
+}
+
+// SetContextIdentifier sets the value of ContextIdentifier.
+func (s *TokenStatusResponseRev2) SetContextIdentifier(val TokenStatusResponseRev2ContextIdentifier) {
+	s.ContextIdentifier = val
+}
+
+// SetDescription sets the value of Description.
+func (s *TokenStatusResponseRev2) SetDescription(val string) {
+	s.Description = val
+}
+
+// SetRequestedPermissions sets the value of RequestedPermissions.
+func (s *TokenStatusResponseRev2) SetRequestedPermissions(val []TokenPermissionRev2) {
+	s.RequestedPermissions = val
+}
+
+// SetDateCreated sets the value of DateCreated.
+func (s *TokenStatusResponseRev2) SetDateCreated(val time.Time) {
+	s.DateCreated = val
+}
+
+// SetLastUseDate sets the value of LastUseDate.
+func (s *TokenStatusResponseRev2) SetLastUseDate(val OptNilDateTime) {
+	s.LastUseDate = val
+}
+
+// SetValidFrom sets the value of ValidFrom.
+func (s *TokenStatusResponseRev2) SetValidFrom(val time.Time) {
+	s.ValidFrom = val
+}
+
+// SetValidTo sets the value of ValidTo.
+func (s *TokenStatusResponseRev2) SetValidTo(val time.Time) {
+	s.ValidTo = val
+}
+
+// SetStatus sets the value of Status.
+func (s *TokenStatusResponseRev2) SetStatus(val TokenStatusRev2) {
+	s.Status = val
+}
+
+// SetFailure sets the value of Failure.
+func (s *TokenStatusResponseRev2) SetFailure(val OptNilTokenFailureRev2) {
+	s.Failure = val
+}
+
+// Merged schema.
+type TokenStatusResponseRev2AuthorIdentifier struct {
+	// Informacje o typie identyfikatora.
+	Type TokenStatusResponseRev2AuthorIdentifierType `json:"type"`
+	// Wartość identyfikatora.
+	Value string `json:"value"`
+}
+
+// GetType returns the value of Type.
+func (s *TokenStatusResponseRev2AuthorIdentifier) GetType() TokenStatusResponseRev2AuthorIdentifierType {
+	return s.Type
+}
+
+// GetValue returns the value of Value.
+func (s *TokenStatusResponseRev2AuthorIdentifier) GetValue() string {
+	return s.Value
+}
+
+// SetType sets the value of Type.
+func (s *TokenStatusResponseRev2AuthorIdentifier) SetType(val TokenStatusResponseRev2AuthorIdentifierType) {
+	s.Type = val
+}
+
+// SetValue sets the value of Value.
+func (s *TokenStatusResponseRev2AuthorIdentifier) SetValue(val string) {
+	s.Value = val
+}
+
+// Merged schema.
+type TokenStatusResponseRev2AuthorIdentifierType struct {
+	// Kod typu identyfikatora.
+	//
+	// 	Code        | DisplayName              | Opis
+	// 	------------+--------------------------+-------------------------------------------------------------------------------------------------------------------
+	// 	Nip         | NIP                      | Numer identyfikacji podatkowej (NIP).
+	// 	Pesel       | PESEL                    | Numer PESEL.
+	// 	Fingerprint | Odcisk palca certyfikatu | Odcisk palca certyfikatu.
+	// 	FutureValue |                          | Typ identyfikatora autora nieznany w bieżącej rewizji operacji. Rzeczywisty kod jest dostępny w polu `rawCode`.
+	Code TokenAuthorIdentifierTypeCodeRev2 `json:"code"`
+	// Rzeczywisty, stabilny kod typu identyfikatora.
+	RawCode string `json:"rawCode"`
+	// Nazwa typu identyfikatora przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *TokenStatusResponseRev2AuthorIdentifierType) GetCode() TokenAuthorIdentifierTypeCodeRev2 {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *TokenStatusResponseRev2AuthorIdentifierType) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *TokenStatusResponseRev2AuthorIdentifierType) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *TokenStatusResponseRev2AuthorIdentifierType) SetCode(val TokenAuthorIdentifierTypeCodeRev2) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *TokenStatusResponseRev2AuthorIdentifierType) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *TokenStatusResponseRev2AuthorIdentifierType) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+// Merged schema.
+type TokenStatusResponseRev2ContextIdentifier struct {
+	// Informacje o typie identyfikatora.
+	Type TokenStatusResponseRev2ContextIdentifierType `json:"type"`
+	// Wartość identyfikatora.
+	Value string `json:"value"`
+}
+
+// GetType returns the value of Type.
+func (s *TokenStatusResponseRev2ContextIdentifier) GetType() TokenStatusResponseRev2ContextIdentifierType {
+	return s.Type
+}
+
+// GetValue returns the value of Value.
+func (s *TokenStatusResponseRev2ContextIdentifier) GetValue() string {
+	return s.Value
+}
+
+// SetType sets the value of Type.
+func (s *TokenStatusResponseRev2ContextIdentifier) SetType(val TokenStatusResponseRev2ContextIdentifierType) {
+	s.Type = val
+}
+
+// SetValue sets the value of Value.
+func (s *TokenStatusResponseRev2ContextIdentifier) SetValue(val string) {
+	s.Value = val
+}
+
+// Merged schema.
+type TokenStatusResponseRev2ContextIdentifierType struct {
+	// Kod typu identyfikatora.
+	//
+	// 	Code        | DisplayName                          | Opis
+	// 	------------+--------------------------------------+----------------------------------------------------------------------------------------------------------------------
+	// 	Nip         | NIP                                  | Numer identyfikacji podatkowej (NIP).
+	// 	InternalId  | Identyfikator wewnętrzny            | Identyfikator wewnętrzny.
+	// 	NipVatUe    | NIP VAT-UE                           | Dwuczłonowy identyfikator składający się z numeru NIP i numeru VAT-UE: `{nip}-{vat_ue}`.
+	// 	PeppolId    | Identyfikator dostawcy usług Peppol | Identyfikator dostawcy usług Peppol.
+	// 	FutureValue |                                      | Typ identyfikatora kontekstu nieznany w bieżącej rewizji operacji. Rzeczywisty kod jest dostępny w polu `rawCode`.
+	Code TokenContextIdentifierTypeCodeRev2 `json:"code"`
+	// Rzeczywisty, stabilny kod typu identyfikatora.
+	RawCode string `json:"rawCode"`
+	// Nazwa typu identyfikatora przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *TokenStatusResponseRev2ContextIdentifierType) GetCode() TokenContextIdentifierTypeCodeRev2 {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *TokenStatusResponseRev2ContextIdentifierType) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *TokenStatusResponseRev2ContextIdentifierType) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *TokenStatusResponseRev2ContextIdentifierType) SetCode(val TokenContextIdentifierTypeCodeRev2) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *TokenStatusResponseRev2ContextIdentifierType) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *TokenStatusResponseRev2ContextIdentifierType) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+// TokenStatusResponseRev2Headers wraps TokenStatusResponseRev2 with response headers.
+type TokenStatusResponseRev2Headers struct {
+	XSystemWarning OptSystemWarning
+	Response       TokenStatusResponseRev2
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *TokenStatusResponseRev2Headers) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// GetResponse returns the value of Response.
+func (s *TokenStatusResponseRev2Headers) GetResponse() TokenStatusResponseRev2 {
+	return s.Response
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *TokenStatusResponseRev2Headers) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+// SetResponse sets the value of Response.
+func (s *TokenStatusResponseRev2Headers) SetResponse(val TokenStatusResponseRev2) {
+	s.Response = val
+}
+
+func (*TokenStatusResponseRev2Headers) tokensRev2ReferenceNumberGetRes() {}
+
+// Ref: #/components/schemas/TokenStatusRev2
+type TokenStatusRev2 struct {
+	// Kod wartości słownikowej.
+	//
+	// 	Code             | DisplayName                                 | Opis
+	// 	-----------------+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 	Pending          | Token w trakcie aktywacji                   | Token został utworzony, ale trwa jego aktywacja i nadawanie uprawnień. Nie może być jeszcze wykorzystywany do uwierzytelniania.
+	// 	Active           | Token aktywny                               | Token jest aktywny i może być wykorzystywany do uwierzytelniania.
+	// 	Revoking         | Token w trakcie unieważniania              | Token jest w trakcie unieważniania. Nie może już być wykorzystywany do uwierzytelniania.
+	// 	Revoked          | Token unieważniony                         | Token został unieważniony i nie może być wykorzystywany do uwierzytelniania.
+	// 	Failed           | Aktywacja tokenu zakończona niepowodzeniem | Nie udało się aktywować tokenu. Należy wygenerować nowy token. Obecny token nie może być wykorzystywany do uwierzytelniania.
+	// 	NotYetActive     | Token jeszcze nieaktywny                    | Token został wygenerowany poprawnie, ale okres jego ważności jeszcze się nie rozpoczął.
+	// 	AwaitingApproval | Token oczekuje na zatwierdzenie             | Token został wygenerowany za pomocą tokena KSeF i oczekuje na zatwierdzenie. Do czasu zatwierdzenia nie może być używany do uwierzytelniania.
+	// 	ApprovalExpired  | Upłynął termin zatwierdzenia tokena      | Upłynął czas na zatwierdzenie (24 godziny od nadania statusu `AwaitingApproval`). Token nie może już zostać zatwierdzony ani być wykorzystywany do uwierzytelniania. Należy ponownie zainicjować generowanie nowego tokena.
+	// 	Expired          | Token wygasł                               | Termin ważności tokenu upłynął.
+	// 	FutureValue      |                                             | Status tokenu nieznany w momencie wydania bieżącej wersji modelu. Rzeczywisty kod statusu jest dostępny w polu `rawCode`, a jego nazwa w polu `displayName`.
+	Code TokenStatusRev2Code `json:"code"`
+	// Oryginalny kod wartości słownikowej.
+	RawCode string `json:"rawCode"`
+	// Nazwa przeznaczona do prezentacji użytkownikowi.
+	DisplayName string `json:"displayName"`
+}
+
+// GetCode returns the value of Code.
+func (s *TokenStatusRev2) GetCode() TokenStatusRev2Code {
+	return s.Code
+}
+
+// GetRawCode returns the value of RawCode.
+func (s *TokenStatusRev2) GetRawCode() string {
+	return s.RawCode
+}
+
+// GetDisplayName returns the value of DisplayName.
+func (s *TokenStatusRev2) GetDisplayName() string {
+	return s.DisplayName
+}
+
+// SetCode sets the value of Code.
+func (s *TokenStatusRev2) SetCode(val TokenStatusRev2Code) {
+	s.Code = val
+}
+
+// SetRawCode sets the value of RawCode.
+func (s *TokenStatusRev2) SetRawCode(val string) {
+	s.RawCode = val
+}
+
+// SetDisplayName sets the value of DisplayName.
+func (s *TokenStatusRev2) SetDisplayName(val string) {
+	s.DisplayName = val
+}
+
+//	Code             | DisplayName                                 | Opis
+//	-----------------+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//	Pending          | Token w trakcie aktywacji                   | Token został utworzony, ale trwa jego aktywacja i nadawanie uprawnień. Nie może być jeszcze wykorzystywany do uwierzytelniania.
+//	Active           | Token aktywny                               | Token jest aktywny i może być wykorzystywany do uwierzytelniania.
+//	Revoking         | Token w trakcie unieważniania              | Token jest w trakcie unieważniania. Nie może już być wykorzystywany do uwierzytelniania.
+//	Revoked          | Token unieważniony                         | Token został unieważniony i nie może być wykorzystywany do uwierzytelniania.
+//	Failed           | Aktywacja tokenu zakończona niepowodzeniem | Nie udało się aktywować tokenu. Należy wygenerować nowy token. Obecny token nie może być wykorzystywany do uwierzytelniania.
+//	NotYetActive     | Token jeszcze nieaktywny                    | Token został wygenerowany poprawnie, ale okres jego ważności jeszcze się nie rozpoczął.
+//	AwaitingApproval | Token oczekuje na zatwierdzenie             | Token został wygenerowany za pomocą tokena KSeF i oczekuje na zatwierdzenie. Do czasu zatwierdzenia nie może być używany do uwierzytelniania.
+//	ApprovalExpired  | Upłynął termin zatwierdzenia tokena      | Upłynął czas na zatwierdzenie (24 godziny od nadania statusu `AwaitingApproval`). Token nie może już zostać zatwierdzony ani być wykorzystywany do uwierzytelniania. Należy ponownie zainicjować generowanie nowego tokena.
+//	Expired          | Token wygasł                               | Termin ważności tokenu upłynął.
+//	FutureValue      |                                             | Status tokenu nieznany w momencie wydania bieżącej wersji modelu. Rzeczywisty kod statusu jest dostępny w polu `rawCode`, a jego nazwa w polu `displayName`.
+//
+// Ref: #/components/schemas/TokenStatusRev2Code
+type TokenStatusRev2Code string
+
+const (
+	TokenStatusRev2CodePending          TokenStatusRev2Code = "Pending"
+	TokenStatusRev2CodeActive           TokenStatusRev2Code = "Active"
+	TokenStatusRev2CodeRevoking         TokenStatusRev2Code = "Revoking"
+	TokenStatusRev2CodeRevoked          TokenStatusRev2Code = "Revoked"
+	TokenStatusRev2CodeFailed           TokenStatusRev2Code = "Failed"
+	TokenStatusRev2CodeNotYetActive     TokenStatusRev2Code = "NotYetActive"
+	TokenStatusRev2CodeAwaitingApproval TokenStatusRev2Code = "AwaitingApproval"
+	TokenStatusRev2CodeApprovalExpired  TokenStatusRev2Code = "ApprovalExpired"
+	TokenStatusRev2CodeExpired          TokenStatusRev2Code = "Expired"
+	TokenStatusRev2CodeFutureValue      TokenStatusRev2Code = "FutureValue"
+)
+
+// AllValues returns all TokenStatusRev2Code values.
+func (TokenStatusRev2Code) AllValues() []TokenStatusRev2Code {
+	return []TokenStatusRev2Code{
+		TokenStatusRev2CodePending,
+		TokenStatusRev2CodeActive,
+		TokenStatusRev2CodeRevoking,
+		TokenStatusRev2CodeRevoked,
+		TokenStatusRev2CodeFailed,
+		TokenStatusRev2CodeNotYetActive,
+		TokenStatusRev2CodeAwaitingApproval,
+		TokenStatusRev2CodeApprovalExpired,
+		TokenStatusRev2CodeExpired,
+		TokenStatusRev2CodeFutureValue,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TokenStatusRev2Code) MarshalText() ([]byte, error) {
+	switch s {
+	case TokenStatusRev2CodePending:
+		return []byte(s), nil
+	case TokenStatusRev2CodeActive:
+		return []byte(s), nil
+	case TokenStatusRev2CodeRevoking:
+		return []byte(s), nil
+	case TokenStatusRev2CodeRevoked:
+		return []byte(s), nil
+	case TokenStatusRev2CodeFailed:
+		return []byte(s), nil
+	case TokenStatusRev2CodeNotYetActive:
+		return []byte(s), nil
+	case TokenStatusRev2CodeAwaitingApproval:
+		return []byte(s), nil
+	case TokenStatusRev2CodeApprovalExpired:
+		return []byte(s), nil
+	case TokenStatusRev2CodeExpired:
+		return []byte(s), nil
+	case TokenStatusRev2CodeFutureValue:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TokenStatusRev2Code) UnmarshalText(data []byte) error {
+	switch TokenStatusRev2Code(data) {
+	case TokenStatusRev2CodePending:
+		*s = TokenStatusRev2CodePending
+		return nil
+	case TokenStatusRev2CodeActive:
+		*s = TokenStatusRev2CodeActive
+		return nil
+	case TokenStatusRev2CodeRevoking:
+		*s = TokenStatusRev2CodeRevoking
+		return nil
+	case TokenStatusRev2CodeRevoked:
+		*s = TokenStatusRev2CodeRevoked
+		return nil
+	case TokenStatusRev2CodeFailed:
+		*s = TokenStatusRev2CodeFailed
+		return nil
+	case TokenStatusRev2CodeNotYetActive:
+		*s = TokenStatusRev2CodeNotYetActive
+		return nil
+	case TokenStatusRev2CodeAwaitingApproval:
+		*s = TokenStatusRev2CodeAwaitingApproval
+		return nil
+	case TokenStatusRev2CodeApprovalExpired:
+		*s = TokenStatusRev2CodeApprovalExpired
+		return nil
+	case TokenStatusRev2CodeExpired:
+		*s = TokenStatusRev2CodeExpired
+		return nil
+	case TokenStatusRev2CodeFutureValue:
+		*s = TokenStatusRev2CodeFutureValue
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
 
 // Merged schema.
 type TokensPostReq struct {
@@ -30998,6 +33465,23 @@ func (s *TokensPostReq) SetDescription(val string) {
 	s.Description = val
 }
 
+// TokensReferenceNumberApprovePostNoContent is response for TokensReferenceNumberApprovePost operation.
+type TokensReferenceNumberApprovePostNoContent struct {
+	XSystemWarning OptSystemWarning
+}
+
+// GetXSystemWarning returns the value of XSystemWarning.
+func (s *TokensReferenceNumberApprovePostNoContent) GetXSystemWarning() OptSystemWarning {
+	return s.XSystemWarning
+}
+
+// SetXSystemWarning sets the value of XSystemWarning.
+func (s *TokensReferenceNumberApprovePostNoContent) SetXSystemWarning(val OptSystemWarning) {
+	s.XSystemWarning = val
+}
+
+func (*TokensReferenceNumberApprovePostNoContent) tokensReferenceNumberApprovePostRes() {}
+
 // TokensReferenceNumberDeleteNoContent is response for TokensReferenceNumberDelete operation.
 type TokensReferenceNumberDeleteNoContent struct {
 	XSystemWarning OptSystemWarning
@@ -31014,6 +33498,61 @@ func (s *TokensReferenceNumberDeleteNoContent) SetXSystemWarning(val OptSystemWa
 }
 
 func (*TokensReferenceNumberDeleteNoContent) tokensReferenceNumberDeleteRes() {}
+
+// Merged schema.
+type TokensRev2PostReq struct {
+	// Uprawnienia przypisane tokenowi.
+	Permissions []TokenPermissionType `json:"permissions"`
+	// Opis tokena.
+	Description string `json:"description"`
+	// Data rozpoczęcia okresu ważności tokena. Może przypadać najpóźniej 60 dni po zainicjowaniu
+	// generowania tokena. Jeśli nie zostanie podana, przyjmuje wartość odpowiadającą momentowi
+	// inicjacji.
+	ValidFrom OptNilDateTime `json:"validFrom"`
+	// Data wygaśnięcia tokena. Może przypadać najpóźniej 365 dni po `validFrom`. Jeśli nie zostanie
+	// podana, okres ważności wynosi 90 dni od `validFrom`.
+	ValidTo OptNilDateTime `json:"validTo"`
+}
+
+// GetPermissions returns the value of Permissions.
+func (s *TokensRev2PostReq) GetPermissions() []TokenPermissionType {
+	return s.Permissions
+}
+
+// GetDescription returns the value of Description.
+func (s *TokensRev2PostReq) GetDescription() string {
+	return s.Description
+}
+
+// GetValidFrom returns the value of ValidFrom.
+func (s *TokensRev2PostReq) GetValidFrom() OptNilDateTime {
+	return s.ValidFrom
+}
+
+// GetValidTo returns the value of ValidTo.
+func (s *TokensRev2PostReq) GetValidTo() OptNilDateTime {
+	return s.ValidTo
+}
+
+// SetPermissions sets the value of Permissions.
+func (s *TokensRev2PostReq) SetPermissions(val []TokenPermissionType) {
+	s.Permissions = val
+}
+
+// SetDescription sets the value of Description.
+func (s *TokensRev2PostReq) SetDescription(val string) {
+	s.Description = val
+}
+
+// SetValidFrom sets the value of ValidFrom.
+func (s *TokensRev2PostReq) SetValidFrom(val OptNilDateTime) {
+	s.ValidFrom = val
+}
+
+// SetValidTo sets the value of ValidTo.
+func (s *TokensRev2PostReq) SetValidTo(val OptNilDateTime) {
+	s.ValidTo = val
+}
 
 // Ref: #/components/schemas/TooManyRequestsProblemDetails
 type TooManyRequestsProblemDetails struct {
@@ -31120,10 +33659,10 @@ func (s *TooManyRequestsProblemDetailsHeaders) SetResponse(val TooManyRequestsPr
 
 func (*TooManyRequestsProblemDetailsHeaders) authChallengePostRes()                                 {}
 func (*TooManyRequestsProblemDetailsHeaders) authKsefTokenPostRes()                                 {}
-func (*TooManyRequestsProblemDetailsHeaders) authReferenceNumberGetRes()                            {}
+func (*TooManyRequestsProblemDetailsHeaders) authRev2ReferenceNumberGetRes()                        {}
 func (*TooManyRequestsProblemDetailsHeaders) authSessionsCurrentDeleteRes()                         {}
-func (*TooManyRequestsProblemDetailsHeaders) authSessionsGetRes()                                   {}
 func (*TooManyRequestsProblemDetailsHeaders) authSessionsReferenceNumberDeleteRes()                 {}
+func (*TooManyRequestsProblemDetailsHeaders) authSessionsRev2GetRes()                               {}
 func (*TooManyRequestsProblemDetailsHeaders) authTokenRedeemPostRes()                               {}
 func (*TooManyRequestsProblemDetailsHeaders) authTokenRefreshPostRes()                              {}
 func (*TooManyRequestsProblemDetailsHeaders) authXadesSignaturePostRes()                            {}
@@ -31200,10 +33739,12 @@ func (*TooManyRequestsProblemDetailsHeaders) testdataRateLimitsPostRes()        
 func (*TooManyRequestsProblemDetailsHeaders) testdataRateLimitsProductionPostRes()                {}
 func (*TooManyRequestsProblemDetailsHeaders) testdataSubjectPostRes()                             {}
 func (*TooManyRequestsProblemDetailsHeaders) testdataSubjectRemovePostRes()                       {}
-func (*TooManyRequestsProblemDetailsHeaders) tokensGetRes()                                       {}
-func (*TooManyRequestsProblemDetailsHeaders) tokensPostRes()                                      {}
+func (*TooManyRequestsProblemDetailsHeaders) testdataTokensReferenceNumberExpireApprovalPostRes() {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensReferenceNumberApprovePostRes()                {}
 func (*TooManyRequestsProblemDetailsHeaders) tokensReferenceNumberDeleteRes()                     {}
-func (*TooManyRequestsProblemDetailsHeaders) tokensReferenceNumberGetRes()                        {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensRev2GetRes()                                   {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensRev2PostRes()                                  {}
+func (*TooManyRequestsProblemDetailsHeaders) tokensRev2ReferenceNumberGetRes()                    {}
 
 // Deprecated: schema marks this type as deprecated.
 // Ref: #/components/schemas/TooManyRequestsResponse
@@ -31250,10 +33791,10 @@ func (s *TooManyRequestsResponseHeaders) SetResponse(val TooManyRequestsResponse
 
 func (*TooManyRequestsResponseHeaders) authChallengePostRes()                                 {}
 func (*TooManyRequestsResponseHeaders) authKsefTokenPostRes()                                 {}
-func (*TooManyRequestsResponseHeaders) authReferenceNumberGetRes()                            {}
+func (*TooManyRequestsResponseHeaders) authRev2ReferenceNumberGetRes()                        {}
 func (*TooManyRequestsResponseHeaders) authSessionsCurrentDeleteRes()                         {}
-func (*TooManyRequestsResponseHeaders) authSessionsGetRes()                                   {}
 func (*TooManyRequestsResponseHeaders) authSessionsReferenceNumberDeleteRes()                 {}
+func (*TooManyRequestsResponseHeaders) authSessionsRev2GetRes()                               {}
 func (*TooManyRequestsResponseHeaders) authTokenRedeemPostRes()                               {}
 func (*TooManyRequestsResponseHeaders) authTokenRefreshPostRes()                              {}
 func (*TooManyRequestsResponseHeaders) authXadesSignaturePostRes()                            {}
@@ -31329,10 +33870,12 @@ func (*TooManyRequestsResponseHeaders) testdataRateLimitsPostRes()              
 func (*TooManyRequestsResponseHeaders) testdataRateLimitsProductionPostRes()                    {}
 func (*TooManyRequestsResponseHeaders) testdataSubjectPostRes()                                 {}
 func (*TooManyRequestsResponseHeaders) testdataSubjectRemovePostRes()                           {}
-func (*TooManyRequestsResponseHeaders) tokensGetRes()                                           {}
-func (*TooManyRequestsResponseHeaders) tokensPostRes()                                          {}
+func (*TooManyRequestsResponseHeaders) testdataTokensReferenceNumberExpireApprovalPostRes()     {}
+func (*TooManyRequestsResponseHeaders) tokensReferenceNumberApprovePostRes()                    {}
 func (*TooManyRequestsResponseHeaders) tokensReferenceNumberDeleteRes()                         {}
-func (*TooManyRequestsResponseHeaders) tokensReferenceNumberGetRes()                            {}
+func (*TooManyRequestsResponseHeaders) tokensRev2GetRes()                                       {}
+func (*TooManyRequestsResponseHeaders) tokensRev2PostRes()                                      {}
+func (*TooManyRequestsResponseHeaders) tokensRev2ReferenceNumberGetRes()                        {}
 
 // Informacje o błędzie związanym z przekroczeniem limitu żądań.
 type TooManyRequestsResponseStatus struct {
@@ -31452,9 +33995,11 @@ func (s *UnauthorizedProblemDetails) SetTimestamp(val time.Time) {
 }
 
 func (*UnauthorizedProblemDetails) authReferenceNumberGetRes()                                      {}
+func (*UnauthorizedProblemDetails) authRev2ReferenceNumberGetRes()                                  {}
 func (*UnauthorizedProblemDetails) authSessionsCurrentDeleteRes()                                   {}
 func (*UnauthorizedProblemDetails) authSessionsGetRes()                                             {}
 func (*UnauthorizedProblemDetails) authSessionsReferenceNumberDeleteRes()                           {}
+func (*UnauthorizedProblemDetails) authSessionsRev2GetRes()                                         {}
 func (*UnauthorizedProblemDetails) authTokenRedeemPostRes()                                         {}
 func (*UnauthorizedProblemDetails) authTokenRefreshPostRes()                                        {}
 func (*UnauthorizedProblemDetails) certificatesCertificateSerialNumberRevokePostRes()               {}
@@ -31515,10 +34060,15 @@ func (*UnauthorizedProblemDetails) testdataLimitsSubjectCertificatePostRes()    
 func (*UnauthorizedProblemDetails) testdataRateLimitsDeleteRes()                                    {}
 func (*UnauthorizedProblemDetails) testdataRateLimitsPostRes()                                      {}
 func (*UnauthorizedProblemDetails) testdataRateLimitsProductionPostRes()                            {}
+func (*UnauthorizedProblemDetails) testdataTokensReferenceNumberExpireApprovalPostRes()             {}
 func (*UnauthorizedProblemDetails) tokensGetRes()                                                   {}
 func (*UnauthorizedProblemDetails) tokensPostRes()                                                  {}
+func (*UnauthorizedProblemDetails) tokensReferenceNumberApprovePostRes()                            {}
 func (*UnauthorizedProblemDetails) tokensReferenceNumberDeleteRes()                                 {}
 func (*UnauthorizedProblemDetails) tokensReferenceNumberGetRes()                                    {}
+func (*UnauthorizedProblemDetails) tokensRev2GetRes()                                               {}
+func (*UnauthorizedProblemDetails) tokensRev2PostRes()                                              {}
+func (*UnauthorizedProblemDetails) tokensRev2ReferenceNumberGetRes()                                {}
 
 // Ref: #/components/schemas/UnblockContextAuthenticationRequest
 type UnblockContextAuthenticationRequest struct {
