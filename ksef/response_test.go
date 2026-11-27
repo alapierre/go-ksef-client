@@ -39,6 +39,25 @@ func facadeOperations(ctx context.Context) []facadeOperation {
 	invoices := []api.CollectiveIdentifierInvoice{{KsefNumber: api.KsefNumber(collectiveTestInvoice)}, {KsefNumber: api.KsefNumber(collectiveTestInvoice2)}}
 	authInit := &api.AuthenticationInitResponse{ReferenceNumber: api.ReferenceNumber(facadeTestRef), AuthenticationToken: api.AuthenticationInitResponseAuthenticationToken{Token: "auth-token"}}
 	return []facadeOperation{
+		{name: "GenerateKsefToken", status: 202, contentType: "application/json", body: `{"referenceNumber":"` + tokenTestReference + `","token":"` + tokenTestPrefix + `exp-20270312|secret"}`,
+			legacy: func(c *Client, _ *AuthFacade) (any, error) { return c.GenerateKsefToken(ctx, tokenTestRequest()) },
+			metadata: func(c *Client, _ *AuthFacade) (any, ResponseMetadata, error) {
+				return c.GenerateKsefTokenWithMetadata(ctx, tokenTestRequest())
+			},
+		},
+		{name: "GetKsefTokenStatus", status: 200, contentType: "application/json", body: tokenStatusJSON("AwaitingApproval", "AwaitingApproval"),
+			legacy: func(c *Client, _ *AuthFacade) (any, error) { return c.GetKsefTokenStatus(ctx, tokenTestReference) },
+			metadata: func(c *Client, _ *AuthFacade) (any, ResponseMetadata, error) {
+				return c.GetKsefTokenStatusWithMetadata(ctx, tokenTestReference)
+			},
+		},
+		{name: "ApproveKsefToken", status: 204,
+			legacy: func(c *Client, _ *AuthFacade) (any, error) { return nil, c.ApproveKsefToken(ctx, tokenTestReference) },
+			metadata: func(c *Client, _ *AuthFacade) (any, ResponseMetadata, error) {
+				metadata, err := c.ApproveKsefTokenWithMetadata(ctx, tokenTestReference)
+				return nil, metadata, err
+			},
+		},
 		{name: "OpenInteractiveSession", status: 201, contentType: "application/json", body: `{"referenceNumber":"` + facadeTestRef + `","validUntil":"2026-07-01T12:00:00Z"}`,
 			legacy: func(c *Client, a *AuthFacade) (any, error) { return c.OpenInteractiveSession(ctx, form, key, iv) },
 			metadata: func(c *Client, a *AuthFacade) (any, ResponseMetadata, error) {

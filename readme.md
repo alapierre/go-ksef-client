@@ -19,6 +19,7 @@ The client provides high-level operations for authentication, invoice submission
 
 - **Authentication** — KSeF Token and XAdES authentication, including KSeF certificates, qualified electronic signatures and qualified electronic seals through `github.com/alapierre/godss`; waiting for authentication to complete, redeeming and refreshing tokens, and closing authentication sessions.
 - **Multi-NIP token management** — a concurrent token cache, automatic token refresh and reauthentication, loading persisted tokens with `SeedTokens`, and callbacks for persisting token updates. See [TokenProvider](#tokenprovider-multi-nip-token-cache).
+- **KSeF token issuance and approval** — generate a token with a validity period, read its status and approve it in an authorized session. See [Managing KSeF tokens](#managing-ksef-tokens).
 - **Response header listeners** — log KSeF system warnings or observe other headers across SDK calls. See [Logging KSeF system warnings](#logging-ksef-system-warnings).
 - **Encryption and public key rotation** — encryption of KSeF tokens and session keys, cached public keys, `publicKeyId` support, and key refresh with a retry when KSeF rejects a public key. See [EncryptionService](#encryptionservice).
 - **Interactive invoice submission** — opening a session, encrypting and sending invoices, and closing the session. See [Interactive sessions](#opening-an-interactive-session-and-sending-invoices).
@@ -210,6 +211,64 @@ ctx = ksef.Context(ctx, "")
 ````
 
 Use ctx for all API calls that require NIP
+
+## Managing KSeF tokens
+
+`GenerateKsefToken` calls `POST /tokens/rev2` using the authenticated client.
+`ValidFrom` and `ValidTo` are independently optional. KSeF defaults the start to
+the time of the request and the end to 90 days after the start. The start may be
+up to 60 days in the future and the validity period may be up to 365 days.
+
+```go
+issued, err := client.GenerateKsefToken(ctx, api.TokensRev2PostReq{
+    Description: "Invoice reader",
+    Permissions: []api.TokenPermissionType{api.TokenPermissionTypeInvoiceRead},
+    ValidTo:     api.NewOptNilDateTime(time.Now().UTC().AddDate(0, 3, 0)),
+})
+if err != nil {
+    return err
+}
+// Save issued.Token securely with issued.ReferenceNumber before any further
+// API calls. KSeF returns the secret only once.
+```
+
+If the token contains an expiry day, `issued.ExpiryDate` points to that day
+at midnight UTC. Use `issued.ExpiryDate.Format(time.DateOnly)` to display it
+as YYYY-MM-DD. The field is nil when the day is unavailable.
+
+For a token obtained elsewhere, including through the legacy endpoint,
+`date, ok := ksef.ParseKsefTokenExpiryDate(token)` reads the same calendar date
+offline. To persist the exact expiry time or check approval, query by reference.
+If the status request fails, retry that request using the saved reference.
+
+```go
+details, err := client.GetKsefTokenStatus(ctx, referenceNumber)
+if err != nil {
+    return err
+}
+// Persist details.ValidFrom, details.ValidTo and details.Status.Code.
+// Only api.TokenStatusRev2CodeActive allows authentication.
+```
+
+Tokens generated in a KSeF-token-authenticated session require approval within
+24 hours of entering `AwaitingApproval`. An authorized approver uses a client
+authenticated through XAdES or Węzeł Krajowy:
+
+```go
+if err := approverClient.ApproveKsefToken(ctx, referenceNumber); err != nil {
+    return err
+}
+```
+
+After approval, the status is `Active` or `NotYetActive` for a future start.
+`ApprovalExpired` requires issuing a new token. Each operation also provides a
+`WithMetadata` variant for reading successful response headers.
+
+The published rev2 rollout dates are 2026-11-25 for TEST, 2026-12-30 for DEMO
+and 2027-01-01 for PROD. Use the existing `api.Client.TokensPost` explicitly
+on environments awaiting rollout. The legacy status endpoint maps
+`AwaitingApproval` and `NotYetActive` to `Active`. Use `GetKsefTokenStatus`
+for approval checks once rev2 is available. [KSeF API changelog](https://github.com/CIRFMF/ksef-api/blob/main/api-changelog.md)
 
 ## TokenProvider Multi-NIP token cache
 
