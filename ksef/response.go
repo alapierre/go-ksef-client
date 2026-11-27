@@ -19,12 +19,24 @@ func responseMetadata(v interface{ GetXSystemWarning() api.OptSystemWarning }) R
 	return ResponseMetadata{XSystemWarning: v.GetXSystemWarning()}
 }
 
+// Both current and deprecated operations expose these fields on HTTP 429.
+type rateLimitResponse[T any] interface {
+	GetResponse() T
+	GetRetryAfter() api.OptRetryAfter
+}
+
 // responseAPIError handles decoded error variants. exceptionStatus must come from
 // the calling operation's contract, since ExceptionResponse has no HTTP status.
 func responseAPIError(response any, exceptionStatus int) error {
 	var result *ApiError
 	body := response
 	switch v := response.(type) {
+	case *api.ExceptionResponseHeaders:
+		return responseAPIError(&v.Response, exceptionStatus)
+	case *api.BadRequestProblemDetailsHeaders:
+		return responseAPIError(&v.Response, exceptionStatus)
+	case *api.GoneProblemDetailsHeaders:
+		return responseAPIError(&v.Response, exceptionStatus)
 	case *api.ExceptionResponse:
 		result = HandleAPIError(v).(*ApiError)
 		result.Status = exceptionStatus
@@ -36,19 +48,21 @@ func responseAPIError(response any, exceptionStatus int) error {
 				Details: append([]string(nil), detail.Details.Value...),
 			})
 		}
-	case *api.TooManyRequestsResponseHeaders:
-		status := v.Response.Status
+	case rateLimitResponse[api.TooManyRequestsResponse]:
+		payload := v.GetResponse()
+		status := payload.Status
 		result = &ApiError{
 			Status: http.StatusTooManyRequests, Message: status.Description,
-			RetryAfter: v.RetryAfter,
+			RetryAfter: v.GetRetryAfter(),
 			Details: []ErrorDetail{{Code: status.Code, Message: status.Description,
 				Details: append([]string(nil), status.Details...)}},
 		}
-		body = &v.Response
-	case *api.TooManyRequestsProblemDetailsHeaders:
-		result = problemAPIError(http.StatusTooManyRequests, &v.Response)
-		result.RetryAfter = v.RetryAfter
-		body = &v.Response
+		body = &payload
+	case rateLimitResponse[api.TooManyRequestsProblemDetails]:
+		payload := v.GetResponse()
+		result = problemAPIError(http.StatusTooManyRequests, &payload)
+		result.RetryAfter = v.GetRetryAfter()
+		body = &payload
 	case *api.UnauthorizedProblemDetails:
 		result = problemAPIError(http.StatusUnauthorized, v)
 		result.cause = ErrUnauthorized
