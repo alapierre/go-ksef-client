@@ -261,7 +261,7 @@ func (s *EncryptionService) fetchAndSelect(ctx context.Context, force bool) erro
 	case *api.SecurityPublicKeyCertificatesGetOKHeaders:
 		certs = v.Response
 	default:
-		return fmt.Errorf("nieoczekiwany wariant odpowiedzi: %T", v)
+		return responseAPIError(v, http.StatusBadRequest)
 	}
 
 	var chosenToken *api.PublicKeyCertificate

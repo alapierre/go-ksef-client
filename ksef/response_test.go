@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -445,6 +446,71 @@ func TestExceptionStatusIsProvidedByOperation(t *testing.T) {
 	err := responseAPIError(&api.TooManyRequestsProblemDetailsHeaders{Response: api.TooManyRequestsProblemDetails{Status: 200, Title: "Too Many Requests"}}, 400).(*ApiError)
 	if err.Status != 429 || err.Message != "Too Many Requests" {
 		t.Fatalf("error = %#v", err)
+	}
+}
+
+func TestAuthWaitReturnsAuthStatusError(t *testing.T) {
+	for _, tc := range []struct {
+		name, statusJSON string
+		want             AuthStatusError
+		wantMessage      string
+	}{
+		{"multiple", `"code":415,"description":"failed","details":["Brak przypisanych uprawnień","second detail"]`,
+			AuthStatusError{Code: 415, Description: "failed", Details: []string{"Brak przypisanych uprawnień", "second detail"}},
+			"uwierzytelnianie zakończone kodem 415 (failed): Brak przypisanych uprawnień; second detail"},
+		{"absent", `"code":415,"description":"failed"`, AuthStatusError{Code: 415, Description: "failed"}, "uwierzytelnianie zakończone kodem 415 (failed)"},
+		{"null", `"code":460,"description":"certificate error","details":null`, AuthStatusError{Code: 460, Description: "certificate error"}, "uwierzytelnianie zakończone kodem 460 (certificate error)"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := newTestClient(t, func(r *http.Request) (*http.Response, error) {
+				if r.Method != http.MethodGet || r.URL.Path != "/v2/auth/"+facadeTestRef {
+					t.Fatalf("unexpected request %s %s", r.Method, r.URL.Path)
+				}
+				body := strings.Replace(facadePollSuccess, `"code":200,"description":"success"`, tc.statusJSON, 1)
+				return testJSONResponse(200, "application/json", body), nil
+			})
+			a := &AuthFacade{raw: c.raw, httpClient: c.httpClient, env: Test}
+			init := &api.AuthenticationInitResponse{ReferenceNumber: api.ReferenceNumber(facadeTestRef), AuthenticationToken: api.AuthenticationInitResponseAuthenticationToken{Token: "auth-token"}}
+			_, err := a.AuthWaitAndRedeem(context.Background(), init, time.Nanosecond)
+			var status *AuthStatusError
+			if !errors.As(fmt.Errorf("authenticate: %w", err), &status) || !reflect.DeepEqual(*status, tc.want) {
+				t.Fatalf("status = %#v, want %#v (err = %v)", status, tc.want, err)
+			}
+			if err.Error() != tc.wantMessage {
+				t.Fatalf("err = %v, want %s", err, tc.wantMessage)
+			}
+		})
+	}
+}
+
+func TestAuthStatusErrorReason(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		code    int32
+		details []string
+		want    AuthStatusReason
+	}{
+		{"revoked session", 425, nil, AuthReasonSessionRevoked},
+		{"revoked token", 450, []string{"Token unieważniony"}, AuthReasonTokenRevoked},
+		{"inactive token", 450, []string{"Token nieaktywny"}, AuthReasonTokenInactive},
+		{"outside validity period", 450, []string{"Token poza okresem ważności"}, AuthReasonTokenOutsideValidityPeriod},
+		{"invalid challenge", 450, []string{"Nieprawidłowe wyzwanie autoryzacyjne"}, AuthReasonInvalidChallenge},
+		{"invalid token", 450, []string{"Nieprawidłowy token"}, AuthReasonInvalidToken},
+		{"invalid token time", 450, []string{"Nieprawidłowy czas tokena"}, AuthReasonInvalidTokenTime},
+		{"invalid encryption", 450, []string{"Nieprawidłowe szyfrowanie tokena"}, AuthReasonInvalidTokenEncryption},
+		{"invalid encoding", 450, []string{"Nieprawidłowe kodowanie tokena"}, AuthReasonInvalidTokenEncoding},
+		{"context mismatch", 450, []string{"Token nie może być użyty w kontekście 1234567890"}, AuthReasonTokenContextMismatch},
+		{"first recognized detail", 450, []string{"inny szczegół", " TOKEN NIEAKTYWNY. ", "Token unieważniony"}, AuthReasonTokenInactive},
+		{"unknown detail", 450, []string{"Nieprawidłowy token testowy"}, AuthReasonUnknown},
+		{"missing details", 450, nil, AuthReasonUnknown},
+		{"other code", 460, []string{"Token unieważniony"}, AuthReasonUnknown},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := &AuthStatusError{Code: tc.code, Details: tc.details}
+			if got := err.Reason(); got != tc.want {
+				t.Errorf("Reason() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 

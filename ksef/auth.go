@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/alapierre/go-ksef-client/ksef/api"
@@ -14,6 +15,73 @@ type AuthFacade struct {
 	raw        *api.Client
 	env        Environment
 	httpClient *http.Client
+}
+
+// AuthStatusError reports a terminal failure of a KSeF authentication operation.
+type AuthStatusError struct {
+	Code        int32 // KSeF authentication status code.
+	Description string
+	Details     []string
+}
+
+// AuthStatusReason identifies a cause reported by a KSeF authentication operation.
+type AuthStatusReason string
+
+const (
+	AuthReasonUnknown                    AuthStatusReason = "unknown"
+	AuthReasonSessionRevoked             AuthStatusReason = "session_revoked"
+	AuthReasonInvalidChallenge           AuthStatusReason = "invalid_challenge"
+	AuthReasonInvalidToken               AuthStatusReason = "invalid_token"
+	AuthReasonInvalidTokenTime           AuthStatusReason = "invalid_token_time"
+	AuthReasonTokenRevoked               AuthStatusReason = "token_revoked"
+	AuthReasonTokenInactive              AuthStatusReason = "token_inactive"
+	AuthReasonTokenOutsideValidityPeriod AuthStatusReason = "token_outside_validity_period"
+	AuthReasonInvalidTokenEncryption     AuthStatusReason = "invalid_token_encryption"
+	AuthReasonInvalidTokenEncoding       AuthStatusReason = "invalid_token_encoding"
+	AuthReasonTokenContextMismatch       AuthStatusReason = "token_context_mismatch"
+)
+
+// Reason classifies status 425 as revocation of the session and its refresh tokens.
+// For status 450 it returns the first recognized detail. Other failures return AuthReasonUnknown.
+func (e *AuthStatusError) Reason() AuthStatusReason {
+	switch e.Code {
+	case 425:
+		return AuthReasonSessionRevoked
+	case 450:
+		for _, detail := range e.Details {
+			detail = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(detail)), ".")
+			switch detail {
+			case "nieprawidłowe wyzwanie autoryzacyjne":
+				return AuthReasonInvalidChallenge
+			case "nieprawidłowy token":
+				return AuthReasonInvalidToken
+			case "nieprawidłowy czas tokena":
+				return AuthReasonInvalidTokenTime
+			case "token unieważniony":
+				return AuthReasonTokenRevoked
+			case "token nieaktywny":
+				return AuthReasonTokenInactive
+			case "token poza okresem ważności":
+				return AuthReasonTokenOutsideValidityPeriod
+			case "nieprawidłowe szyfrowanie tokena":
+				return AuthReasonInvalidTokenEncryption
+			case "nieprawidłowe kodowanie tokena":
+				return AuthReasonInvalidTokenEncoding
+			}
+			if strings.HasPrefix(detail, "token nie może być użyty w kontekście ") {
+				return AuthReasonTokenContextMismatch
+			}
+		}
+	}
+	return AuthReasonUnknown
+}
+
+func (e *AuthStatusError) Error() string {
+	message := fmt.Sprintf("uwierzytelnianie zakończone kodem %d (%s)", e.Code, e.Description)
+	if len(e.Details) > 0 {
+		message += ": " + strings.Join(e.Details, "; ")
+	}
+	return message
 }
 
 // Prosty bearer do obsługi pośredniej autoryzacji
@@ -132,7 +200,8 @@ func (c *AuthFacade) AuthWithXadesWithMetadata(ctx context.Context, signedXml []
 
 }
 
-// AuthWaitAndRedeem Polluje status aż do 200 lub do ctx.Done(). Interwał czekania kontrolowany parametrem pollEvery.
+// AuthWaitAndRedeem polls at pollEvery intervals until authentication completes
+// or ctx is canceled. A failed authentication status returns an *AuthStatusError.
 func (c *AuthFacade) AuthWaitAndRedeem(ctx context.Context, authResp *api.AuthenticationInitResponse, pollEvery time.Duration) (*api.AuthenticationTokensResponse, error) {
 	result, _, err := c.AuthWaitAndRedeemWithMetadata(ctx, authResp, pollEvery)
 	return result, err
@@ -171,16 +240,19 @@ func (c *AuthFacade) AuthWaitAndRedeemWithMetadata(ctx context.Context, authResp
 
 			switch v := res.(type) {
 			case *api.AuthenticationOperationStatusResponseHeaders:
-				code := v.Response.GetStatus().Code
-				switch code {
+				status := v.Response.GetStatus()
+				switch status.Code {
 				case 100: // w toku – kolejna pętla
 					continue
 				case 200: // gotowe
-					logger.Infof("%+v", v.Response.GetStatus())
+					logger.Infof("%+v", status)
 					return redeemTokensWithMetadata(ctx, cli)
 				default:
-					desc := v.Response.GetStatus().Description
-					return nil, ResponseMetadata{}, fmt.Errorf("uwierzytelnianie zakończone kodem %d (%s)", code, desc)
+					return nil, ResponseMetadata{}, &AuthStatusError{
+						Code:        status.Code,
+						Description: status.Description,
+						Details:     status.Details.Or(nil),
+					}
 				}
 
 			default:

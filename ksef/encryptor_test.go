@@ -7,6 +7,8 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"net/http"
 	"testing"
 	"time"
 
@@ -41,6 +43,30 @@ func TestBuildEncryptionInfoIncludesPublicKeyID(t *testing.T) {
 	}
 	if len(enc.EncryptedSymmetricKey) == 0 {
 		t.Fatal("encrypted symmetric key is empty")
+	}
+}
+
+func TestEncryptKsefTokenWithKeyIDPreservesCertificateRateLimit(t *testing.T) {
+	for _, tc := range []struct{ contentType, body string }{
+		{"application/json", `{"status":{"code":429,"description":"Too Many Requests","details":[]}}`},
+		{"application/problem+json", `{"title":"Too Many Requests","status":429,"detail":"Limit exceeded","instance":"/request/1","timestamp":"2026-07-01T00:00:00Z","traceId":"trace-1"}`},
+	} {
+		t.Run(tc.contentType, func(t *testing.T) {
+			client := &http.Client{Transport: testRoundTripper(func(*http.Request) (*http.Response, error) {
+				resp := testJSONResponse(http.StatusTooManyRequests, tc.contentType, tc.body)
+				resp.Header.Set("Retry-After", "17")
+				return resp, nil
+			})}
+			s, err := NewEncryptionService(Test, client)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = s.EncryptKsefTokenWithKeyID(context.Background(), "token", time.Now())
+			var apiErr *ApiError
+			if !errors.As(err, &apiErr) || apiErr.Status != http.StatusTooManyRequests || apiErr.RetryAfter.Or(0) != 17 {
+				t.Fatalf("expected 429 with Retry-After 17, got %#v (%v)", apiErr, err)
+			}
+		})
 	}
 }
 

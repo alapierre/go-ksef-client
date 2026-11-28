@@ -79,6 +79,16 @@ compatible; positional literals must be converted to keyed literals.
 The standalone `HandleAPIError` keeps status zero because an `ExceptionResponse`
 alone does not carry an HTTP status; each facade operation supplies its status.
 
+When KSeF reports a terminal authentication failure in the polling response,
+`AuthWaitAndRedeem` and `AuthWaitAndRedeemWithMetadata` return a
+`*ksef.AuthStatusError`. Use `errors.As` to read the KSeF authentication
+status code (`Code`), `Description` and `Details`. For status 450, `Reason()`
+returns the first recognized detail as a `ksef.AuthStatusReason`, such as
+`ksef.AuthReasonTokenRevoked` or `ksef.AuthReasonInvalidChallenge`. Status 425
+returns `ksef.AuthReasonSessionRevoked` and covers the session and its refresh
+tokens. Unrecognized failures return `ksef.AuthReasonUnknown`. An HTTP 429 during polling
+or token redemption returns a `*ksef.ApiError` as shown above.
+
 ### Logging KSeF system warnings
 
 Use `ksef.ObserveResponseHeader` to log `X-System-Warning` across SDK calls,
@@ -885,6 +895,12 @@ For changes to generated model names, constructors and response types, see [Back
 For KSeF operations that define HTTP 429, the facade returns a `*ksef.ApiError` with
 `Status == http.StatusTooManyRequests`. Use `apiErr.RetryAfter.Get()` to check whether
 KSeF supplied a delay in seconds. The application decides whether and when to retry.
+
+If KSeF rate-limits an access token refresh, `TokenProvider.Bearer` returns the
+original `*ksef.ApiError` immediately and skips full authentication. If KSeF
+rate-limits an encryption certificate fetch during a request, use `errors.As`
+on the returned error to read the same HTTP 429 status and any `RetryAfter` value.
+
 A response header listener can log `Retry-After` from the same response. See
 [Response metadata and API errors](#response-metadata-and-api-errors) for an example.
 

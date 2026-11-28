@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -250,6 +251,26 @@ func TestTokenProvider_RefreshAccessTokenCallsTokenUpdateCallback(t *testing.T) 
 	}
 	if got := atomic.LoadInt64(&ref.callCount); got != 1 {
 		t.Fatalf("expected 1 refresh call, got %d", got)
+	}
+}
+
+func TestTokenProvider_RefreshRateLimitSkipsFullAuth(t *testing.T) {
+	want := &ApiError{Status: http.StatusTooManyRequests, RetryAfter: api.NewOptRetryAfter(17)}
+	ref := &mockTokenRefresher{err: want}
+	full := &mockFullAuthenticator{}
+	p := newTestTokenProvider(ref, full)
+	ctx := ctxWithNip("1234567890")
+	refresh := api.TokenInfo{Token: "valid-refresh", ValidUntil: time.Now().Add(time.Hour)}
+	if err := p.SeedTokens(ctx, api.TokenInfo{}, refresh); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := p.Bearer(ctx, "Op")
+	if err != want {
+		t.Errorf("Bearer() error = %v, want original refresh error %v", err, want)
+	}
+	if ref.callCount != 1 || full.callCount != 0 {
+		t.Errorf("refresh calls = %d, full auth calls = %d, want 1 and 0", ref.callCount, full.callCount)
 	}
 }
 

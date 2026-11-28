@@ -3,6 +3,7 @@ package ksef
 import (
 	"context"
 	"errors"
+	"net/http"
 	"sync"
 	"time"
 
@@ -172,8 +173,13 @@ func (p *TokenProvider) Bearer(ctx context.Context, _ api.OperationName) (api.Be
 			}
 			return api.Bearer{Token: token}, nil
 		}
+		var apiErr *ApiError
+		if errors.As(err, &apiErr) && apiErr.Status == http.StatusTooManyRequests {
+			p.mu.Unlock()
+			return api.Bearer{}, apiErr
+		}
 		// jeśli refresh nie powiódł się, spróbuj pełnego uwierzytelnienia
-		logger.Debugf("TokenProvider: Refresh failed: %v, performing full authentication", err)
+		logger.Debug("TokenProvider: Refresh failed, performing full authentication")
 		bearer, update, err := p.fullAuthLocked(ctx)
 		p.mu.Unlock()
 		if err != nil {
